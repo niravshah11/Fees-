@@ -18,7 +18,7 @@ const WHATS_NEW: { title: string; detail: string }[] = [
   },
   {
     title: 'Rights',
-    detail: 'Grant School Finance (per school), Fees Group Coordinator, Head of Operations, Director, or Board of Trustees at /settings/rights.',
+    detail: 'Grant Finance Officer (per school), Fees Group Coordinator, Head of Operations, Director, or Board of Trustees at /settings/rights.',
   },
 ];
 
@@ -34,7 +34,7 @@ export default function Help() {
       <section className="fh-card space-y-3">
         <h2 className="font-heading text-lg font-bold text-foreground">The workflow, in short</h2>
         <ol className="list-decimal space-y-1 pl-5 text-sm text-foreground">
-          <li>A School Finance user opens their school and starts a draft for the next academic year.</li>
+          <li>A Finance Officer opens their school and starts a draft for the next academic year.</li>
           <li>Each grade band pre-fills from last year's approved fee and its programme stage's default increment — both fully editable.</li>
           <li>The draft is submitted for review, entering the approval chain in order: Fees Group Coordinator, Head of Operations, Director, then Board of Trustees.</li>
           <li>Once the Board approves, that version becomes the school's official fee for the year, and any prior approved version for the same year is superseded.</li>

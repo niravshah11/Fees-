@@ -7,6 +7,14 @@ import { addRightsGrant, removeRightsGrant } from './actions';
 
 export const dynamic = 'force-dynamic';
 
+const ROLE_LABEL: Record<string, string> = {
+  SCHOOL_FINANCE: 'Finance Officer',
+  FEES_GROUP_COORDINATOR: 'Fees Group Coordinator',
+  HEAD_OF_OPERATIONS: 'Head of Operations',
+  DIRECTOR: 'Director',
+  BOARD_TRUSTEE: 'Board of Trustees',
+};
+
 export default async function RightsSettings() {
   const user = await getCurrentUser();
   const admins = resolveRightsAdmins(process.env.RIGHTS_ADMIN_EMAILS);
@@ -32,7 +40,7 @@ export default async function RightsSettings() {
         <Link href="/" className="text-sm text-primary hover:underline">← Schools</Link>
         <h1 className="mt-1 font-heading text-2xl font-bold text-foreground">Rights</h1>
         <p className="mt-1 text-muted">
-          Every role needs an explicit grant. <strong>School Finance</strong> drafts/edits/submits
+          Every role needs an explicit grant. <strong>Finance Officer</strong> drafts/edits/submits
           a proposal for its own school. <strong>Fees Group Coordinator</strong>,{' '}
           <strong>Head of Operations</strong>, <strong>Director</strong>, and{' '}
           <strong>Board of Trustees</strong> each act on their own step of the group-wide
@@ -57,7 +65,7 @@ export default async function RightsSettings() {
                 <tr key={g.id}>
                   <td>{g.user.name}</td>
                   <td className="text-muted">{g.user.email}</td>
-                  <td><span className="fh-badge">{g.role.replace(/_/g, ' ')}</span></td>
+                  <td><span className="fh-badge">{ROLE_LABEL[g.role] ?? g.role}</span></td>
                   <td>{g.campus ?? 'All schools'}</td>
                   <td>
                     <form action={removeRightsGrant.bind(null, g.id)}>
@@ -79,7 +87,7 @@ export default async function RightsSettings() {
           <input name="name" placeholder="Full name" className="fh-input" required />
           <input name="email" type="email" placeholder="name@fountainheadschools.org" className="fh-input" required />
           <select name="role" className="fh-input" defaultValue="SCHOOL_FINANCE">
-            <option value="SCHOOL_FINANCE">School Finance</option>
+            <option value="SCHOOL_FINANCE">Finance Officer</option>
             <option value="FEES_GROUP_COORDINATOR">Fees Group Coordinator</option>
             <option value="HEAD_OF_OPERATIONS">Head of Operations</option>
             <option value="DIRECTOR">Director</option>

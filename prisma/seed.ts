@@ -61,23 +61,16 @@ const SCHOOLS: SchoolSeed[] = [
       'by a few rupees from the exact filed amount due to legacy per-row rounding in the ' +
       'original FRC filing. Term fees are the exact filed amounts.',
     stages: [
-      {
-        // Forward-looking policy (10 Years Fees Kunkni!E1:F2): 6% for EYP-to-MYP from 2027-28
-        // onward. The 2026-27 seed above still uses the historical 5% — this default only
-        // pre-fills the NEXT draft a School Finance user creates.
-        label: 'EYP to MYP',
-        defaultIncrementPct: 0.06,
-        gradeBands: [
-          { label: 'Jr. & Sr. KG', baseFee: 138190, termFee: 20157 },
-          { label: 'Grade 1 to 6', baseFee: 163640, termFee: 23870 },
-          { label: 'Grade 7 to 10', baseFee: 202720, termFee: 29570 },
-        ],
-      },
-      {
-        label: 'DP',
-        defaultIncrementPct: 0.05,
-        gradeBands: [{ label: 'Grade 11 & 12', baseFee: 381470, termFee: 55644 }],
-      },
+      // Forward-looking policy (10 Years Fees Kunkni!E1:F2): 6% for EYP-to-MYP from 2027-28
+      // onward, split one stage per IB programme (confirmed with the user) rather than one
+      // "EYP to MYP" stage covering three grade bands at a shared rate — each programme sets
+      // its own YoY % independently at finalisation time, even though today they start equal.
+      // The 2026-27 seed above still uses the historical 5% — these defaults only pre-fill the
+      // NEXT draft a Finance Officer creates.
+      { label: 'EYP — Early Years Programme', defaultIncrementPct: 0.06, gradeBands: [{ label: 'Jr. & Sr. KG', baseFee: 138190, termFee: 20157 }] },
+      { label: 'PYP — Primary Years Programme', defaultIncrementPct: 0.06, gradeBands: [{ label: 'Grade 1 to 6', baseFee: 163640, termFee: 23870 }] },
+      { label: 'MYP — Middle Years Programme', defaultIncrementPct: 0.06, gradeBands: [{ label: 'Grade 7 to 10', baseFee: 202720, termFee: 29570 }] },
+      { label: 'DP — Diploma Programme', defaultIncrementPct: 0.05, gradeBands: [{ label: 'Grade 11 & 12', baseFee: 381470, termFee: 55644 }] },
     ],
   },
   {
@@ -308,22 +301,21 @@ async function main() {
     console.log(`Seeded ${s.code}: ${s.stages.reduce((n, st) => n + st.gradeBands.length, 0)} grade bands, FeeVersion ${s.academicYear} (${s.versionStatus}).`);
   }
 
-  // Demo users, one per workflow role. Nirav Shah really is the group's Head of Operations, so
-  // he's seeded with exactly that role (not all four/five, and not none) — he's also the rights
-  // admin by default (lib/auth/rights-admins.ts), which is an independent, separate capability:
-  // curating the rights list doesn't require personally holding every workflow role.
+  // Demo users for the four group-level workflow roles only — no placeholder Finance Officer
+  // rows. SCHOOL_FINANCE grants are campus-specific to real people, so they're added by hand via
+  // /settings/rights rather than seeded generically. Nirav Shah really is the group's Head of
+  // Operations, so he's seeded with exactly that role — he's also the rights admin by default
+  // (lib/auth/rights-admins.ts), which is an independent, separate capability: curating the
+  // rights list doesn't require personally holding every workflow role.
   const roleUsers: Array<{ email: string; name: string; role: string }> = [
     { email: 'coordinator@fountainheadschools.org', name: 'Fees Group Coordinator', role: 'FEES_GROUP_COORDINATOR' },
     { email: 'nirav.shah@fountainheadschools.org', name: 'Nirav Shah', role: 'HEAD_OF_OPERATIONS' },
     { email: 'director@fountainheadschools.org', name: 'Director', role: 'DIRECTOR' },
     { email: 'board.trustee@fountainheadschools.org', name: 'Board of Trustees', role: 'BOARD_TRUSTEE' },
-    { email: 'finance@fsksurat.in', name: 'FSK Finance Officer', role: 'SCHOOL_FINANCE' },
-    { email: 'finance@fsmsurat.in', name: 'FSM Finance Officer', role: 'SCHOOL_FINANCE' },
   ];
   for (const ru of roleUsers) {
     const user = await prisma.appUser.create({ data: { email: ru.email, name: ru.name } });
-    const campus = ru.role === 'SCHOOL_FINANCE' ? SCHOOLS.find((s) => `finance@${s.domain}` === ru.email)?.code ?? null : null;
-    await prisma.appUserRight.create({ data: { userId: user.id, role: ru.role, campus } });
+    await prisma.appUserRight.create({ data: { userId: user.id, role: ru.role, campus: null } });
   }
 
   console.log('Seed complete.');

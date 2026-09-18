@@ -28,7 +28,7 @@ export async function getCurrentRights(): Promise<RightsGrant[]> {
 
 export async function assertCanDraftForCampus(campus: string): Promise<void> {
   if (!canDraftForCampus(await getCurrentRights(), campus)) {
-    throw new Error('Not authorised — you do not hold School Finance rights for this campus.');
+    throw new Error('Not authorised — you do not hold Finance Officer rights for this campus.');
   }
 }
 
