@@ -40,19 +40,19 @@ export default async function Dashboard() {
       </div>
 
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-        <div className="fh-stat">
+        <div className="fh-stat items-center text-center">
           <span className="fh-stat__label">Schools</span>
           <span className="fh-stat__value">{schools.length}</span>
         </div>
-        <div className="fh-stat fh-stat--success">
+        <div className="fh-stat fh-stat--success items-center text-center">
           <span className="fh-stat__label">Approved fee</span>
           <span className="fh-stat__value">{approvedCount}</span>
         </div>
-        <div className="fh-stat fh-stat--warning">
+        <div className="fh-stat fh-stat--warning items-center text-center">
           <span className="fh-stat__label">In review</span>
           <span className="fh-stat__value">{pendingCount}</span>
         </div>
-        <div className="fh-stat">
+        <div className="fh-stat items-center text-center">
           <span className="fh-stat__label">Draft / not started</span>
           <span className="fh-stat__value">{draftCount}</span>
         </div>

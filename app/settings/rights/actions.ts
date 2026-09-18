@@ -7,7 +7,7 @@ import { getCurrentUser } from '@/lib/auth/session';
 import { SCHOOL_CODES } from '@/lib/school-config';
 import type { FeeRole } from '@/engine/rights';
 
-const VALID_ROLES: FeeRole[] = ['SCHOOL_FINANCE', 'FEES_GROUP_COORDINATOR', 'HEAD_OF_OPERATIONS', 'DIRECTOR', 'BOARD_TRUSTEE'];
+const VALID_ROLES: FeeRole[] = ['SCHOOL_FINANCE', 'FEES_GROUP_COORDINATOR', 'HEAD_OF_OPERATIONS', 'HEAD_OF_FINANCE', 'DIRECTOR', 'BOARD_TRUSTEE'];
 
 function parseCampus(raw: FormDataEntryValue | null): string | null {
   const value = String(raw ?? '').trim();

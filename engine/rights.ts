@@ -7,7 +7,16 @@
 // review, and the Board's final sign-off are different people with different scopes — so each
 // grant here also carries a `role`.
 
-export type FeeRole = 'SCHOOL_FINANCE' | 'FEES_GROUP_COORDINATOR' | 'HEAD_OF_OPERATIONS' | 'DIRECTOR' | 'BOARD_TRUSTEE';
+// HEAD_OF_FINANCE is a grantable rights-list role only — it doesn't sit in FEE_APPROVAL_CHAIN
+// (engine/fee.ts) and isn't checked by any action yet. Add it there too if it should ever gate
+// or act on a step.
+export type FeeRole =
+  | 'SCHOOL_FINANCE'
+  | 'FEES_GROUP_COORDINATOR'
+  | 'HEAD_OF_OPERATIONS'
+  | 'HEAD_OF_FINANCE'
+  | 'DIRECTOR'
+  | 'BOARD_TRUSTEE';
 
 /** One AppUserRight row's shape, as far as the decision cares. campus null = every campus
  *  (always true for the four group-level roles; SCHOOL_FINANCE is scoped to one school). */

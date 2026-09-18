@@ -9,7 +9,7 @@ import { canDraftForCampus, hasRole, type RightsGrant, type FeeRole } from '../.
 // unrestricted locally — same dev/prod split the event-management app uses — rather than
 // requiring seeded AppUserRight rows just to click through the app.
 
-const ALL_ROLES: FeeRole[] = ['SCHOOL_FINANCE', 'FEES_GROUP_COORDINATOR', 'HEAD_OF_OPERATIONS', 'DIRECTOR', 'BOARD_TRUSTEE'];
+const ALL_ROLES: FeeRole[] = ['SCHOOL_FINANCE', 'FEES_GROUP_COORDINATOR', 'HEAD_OF_OPERATIONS', 'HEAD_OF_FINANCE', 'DIRECTOR', 'BOARD_TRUSTEE'];
 
 export async function getCurrentRights(): Promise<RightsGrant[]> {
   const user = await getCurrentUser();

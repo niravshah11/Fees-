@@ -11,6 +11,7 @@ const ROLE_LABEL: Record<string, string> = {
   SCHOOL_FINANCE: 'Finance Officer',
   FEES_GROUP_COORDINATOR: 'Fees Group Coordinator',
   HEAD_OF_OPERATIONS: 'Head of Operations',
+  HEAD_OF_FINANCE: 'Head of Finance',
   DIRECTOR: 'Director',
   BOARD_TRUSTEE: 'Board of Trustees',
 };
@@ -90,6 +91,7 @@ export default async function RightsSettings() {
             <option value="SCHOOL_FINANCE">Finance Officer</option>
             <option value="FEES_GROUP_COORDINATOR">Fees Group Coordinator</option>
             <option value="HEAD_OF_OPERATIONS">Head of Operations</option>
+            <option value="HEAD_OF_FINANCE">Head of Finance</option>
             <option value="DIRECTOR">Director</option>
             <option value="BOARD_TRUSTEE">Board of Trustees</option>
           </select>
@@ -102,8 +104,8 @@ export default async function RightsSettings() {
           <button type="submit" className="fh-btn fh-btn--primary">Add</button>
         </form>
         <p className="mt-2 text-xs text-muted">
-          The school picker is ignored for Fees Group Coordinator / Head of Operations / Director /
-          Board of Trustees — those roles always apply to every school.
+          The school picker is ignored for Fees Group Coordinator / Head of Operations / Head of
+          Finance / Director / Board of Trustees — those roles always apply to every school.
         </p>
       </div>
     </div>
