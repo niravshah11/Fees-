@@ -8,8 +8,6 @@ import { projectFeeSchedule } from '@/engine/projection';
 import { FEE_APPROVAL_CHAIN } from '@/engine/fee';
 import { ProjectionChart, ProjectionLegend } from './_ProjectionChart';
 import {
-  createProgrammeStage,
-  createGradeBand,
   createDraftVersion,
   updateFeeLine,
   bulkApplyIncrement,
@@ -80,10 +78,14 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
 
       {/* Grade bands & programme stages */}
       <section className="fh-card">
-        <h2 className="font-heading text-lg font-bold text-foreground">Grade bands &amp; programme stages</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="font-heading text-lg font-bold text-foreground">Grade bands &amp; programme stages</h2>
+          <Link href={`/master/${school.code}`} className="fh-btn fh-btn--secondary fh-btn--sm">Manage in Master data</Link>
+        </div>
         <p className="mt-1 text-sm text-muted">
           Each grade band belongs to a programme stage, which sets the default YoY increment a new
-          proposal pre-fills for it — fully overridable per grade band.
+          proposal pre-fills for it — fully overridable per grade band. Add, edit, or remove
+          stages and bands at <Link href={`/master/${school.code}`} className="text-primary hover:underline">Master data</Link>.
         </p>
 
         <div className="mt-4 space-y-4">
@@ -101,41 +103,11 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
             </div>
           ))}
           {school.programmeStages.length === 0 && (
-            <p className="text-sm text-muted">No programme stages yet.</p>
+            <p className="text-sm text-muted">
+              No programme stages yet — add one at <Link href={`/master/${school.code}`} className="text-primary hover:underline">Master data</Link>.
+            </p>
           )}
         </div>
-
-        {canDraft && (
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <form action={createProgrammeStage.bind(null, school.code)} className="fh-field flex flex-wrap items-end gap-2">
-              <div>
-                <label className="fh-label text-xs">New stage label</label>
-                <input name="label" placeholder="e.g. MYP" className="fh-input" required />
-              </div>
-              <div>
-                <label className="fh-label text-xs">Default increment %</label>
-                <input name="defaultIncrementPct" type="number" step="0.1" placeholder="6" className="fh-input w-24" required />
-              </div>
-              <button type="submit" className="fh-btn fh-btn--secondary">Add stage</button>
-            </form>
-
-            <form action={createGradeBand.bind(null, school.code)} className="fh-field flex flex-wrap items-end gap-2">
-              <div>
-                <label className="fh-label text-xs">New grade band label</label>
-                <input name="label" placeholder="e.g. Grade 7 & 8" className="fh-input" required />
-              </div>
-              <div>
-                <label className="fh-label text-xs">Stage</label>
-                <select name="programmeStageId" className="fh-input" required>
-                  {school.programmeStages.map((stage) => (
-                    <option key={stage.id} value={stage.id}>{stage.label}</option>
-                  ))}
-                </select>
-              </div>
-              <button type="submit" className="fh-btn fh-btn--secondary">Add band</button>
-            </form>
-          </div>
-        )}
       </section>
 
       {/* Current proposal */}

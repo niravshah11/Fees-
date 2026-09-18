@@ -20,6 +20,10 @@ const WHATS_NEW: { title: string; detail: string }[] = [
     title: 'Rights',
     detail: 'Grant Finance Officer (per school), Fees Group Coordinator, Head of Operations, Director, or Board of Trustees at /settings/rights.',
   },
+  {
+    title: 'Master data',
+    detail: 'Add, edit, or remove a school’s programme stages and grade bands at /master — each stage carries its own YoY increment %, since every campus’s programme mix and rates differ.',
+  },
 ];
 
 export default function Help() {
@@ -34,6 +38,7 @@ export default function Help() {
       <section className="fh-card space-y-3">
         <h2 className="font-heading text-lg font-bold text-foreground">The workflow, in short</h2>
         <ol className="list-decimal space-y-1 pl-5 text-sm text-foreground">
+          <li>A campus's grade bands and programme stages — each with its own YoY increment % — are set up once at /master, then kept up to date there as the school's structure changes.</li>
           <li>A Finance Officer opens their school and starts a draft for the next academic year.</li>
           <li>Each grade band pre-fills from last year's approved fee and its programme stage's default increment — both fully editable.</li>
           <li>The draft is submitted for review, entering the approval chain in order: Fees Group Coordinator, Head of Operations, Director, then Board of Trustees.</li>

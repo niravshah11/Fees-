@@ -15,36 +15,6 @@ async function requireSchool(code: string) {
   return school;
 }
 
-export async function createProgrammeStage(schoolCode: string, formData: FormData): Promise<void> {
-  const school = await requireSchool(schoolCode);
-  await assertCanDraftForCampus(school.code);
-
-  const label = String(formData.get('label') ?? '').trim();
-  const pct = Number(formData.get('defaultIncrementPct'));
-  if (!label || Number.isNaN(pct)) return;
-
-  const count = await prisma.programmeStage.count({ where: { schoolId: school.id } });
-  await prisma.programmeStage.create({
-    data: { schoolId: school.id, label, defaultIncrementPct: pct / 100, order: count },
-  });
-  revalidatePath(`/schools/${schoolCode}`);
-}
-
-export async function createGradeBand(schoolCode: string, formData: FormData): Promise<void> {
-  const school = await requireSchool(schoolCode);
-  await assertCanDraftForCampus(school.code);
-
-  const label = String(formData.get('label') ?? '').trim();
-  const programmeStageId = String(formData.get('programmeStageId') ?? '');
-  if (!label || !programmeStageId) return;
-
-  const count = await prisma.gradeBand.count({ where: { schoolId: school.id } });
-  await prisma.gradeBand.create({
-    data: { schoolId: school.id, programmeStageId, label, order: count },
-  });
-  revalidatePath(`/schools/${schoolCode}`);
-}
-
 /** Starts a new DRAFT FeeVersion for the given academic year, one FeeLine per current grade
  *  band, pre-filled from the school's latest APPROVED version (baseFee = that version's tuition
  *  fee) and each band's programme stage default increment — fully editable afterwards. */
