@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import { NewDot } from './_NewBadge';
 
@@ -11,19 +11,10 @@ interface Item {
   label: string;
   isNew?: boolean;
 }
-const SECTIONS: { title: string; items: Item[] }[] = [
-  {
-    title: 'Overview',
-    items: [{ href: '/', icon: 'dashboard', label: 'Schools', isNew: true }],
-  },
-  {
-    title: 'Reference',
-    items: [
-      { href: '/master', icon: 'master', label: 'Master data', isNew: true },
-      { href: '/settings/rights', icon: 'rights', label: 'Rights', isNew: true },
-      { href: '/help', icon: 'help', label: 'Help', isNew: true },
-    ],
-  },
+const REFERENCE_ITEMS: Item[] = [
+  { href: '/master', icon: 'master', label: 'Master data', isNew: true },
+  { href: '/settings/rights', icon: 'rights', label: 'Rights', isNew: true },
+  { href: '/help', icon: 'help', label: 'Help', isNew: true },
 ];
 
 const ICON: Record<string, ReactNode> = {
@@ -43,29 +34,75 @@ function SideIcon({ name }: { name: string }) {
   );
 }
 
-export function Nav() {
+function Chevron({ open }: { open: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"
+      className="ml-auto h-4 w-4 shrink-0 transition-transform"
+      style={{ transform: open ? 'rotate(180deg)' : undefined }}
+      aria-hidden
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+
+export function Nav({ schools }: { schools: { code: string }[] }) {
   const path = usePathname() ?? '/';
   const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
+  const onASchoolPage = path === '/' || path.startsWith('/schools');
+  const [schoolsOpen, setSchoolsOpen] = useState(onASchoolPage);
 
   return (
     <nav className="flex flex-col gap-0.5">
-      {SECTIONS.map((section) => (
-        <div key={section.title}>
-          <div className="fh-sidebar__section">{section.title}</div>
-          {section.items.map((it) => {
-            const active = isActive(it.href);
-            return (
-              <Link key={it.href} href={it.href} aria-current={active ? 'page' : undefined} className={`fh-sidebar__item${active ? ' is-active' : ''}`}>
-                <SideIcon name={it.icon} />
-                <span className="bcn-lbl">
-                  {it.label}
-                  {it.isNew && <NewDot />}
-                </span>
-              </Link>
-            );
-          })}
-        </div>
-      ))}
+      <div>
+        <div className="fh-sidebar__section">Overview</div>
+        <button
+          type="button"
+          onClick={() => setSchoolsOpen((v) => !v)}
+          aria-expanded={schoolsOpen}
+          className={`fh-sidebar__item w-full${path === '/' ? ' is-active' : ''}`}
+        >
+          <SideIcon name="dashboard" />
+          <span className="bcn-lbl">
+            Schools
+            <NewDot />
+          </span>
+          <Chevron open={schoolsOpen} />
+        </button>
+        {schoolsOpen && (
+          <div className="ml-8 flex flex-col gap-0.5 border-l border-border pl-2">
+            <Link href="/" aria-current={path === '/' ? 'page' : undefined} className={`fh-sidebar__item py-1.5 text-sm${path === '/' ? ' is-active' : ''}`}>
+              <span className="bcn-lbl">All schools</span>
+            </Link>
+            {schools.map((s) => {
+              const href = `/schools/${s.code}`;
+              const active = path.startsWith(href);
+              return (
+                <Link key={s.code} href={href} aria-current={active ? 'page' : undefined} className={`fh-sidebar__item py-1.5 text-sm${active ? ' is-active' : ''}`}>
+                  <span className="bcn-lbl">{s.code}</span>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <div>
+        <div className="fh-sidebar__section">Reference</div>
+        {REFERENCE_ITEMS.map((it) => {
+          const active = isActive(it.href);
+          return (
+            <Link key={it.href} href={it.href} aria-current={active ? 'page' : undefined} className={`fh-sidebar__item${active ? ' is-active' : ''}`}>
+              <SideIcon name={it.icon} />
+              <span className="bcn-lbl">
+                {it.label}
+                {it.isNew && <NewDot />}
+              </span>
+            </Link>
+          );
+        })}
+      </div>
     </nav>
   );
 }

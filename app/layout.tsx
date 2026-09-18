@@ -10,6 +10,7 @@ import '../vendor/fountainhead-design-system/css/fountainhead.css';
 import { Nav } from './_Nav';
 import { Shell } from './_Shell';
 import { ThemeToggle } from './_ThemeToggle';
+import { prisma } from '@/lib/db';
 
 const NO_FLASH = `try{var t=localStorage.getItem('fh-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)}catch(e){}`;
 
@@ -24,7 +25,9 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const schools = await prisma.school.findMany({ orderBy: { order: 'asc' }, select: { code: true } });
+
   return (
     <html
       lang="en"
@@ -45,7 +48,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               <p className="mt-0.5 text-[11px] leading-tight text-muted">Group fee proposal &amp; approval</p>
             </div>
           }
-          nav={<Nav />}
+          nav={<Nav schools={schools} />}
           topbarRight={<ThemeToggle />}
         >
           {children}

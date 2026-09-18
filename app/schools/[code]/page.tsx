@@ -7,6 +7,8 @@ import { computeApprovalState, isActionable } from '@/engine/approval';
 import { projectFeeSchedule } from '@/engine/projection';
 import { FEE_APPROVAL_CHAIN } from '@/engine/fee';
 import { ProjectionChart, ProjectionLegend } from './_ProjectionChart';
+import { FeeLineEditCard } from './_FeeLineEditCard';
+import { STANDARD_GRADES } from '@/lib/grades';
 import {
   createDraftVersion,
   updateFeeLine,
@@ -14,6 +16,14 @@ import {
   submitForReview,
   decideApproval,
 } from './actions';
+import {
+  createProgrammeStage,
+  updateProgrammeStage,
+  deleteProgrammeStage,
+  createGradeBands,
+  updateGradeBand,
+  deleteGradeBand,
+} from '../../master/[code]/actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,7 +50,10 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
   const school = await prisma.school.findUnique({
     where: { code },
     include: {
-      programmeStages: { orderBy: { order: 'asc' }, include: { gradeBands: { orderBy: { order: 'asc' } } } },
+      programmeStages: {
+        orderBy: { order: 'asc' },
+        include: { gradeBands: { orderBy: { order: 'asc' }, include: { _count: { select: { feeLines: true } } } } },
+      },
       feeVersions: {
         orderBy: [{ academicYear: 'desc' }, { createdAt: 'desc' }],
         include: {
@@ -60,6 +73,8 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
   const roleForRole = Object.fromEntries(
     FEE_APPROVAL_CHAIN.map((step) => [step.role, hasRole(grants, step.role as FeeRole)]),
   ) as Record<string, boolean>;
+  const usedGrades = new Set(school.programmeStages.flatMap((s) => s.gradeBands.map((b) => b.label)));
+  const availableGrades = STANDARD_GRADES.filter((g) => !usedGrades.has(g));
 
   const [current, ...history] = school.feeVersions;
   const approvedForCurrentYear = current?.status === 'APPROVED';
@@ -80,30 +95,93 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
       <section className="fh-card">
         <div className="flex items-center justify-between">
           <h2 className="font-heading text-lg font-bold text-foreground">Grade bands &amp; programme stages</h2>
-          <Link href={`/master/${school.code}`} className="fh-btn fh-btn--secondary fh-btn--sm">Manage in Master data</Link>
+          <Link href={`/master/${school.code}`} className="text-sm text-primary hover:underline">Open in Master data →</Link>
         </div>
         <p className="mt-1 text-sm text-muted">
-          Each grade band belongs to a programme stage. Add, edit, or remove stages and bands at{' '}
+          Each grade band belongs to a programme stage. Editable right here, or at{' '}
           <Link href={`/master/${school.code}`} className="text-primary hover:underline">Master data</Link>.
         </p>
 
         <div className="mt-4 space-y-4">
           {school.programmeStages.map((stage) => (
             <div key={stage.id} className="rounded-lg border border-border p-3">
-              <div className="font-medium text-foreground">{stage.label}</div>
-              <ul className="mt-2 flex flex-wrap gap-2">
+              {canDraft ? (
+                <form action={updateProgrammeStage.bind(null, school.code, stage.id)} className="flex flex-wrap items-end gap-2">
+                  <div className="flex-1">
+                    <label className="fh-label text-xs">Programme / stage label</label>
+                    <input name="label" defaultValue={stage.label} className="fh-input" required />
+                  </div>
+                  <button type="submit" className="fh-btn fh-btn--secondary fh-btn--sm">Save</button>
+                  <form action={deleteProgrammeStage.bind(null, school.code, stage.id)}>
+                    <button type="submit" className="text-xs text-red-600 hover:underline">Remove stage</button>
+                  </form>
+                </form>
+              ) : (
+                <div className="font-medium text-foreground">{stage.label}</div>
+              )}
+
+              <div className="mt-2 space-y-2">
                 {stage.gradeBands.map((band) => (
-                  <li key={band.id} className="fh-badge fh-badge--neutral">{band.label}</li>
+                  <div key={band.id} className="flex flex-wrap items-end gap-2 rounded-md bg-surface-sunken p-2">
+                    {canDraft ? (
+                      <form action={updateGradeBand.bind(null, school.code, band.id)} className="flex flex-wrap items-end gap-2">
+                        <input name="label" defaultValue={band.label} className="fh-input" required />
+                        <select name="programmeStageId" defaultValue={stage.id} className="fh-input">
+                          {school.programmeStages.map((s) => (
+                            <option key={s.id} value={s.id}>{s.label}</option>
+                          ))}
+                        </select>
+                        <button type="submit" className="fh-btn fh-btn--secondary fh-btn--sm">Save</button>
+                      </form>
+                    ) : (
+                      <span className="fh-badge fh-badge--neutral">{band.label}</span>
+                    )}
+                    {canDraft && (
+                      <form action={deleteGradeBand.bind(null, school.code, band.id)} className="ml-auto">
+                        <button
+                          type="submit"
+                          className="text-xs text-red-600 hover:underline disabled:cursor-not-allowed disabled:text-muted disabled:no-underline"
+                          disabled={band._count.feeLines > 0}
+                          title={band._count.feeLines > 0 ? `Has ${band._count.feeLines} fee line(s) recorded — cannot remove` : undefined}
+                        >
+                          Remove
+                        </button>
+                      </form>
+                    )}
+                  </div>
                 ))}
-              </ul>
+                {stage.gradeBands.length === 0 && <p className="text-sm text-muted">No grade bands under this stage yet.</p>}
+
+                {canDraft && availableGrades.length > 0 && (
+                  <form action={createGradeBands.bind(null, school.code, stage.id)} className="flex flex-wrap items-end gap-2 pt-1">
+                    <div>
+                      <label className="fh-label text-xs">Add grades to {stage.label} (ctrl/cmd-click for several)</label>
+                      <select name="grades" multiple size={Math.min(6, availableGrades.length)} className="fh-input">
+                        {availableGrades.map((g) => (
+                          <option key={g} value={g}>{g}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <button type="submit" className="fh-btn fh-btn--secondary fh-btn--sm">Add selected grades</button>
+                  </form>
+                )}
+              </div>
             </div>
           ))}
           {school.programmeStages.length === 0 && (
-            <p className="text-sm text-muted">
-              No programme stages yet — add one at <Link href={`/master/${school.code}`} className="text-primary hover:underline">Master data</Link>.
-            </p>
+            <p className="text-sm text-muted">No programme stages yet — add one below.</p>
           )}
         </div>
+
+        {canDraft && (
+          <form action={createProgrammeStage.bind(null, school.code)} className="mt-4 flex flex-wrap items-end gap-2 border-t border-border pt-4">
+            <div className="flex-1">
+              <label className="fh-label text-xs">New programme / stage label</label>
+              <input name="label" placeholder="e.g. MYP — Middle Years Programme" className="fh-input" required />
+            </div>
+            <button type="submit" className="fh-btn fh-btn--primary">Add stage</button>
+          </form>
+        )}
       </section>
 
       {/* Current proposal */}
@@ -152,8 +230,6 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
                       <th>Base fee</th>
                       <th>Increment %</th>
                       <th>Tuition fee</th>
-                      <th>Term fee</th>
-                      <th>Admission fee</th>
                       <th>Total</th>
                     </tr>
                   </thead>
@@ -164,8 +240,6 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
                         <td>{inr.format(line.baseFee)}</td>
                         <td>{(Number(line.incrementPct) * 100).toFixed(2)}%</td>
                         <td className="font-medium">{inr.format(line.tuitionFee)}</td>
-                        <td>{inr.format(line.termFee)}</td>
-                        <td>{inr.format(line.admissionFee)}</td>
                         <td className="font-medium">{inr.format(line.totalFee)}</td>
                       </tr>
                     ))}
@@ -313,54 +387,6 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
           </div>
         </section>
       )}
-    </div>
-  );
-}
-
-function FeeLineEditCard({
-  schoolCode,
-  line,
-}: {
-  schoolCode: string;
-  line: { id: string; gradeBand: { label: string }; baseFee: number; incrementPct: unknown; termFee: number; admissionFee: number; tuitionFee: number; totalFee: number };
-}) {
-  return (
-    <div className="rounded-lg border border-border p-4">
-      <div className="font-heading font-bold text-foreground">{line.gradeBand.label}</div>
-      <form action={updateFeeLine.bind(null, schoolCode, line.id)} className="mt-3 space-y-3">
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="fh-label text-xs">Base fee</label>
-            <input name="baseFee" type="number" defaultValue={line.baseFee} className="fh-input w-full" required />
-          </div>
-          <div>
-            <label className="fh-label text-xs">Increment %</label>
-            <input
-              name="incrementPct"
-              type="number"
-              step="0.01"
-              defaultValue={(Number(line.incrementPct) * 100).toFixed(2)}
-              className="fh-input w-full"
-              required
-            />
-          </div>
-          <div>
-            <label className="fh-label text-xs">Term fee</label>
-            <input name="termFee" type="number" defaultValue={line.termFee} className="fh-input w-full" required />
-          </div>
-          <div>
-            <label className="fh-label text-xs">Admission fee</label>
-            <input name="admissionFee" type="number" defaultValue={line.admissionFee} className="fh-input w-full" required />
-          </div>
-        </div>
-        <div className="flex items-center justify-between rounded-md bg-surface-sunken px-3 py-2 text-sm">
-          <span className="text-muted">
-            Tuition {inr.format(line.tuitionFee)}
-          </span>
-          <span className="font-heading font-bold text-foreground">Total {inr.format(line.totalFee)}</span>
-        </div>
-        <button type="submit" className="fh-btn fh-btn--secondary w-full">Save</button>
-      </form>
     </div>
   );
 }

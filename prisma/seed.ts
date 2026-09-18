@@ -7,10 +7,13 @@
 // FSK's tuitionFee is the ENGINE-COMPUTED value (base x 1.05, rounded) rather than the exact
 // filed rupee amount — the original filing's per-grade percentage varied by a few rupees'
 // worth of legacy rounding that a flat 5% doesn't reproduce exactly (off by 2-4 rupees on some
-// rows). termFee amounts, which the app treats as an editable input rather than a formula, ARE
-// the exact filed figures (10% Working with Term fees!E19:E22, 2026-27 block).
+// rows).
 // FWGS/FPV/FPA/FALH have no source data in either workbook — every figure for them is a
 // clearly-labelled placeholder for the finance team to replace via the Fee Builder.
+//
+// Term fee and admission fee are retired from the proposal entirely (confirmed with the user) —
+// every FeeLine's total is just its tuition fee. FeeLine.termFee/.admissionFee stay on the model
+// (always 0) rather than a migration, since it's simple to reintroduce if ever needed.
 
 import { PrismaClient } from '@prisma/client';
 import { computeIncrementedFee, computeTotalFee } from '../engine/fee';
@@ -21,7 +24,6 @@ const prisma = new PrismaClient();
 interface GradeBandSeed {
   label: string;
   baseFee: number;
-  termFee?: number;
 }
 
 interface StageSeed {
@@ -57,15 +59,15 @@ const SCHOOLS: SchoolSeed[] = [
       'FRC-approved 2026-27 fee (Tuition Fees Working 2024-25, 2025-26 and 2026-27.xlsx). ' +
       'Tuition figures are the app-computed 5% increment off the 2025-26 base and may differ ' +
       'by a few rupees from the exact filed amount due to legacy per-row rounding in the ' +
-      'original FRC filing. Term fees are the exact filed amounts.',
+      'original FRC filing. Tuition-only — term/admission fee are not tracked in this app.',
     stages: [
       // Split one stage per IB programme (confirmed with the user) rather than one "EYP to
       // MYP" stage covering three grade bands — each programme sets its own YoY % independently
       // at finalisation time, decided fresh in the Fee Builder each year (no stored default).
-      { label: 'EYP — Early Years Programme', gradeBands: [{ label: 'Jr. & Sr. KG', baseFee: 138190, termFee: 20157 }] },
-      { label: 'PYP — Primary Years Programme', gradeBands: [{ label: 'Grade 1 to 6', baseFee: 163640, termFee: 23870 }] },
-      { label: 'MYP — Middle Years Programme', gradeBands: [{ label: 'Grade 7 to 10', baseFee: 202720, termFee: 29570 }] },
-      { label: 'DP — Diploma Programme', gradeBands: [{ label: 'Grade 11 & 12', baseFee: 381470, termFee: 55644 }] },
+      { label: 'EYP — Early Years Programme', gradeBands: [{ label: 'Jr. & Sr. KG', baseFee: 138190 }] },
+      { label: 'PYP — Primary Years Programme', gradeBands: [{ label: 'Grade 1 to 6', baseFee: 163640 }] },
+      { label: 'MYP — Middle Years Programme', gradeBands: [{ label: 'Grade 7 to 10', baseFee: 202720 }] },
+      { label: 'DP — Diploma Programme', gradeBands: [{ label: 'Grade 11 & 12', baseFee: 381470 }] },
     ],
   },
   {
@@ -238,8 +240,7 @@ async function main() {
         });
 
         const tuitionFee = computeIncrementedFee(band.baseFee, s.appliedIncrementPct);
-        const termFee = band.termFee ?? 0;
-        const totalFee = computeTotalFee(tuitionFee, termFee, 0);
+        const totalFee = computeTotalFee(tuitionFee);
 
         await prisma.feeLine.create({
           data: {
@@ -248,7 +249,7 @@ async function main() {
             baseFee: band.baseFee,
             incrementPct: s.appliedIncrementPct,
             tuitionFee,
-            termFee,
+            termFee: 0,
             admissionFee: 0,
             totalFee,
           },

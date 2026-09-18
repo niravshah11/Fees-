@@ -55,8 +55,9 @@ export async function createDraftVersion(schoolCode: string, formData: FormData)
     // per-line edits or "bulk apply" once the draft exists (see engine/fee.ts's header).
     const incrementPct = 0;
     const tuitionFee = computeIncrementedFee(baseFee, incrementPct);
-    const termFee = priorLine?.termFee ?? 0;
-    const totalFee = computeTotalFee(tuitionFee, termFee, 0);
+    // Term fee and admission fee are retired from the proposal (confirmed with the user) —
+    // every line's total is just its tuition fee now.
+    const totalFee = computeTotalFee(tuitionFee);
 
     await prisma.feeLine.create({
       data: {
@@ -65,7 +66,7 @@ export async function createDraftVersion(schoolCode: string, formData: FormData)
         baseFee,
         incrementPct,
         tuitionFee,
-        termFee,
+        termFee: 0,
         admissionFee: 0,
         totalFee,
       },
@@ -85,18 +86,19 @@ export async function updateFeeLine(schoolCode: string, feeLineId: string, formD
 
   const baseFee = Number(formData.get('baseFee'));
   const incrementPctInput = Number(formData.get('incrementPct'));
-  const termFee = Number(formData.get('termFee'));
-  const admissionFee = Number(formData.get('admissionFee'));
   const notes = String(formData.get('notes') ?? '').trim() || null;
-  if ([baseFee, incrementPctInput, termFee, admissionFee].some((n) => Number.isNaN(n))) return;
+  if ([baseFee, incrementPctInput].some((n) => Number.isNaN(n))) return;
 
   const incrementPct = incrementPctInput / 100;
   const tuitionFee = computeIncrementedFee(baseFee, incrementPct);
-  const totalFee = computeTotalFee(tuitionFee, termFee, admissionFee);
+  // Term fee and admission fee are retired from the proposal (confirmed with the user) — every
+  // line's total is just its tuition fee now. The columns stay on FeeLine (always 0 going
+  // forward) rather than a schema migration, since it's simple to reintroduce if ever needed.
+  const totalFee = computeTotalFee(tuitionFee);
 
   await prisma.feeLine.update({
     where: { id: feeLineId },
-    data: { baseFee, incrementPct, tuitionFee, termFee, admissionFee, totalFee, notes },
+    data: { baseFee, incrementPct, tuitionFee, termFee: 0, admissionFee: 0, totalFee, notes },
   });
   revalidatePath(`/schools/${schoolCode}`);
 }
@@ -121,8 +123,8 @@ export async function bulkApplyIncrement(schoolCode: string, feeVersionId: strin
   });
   for (const line of lines) {
     const tuitionFee = computeIncrementedFee(line.baseFee, incrementPct);
-    const totalFee = computeTotalFee(tuitionFee, line.termFee, line.admissionFee);
-    await prisma.feeLine.update({ where: { id: line.id }, data: { incrementPct, tuitionFee, totalFee } });
+    const totalFee = computeTotalFee(tuitionFee);
+    await prisma.feeLine.update({ where: { id: line.id }, data: { incrementPct, tuitionFee, totalFee, termFee: 0, admissionFee: 0 } });
   }
   revalidatePath(`/schools/${schoolCode}`);
 }
