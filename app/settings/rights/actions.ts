@@ -22,9 +22,6 @@ export async function addRightsGrant(formData: FormData): Promise<void> {
   const campus = parseCampus(formData.get('campus'));
   if (!email || !name || !VALID_ROLES.includes(role)) return;
   if (campus !== null && !SCHOOL_CODES.includes(campus)) return;
-  // The four approval-chain roles act across every school — force campus-wide even if the form
-  // somehow submitted one, so the grant behaves the way the role description promises.
-  const effectiveCampus = role === 'SCHOOL_FINANCE' ? campus : null;
 
   const admin = await getCurrentUser();
   const user = await prisma.appUser.upsert({
@@ -33,12 +30,26 @@ export async function addRightsGrant(formData: FormData): Promise<void> {
     update: { name },
   });
 
-  const existing = await prisma.appUserRight.findFirst({ where: { userId: user.id, role, campus: effectiveCampus } });
+  const existing = await prisma.appUserRight.findFirst({ where: { userId: user.id, role, campus } });
   if (!existing) {
     await prisma.appUserRight.create({
-      data: { userId: user.id, role, campus: effectiveCampus, grantedBy: admin?.email ?? null },
+      data: { userId: user.id, role, campus, grantedBy: admin?.email ?? null },
     });
   }
+  revalidatePath('/settings/rights');
+}
+
+/** Edits an existing grant's role and/or campus in place — every role can be scoped to one
+ *  campus or left at "All schools" (confirmed with the user: this is a real authorisation
+ *  change, not just a label — see engine/rights.ts's hasRoleForCampus). */
+export async function updateRightsGrant(id: string, formData: FormData): Promise<void> {
+  await assertIsRightsAdmin();
+  const role = String(formData.get('role') ?? '') as FeeRole;
+  const campus = parseCampus(formData.get('campus'));
+  if (!VALID_ROLES.includes(role)) return;
+  if (campus !== null && !SCHOOL_CODES.includes(campus)) return;
+
+  await prisma.appUserRight.update({ where: { id }, data: { role, campus } });
   revalidatePath('/settings/rights');
 }
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { canDraftForCampus, hasRole, hasAnyRights, type RightsGrant } from './rights';
+import { canDraftForCampus, hasRoleForCampus, hasAnyRights, type RightsGrant } from './rights';
 
 describe('canDraftForCampus', () => {
   it('allows SCHOOL_FINANCE scoped to that exact campus', () => {
@@ -19,11 +19,22 @@ describe('canDraftForCampus', () => {
   });
 });
 
-describe('hasRole', () => {
-  it('checks role membership regardless of campus', () => {
+describe('hasRoleForCampus', () => {
+  it('a campus-wide (null) grant covers every campus', () => {
     const grants: RightsGrant[] = [{ role: 'BOARD_TRUSTEE', campus: null }];
-    expect(hasRole(grants, 'BOARD_TRUSTEE')).toBe(true);
-    expect(hasRole(grants, 'DIRECTOR')).toBe(false);
+    expect(hasRoleForCampus(grants, 'BOARD_TRUSTEE', 'FSK')).toBe(true);
+    expect(hasRoleForCampus(grants, 'BOARD_TRUSTEE', 'FWGS')).toBe(true);
+  });
+
+  it('a campus-scoped grant only covers that one campus — a real restriction, not just a label', () => {
+    const grants: RightsGrant[] = [{ role: 'DIRECTOR', campus: 'FSK' }];
+    expect(hasRoleForCampus(grants, 'DIRECTOR', 'FSK')).toBe(true);
+    expect(hasRoleForCampus(grants, 'DIRECTOR', 'FSM')).toBe(false);
+  });
+
+  it('checks role, not just campus', () => {
+    const grants: RightsGrant[] = [{ role: 'BOARD_TRUSTEE', campus: null }];
+    expect(hasRoleForCampus(grants, 'DIRECTOR', 'FSK')).toBe(false);
   });
 });
 

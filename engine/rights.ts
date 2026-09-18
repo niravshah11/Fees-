@@ -7,9 +7,6 @@
 // review, and the Board's final sign-off are different people with different scopes — so each
 // grant here also carries a `role`.
 
-// HEAD_OF_FINANCE is a grantable rights-list role only — it doesn't sit in FEE_APPROVAL_CHAIN
-// (engine/fee.ts) and isn't checked by any action yet. Add it there too if it should ever gate
-// or act on a step.
 export type FeeRole =
   | 'SCHOOL_FINANCE'
   | 'FEES_GROUP_COORDINATOR'
@@ -18,24 +15,28 @@ export type FeeRole =
   | 'DIRECTOR'
   | 'BOARD_TRUSTEE';
 
-/** One AppUserRight row's shape, as far as the decision cares. campus null = every campus
- *  (always true for the four group-level roles; SCHOOL_FINANCE is scoped to one school). */
+/** One AppUserRight row's shape, as far as the decision cares. campus null = every campus;
+ *  campus: 'FSK' (etc.) restricts that grant to just that one school. This applies uniformly to
+ *  every role now (confirmed with the user) — a campus-scoped Director, say, can only act on
+ *  that school's approval step, not the whole group's. */
 export interface RightsGrant {
   role: FeeRole;
   campus: string | null;
 }
 
-/** SCHOOL_FINANCE may draft/edit/submit for a school only if scoped to that school's campus (or
- *  holds a campus-wide grant). */
-export function canDraftForCampus(grants: RightsGrant[], campus: string): boolean {
-  return grants.some((g) => g.role === 'SCHOOL_FINANCE' && (g.campus === null || g.campus === campus));
+/** True if any grant gives `role` at `campus` — either scoped exactly to it, or a campus-wide
+ *  (null) grant, which covers every campus including ones added after the grant was made. This
+ *  is the one check every role uses, including SCHOOL_FINANCE (via canDraftForCampus below) and
+ *  every step of the approval chain. */
+export function hasRoleForCampus(grants: RightsGrant[], role: FeeRole, campus: string): boolean {
+  return grants.some((g) => g.role === role && (g.campus === null || g.campus === campus));
 }
 
-/** The four approval-chain roles (Fees Group Coordinator, Head of Operations, Director, Board of
- *  Trustees) act on their chain step for ANY school — not campus-scoped, since each reviews
- *  across the whole group. */
-export function hasRole(grants: RightsGrant[], role: FeeRole): boolean {
-  return grants.some((g) => g.role === role);
+/** SCHOOL_FINANCE may draft/edit/submit for a school only if scoped to that school's campus (or
+ *  holds a campus-wide grant). Thin, named wrapper over hasRoleForCampus for readability at call
+ *  sites that only ever care about this one role. */
+export function canDraftForCampus(grants: RightsGrant[], campus: string): boolean {
+  return hasRoleForCampus(grants, 'SCHOOL_FINANCE', campus);
 }
 
 /** True if the person holds any grant at all (used for "can see admin-ish master data"). */

@@ -2,10 +2,10 @@
 // header for why status fields are plain strings validated against the unions defined here.
 //
 // Source: `Provisional fee 2027-28.xlsx` ("10 Years Fees Kunkni"/"10 Years Fees Malgama") and
-// `Tuition Fees Working 2024-25, 2025-26 and 2026-27.xlsx`. Term-fee and admission-fee amounts in
-// those sheets are informational/editable inputs on a FeeLine, not derived by a formula here —
-// the workbooks show several inconsistent reconstructions of how they're split out, so this app
-// only automates the part that's unambiguous across every sheet: tuition fee = base × (1 + YoY%).
+// `Tuition Fees Working 2024-25, 2025-26 and 2026-27.xlsx`. A grade band's headline fee is the
+// SUM of its FeeLine.amount across every FeeHead a school has (Tuition Fee, Beyond Mandate,
+// etc.) — each head is its own base/increment/amount, independently editable, per FeeHead's doc
+// comment in schema.prisma.
 
 export const FEE_VERSION_STATUSES = [
   'DRAFT',
@@ -41,16 +41,16 @@ export const FEE_APPROVAL_CHAIN: FeeApprovalStep[] = [
 ];
 
 /**
- * Tuition fee for the next year: base × (1 + increment%), rounded to the nearest rupee.
- * Worked example (10 Years Fees Kunkni!E4): 145100 × 1.06 = 153806.
+ * One fee head's amount for the next year: base × (1 + increment%), rounded to the nearest
+ * rupee. Worked example (10 Years Fees Kunkni!E4): 145100 × 1.06 = 153806.
  */
 export function computeIncrementedFee(baseFee: number, incrementPct: number): number {
   return Math.round(baseFee * (1 + incrementPct));
 }
 
-/** Headline fee shown to parents = tuition + term + admission. Each input defaults to 0 so a
- *  school that bundles everything into one lump-sum tuition figure (e.g. FSM's Parent
- *  Undertaking base) doesn't have to fill in fields it doesn't use. */
-export function computeTotalFee(tuitionFee: number, termFee = 0, admissionFee = 0): number {
-  return tuitionFee + termFee + admissionFee;
+/** A grade band's headline total — the sum of its amount across every fee head it has a line
+ *  for. Variadic so it works whether a school has one head (just Tuition Fee) or several
+ *  (Tuition Fee + Beyond Mandate + ...); order doesn't matter. */
+export function computeTotalFee(...amounts: number[]): number {
+  return amounts.reduce((sum, a) => sum + a, 0);
 }

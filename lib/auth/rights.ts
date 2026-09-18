@@ -2,7 +2,7 @@ import 'server-only';
 import { prisma } from '../db';
 import { getCurrentUser } from './session';
 import { resolveRightsAdmins, isRightsAdmin } from './rights-admins';
-import { canDraftForCampus, hasRole, type RightsGrant, type FeeRole } from '../../engine/rights';
+import { canDraftForCampus, hasRoleForCampus, type RightsGrant, type FeeRole } from '../../engine/rights';
 
 // The auth()+Prisma wrapper around engine/rights.ts's pure predicates. Local `next dev` has no
 // session (middleware.ts skips the sign-in wall there), so this defaults to holding every role
@@ -32,9 +32,9 @@ export async function assertCanDraftForCampus(campus: string): Promise<void> {
   }
 }
 
-export async function assertHasRole(role: FeeRole): Promise<void> {
-  if (!hasRole(await getCurrentRights(), role)) {
-    throw new Error(`Not authorised — this action requires the ${role.replace('_', ' ')} role.`);
+export async function assertHasRoleForCampus(role: FeeRole, campus: string): Promise<void> {
+  if (!hasRoleForCampus(await getCurrentRights(), role, campus)) {
+    throw new Error(`Not authorised — this action requires the ${role.replace('_', ' ')} role for ${campus}.`);
   }
 }
 

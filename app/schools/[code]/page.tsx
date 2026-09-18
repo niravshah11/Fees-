@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { getCurrentRights } from '@/lib/auth/rights';
-import { canDraftForCampus, hasRole, type FeeRole } from '@/engine/rights';
+import { canDraftForCampus, hasRoleForCampus, type FeeRole } from '@/engine/rights';
 import { computeApprovalState, isActionable } from '@/engine/approval';
 import { projectFeeSchedule } from '@/engine/projection';
 import { FEE_APPROVAL_CHAIN } from '@/engine/fee';
@@ -34,6 +34,30 @@ function nextAcademicYear(year: string): string {
   return `${startYear}-${String((startYear + 1) % 100).padStart(2, '0')}`;
 }
 
+interface FeeLineRow {
+  id: string;
+  gradeBandId: string;
+  gradeBand: { id: string; label: string; order: number };
+  feeHeadId: string;
+  feeHead: { id: string; label: string };
+  baseFee: number;
+  incrementPct: unknown;
+  amount: number;
+}
+
+/** Groups a version's flat FeeLine list (one row per grade band x fee head) back into per-grade-band
+ *  buckets for rendering — every place fees show up in this UI is organized by grade band first,
+ *  fee head second. */
+function groupByGradeBand(lines: FeeLineRow[]) {
+  const map = new Map<string, { gradeBand: FeeLineRow['gradeBand']; lines: FeeLineRow[] }>();
+  for (const line of lines) {
+    const bucket = map.get(line.gradeBandId) ?? { gradeBand: line.gradeBand, lines: [] };
+    bucket.lines.push(line);
+    map.set(line.gradeBandId, bucket);
+  }
+  return [...map.values()].sort((a, b) => a.gradeBand.order - b.gradeBand.order);
+}
+
 export default async function SchoolWorkspace({ params }: { params: Promise<{ code: string }> }) {
   const { code } = await params;
 
@@ -41,12 +65,13 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
     where: { code },
     include: {
       programmeStages: { orderBy: { order: 'asc' }, include: { gradeBands: { orderBy: { order: 'asc' } } } },
+      feeHeads: { orderBy: { order: 'asc' } },
       feeVersions: {
         orderBy: [{ academicYear: 'desc' }, { createdAt: 'desc' }],
         include: {
           feeLines: {
-            include: { gradeBand: true },
-            orderBy: { gradeBand: { order: 'asc' } },
+            include: { gradeBand: true, feeHead: true },
+            orderBy: [{ gradeBand: { order: 'asc' } }, { feeHead: { order: 'asc' } }],
           },
           approvals: { orderBy: { order: 'asc' } },
         },
@@ -58,12 +83,13 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
   const grants = await getCurrentRights();
   const canDraft = canDraftForCampus(grants, school.code);
   const roleForRole = Object.fromEntries(
-    FEE_APPROVAL_CHAIN.map((step) => [step.role, hasRole(grants, step.role as FeeRole)]),
+    FEE_APPROVAL_CHAIN.map((step) => [step.role, hasRoleForCampus(grants, step.role as FeeRole, school.code)]),
   ) as Record<string, boolean>;
 
   const [current, ...history] = school.feeVersions;
   const approvedForCurrentYear = current?.status === 'APPROVED';
   const hasOpenDraftOrReview = current && (current.status === 'DRAFT' || current.status === 'PENDING_APPROVAL');
+  const currentGroups = current ? groupByGradeBand(current.feeLines) : [];
 
   return (
     <div className="space-y-6">
@@ -117,7 +143,13 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
         {!current && (
           <div className="mt-3 space-y-3">
             <p className="text-sm text-muted">No fee proposal exists yet for {school.code}.</p>
-            {canDraft && (
+            {school.feeHeads.length === 0 && (
+              <p className="fh-alert fh-alert--warning text-sm">
+                {school.code} has no fee heads yet — add at least one at{' '}
+                <Link href={`/master/${school.code}`} className="underline">Master data</Link> before starting a draft.
+              </p>
+            )}
+            {canDraft && school.feeHeads.length > 0 && (
               <form action={createDraftVersion.bind(null, school.code)} className="flex items-end gap-2">
                 <div>
                   <label className="fh-label text-xs">Academic year</label>
@@ -137,10 +169,31 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
             </div>
 
             {current.status === 'DRAFT' && canDraft ? (
-              <div className="grid gap-3 sm:grid-cols-2">
-                {current.feeLines.map((line) => (
-                  <FeeLineEditCard key={line.id} schoolCode={school.code} line={line} />
-                ))}
+              <div className="space-y-3">
+                {currentGroups.map(({ gradeBand, lines }) => {
+                  const total = lines.reduce((sum, l) => sum + l.amount, 0);
+                  return (
+                    <div key={gradeBand.id} className="rounded-lg border border-border bg-surface-sunken p-3">
+                      <div className="flex items-center justify-between">
+                        <div className="font-heading font-bold text-foreground">{gradeBand.label}</div>
+                        <div className="text-sm">
+                          <span className="text-muted">Total </span>
+                          <span className="font-heading font-bold text-foreground">{inr.format(total)}</span>
+                        </div>
+                      </div>
+                      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                        {lines.map((line) => (
+                          <FeeLineEditCard
+                            key={line.id}
+                            schoolCode={school.code}
+                            title={line.feeHead.label}
+                            line={{ id: line.id, baseFee: line.baseFee, incrementPct: Number(line.incrementPct) }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -148,22 +201,26 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
                   <thead>
                     <tr>
                       <th>Grade band</th>
-                      <th>Base fee</th>
-                      <th>Increment %</th>
-                      <th>Tuition fee</th>
+                      {school.feeHeads.map((head) => (
+                        <th key={head.id}>{head.label}</th>
+                      ))}
                       <th>Total</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {current.feeLines.map((line) => (
-                      <tr key={line.id}>
-                        <td>{line.gradeBand.label}</td>
-                        <td>{inr.format(line.baseFee)}</td>
-                        <td>{(Number(line.incrementPct) * 100).toFixed(2)}%</td>
-                        <td className="font-medium">{inr.format(line.tuitionFee)}</td>
-                        <td className="font-medium">{inr.format(line.totalFee)}</td>
-                      </tr>
-                    ))}
+                    {currentGroups.map(({ gradeBand, lines }) => {
+                      const total = lines.reduce((sum, l) => sum + l.amount, 0);
+                      return (
+                        <tr key={gradeBand.id}>
+                          <td>{gradeBand.label}</td>
+                          {school.feeHeads.map((head) => {
+                            const line = lines.find((l) => l.feeHeadId === head.id);
+                            return <td key={head.id}>{line ? inr.format(line.amount) : '—'}</td>;
+                          })}
+                          <td className="font-medium">{inr.format(total)}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -178,6 +235,14 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
                     <select name="programmeStageId" className="fh-input" required>
                       {school.programmeStages.map((stage) => (
                         <option key={stage.id} value={stage.id}>{stage.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="fh-label text-xs">Fee head</label>
+                    <select name="feeHeadId" className="fh-input" required>
+                      {school.feeHeads.map((head) => (
+                        <option key={head.id} value={head.id}>{head.label}</option>
                       ))}
                     </select>
                   </div>
@@ -225,31 +290,27 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
         const projectionYears: string[] = [current.academicYear];
         for (let i = 0; i < 5; i++) projectionYears.push(nextAcademicYear(projectionYears[projectionYears.length - 1]));
 
+        const series = currentGroups.map(({ gradeBand, lines }) => {
+          const perHeadSchedules = lines.map((line) => {
+            const schedule = projectFeeSchedule(line.amount, Number(line.incrementPct), 5);
+            return [line.amount, ...schedule.map((y) => y.fee)];
+          });
+          const points = Array.from({ length: 6 }, (_, i) => perHeadSchedules.reduce((sum, sched) => sum + sched[i], 0));
+          return { label: gradeBand.label, points };
+        });
+
         return (
           <section className="fh-card">
             <h2 className="font-heading text-lg font-bold text-foreground">5-year projection preview</h2>
             <p className="mt-1 text-sm text-muted">
-              Each grade band's current tuition fee compounded forward at its own current
-              increment %. Preview only — not persisted; only the current year's proposal becomes
-              a real FeeLine.
+              Each grade band's current total (summed across every fee head) compounded forward at
+              each head's own current increment %. Preview only — not persisted; only the current
+              year's proposal becomes real FeeLines.
             </p>
 
             <div className="mt-4 rounded-lg border border-border p-4">
-              <ProjectionChart
-                yearLabels={projectionYears}
-                lines={current.feeLines.map((line) => ({
-                  label: line.gradeBand.label,
-                  tuitionFee: line.tuitionFee,
-                  incrementPct: Number(line.incrementPct),
-                }))}
-              />
-              <ProjectionLegend
-                lines={current.feeLines.map((line) => ({
-                  label: line.gradeBand.label,
-                  tuitionFee: line.tuitionFee,
-                  incrementPct: Number(line.incrementPct),
-                }))}
-              />
+              <ProjectionChart yearLabels={projectionYears} series={series} />
+              <ProjectionLegend series={series} />
             </div>
 
             <div className="mt-4 overflow-x-auto">
@@ -263,18 +324,14 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
                   </tr>
                 </thead>
                 <tbody>
-                  {current.feeLines.map((line) => {
-                    const schedule = projectFeeSchedule(line.tuitionFee, Number(line.incrementPct), 5);
-                    return (
-                      <tr key={line.id}>
-                        <td>{line.gradeBand.label}</td>
-                        <td className="font-medium">{inr.format(line.tuitionFee)}</td>
-                        {schedule.map((y) => (
-                          <td key={y.yearOffset}>{inr.format(Math.round(y.fee))}</td>
-                        ))}
-                      </tr>
-                    );
-                  })}
+                  {series.map((s) => (
+                    <tr key={s.label}>
+                      <td>{s.label}</td>
+                      {s.points.map((v, i) => (
+                        <td key={i} className={i === 0 ? 'font-medium' : undefined}>{inr.format(Math.round(v))}</td>
+                      ))}
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>

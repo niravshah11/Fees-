@@ -19,6 +19,7 @@ const REFERENCE_ITEMS: Item[] = [
 
 const ICON: Record<string, ReactNode> = {
   dashboard: (<><ellipse cx="12" cy="5" rx="9" ry="3" /><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" /><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3" /></>),
+  school: (<><path d="M5 21V7l7-4 7 4v14" /><path d="M3 21h18" /><path d="M9 21v-4a3 3 0 0 1 6 0v4" /></>),
   master: (<><path d="M12 2 2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5" /><path d="M2 12l10 5 10-5" /></>),
   rights: (<><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></>),
   help: (<><circle cx="12" cy="12" r="10" /><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3" /><path d="M12 17h.01" /></>),
@@ -50,31 +51,35 @@ function Chevron({ open }: { open: boolean }) {
 export function Nav({ schools }: { schools: { code: string }[] }) {
   const path = usePathname() ?? '/';
   const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
-  const onASchoolPage = path === '/' || path.startsWith('/schools');
+  const onASchoolPage = path.startsWith('/schools');
   const [schoolsOpen, setSchoolsOpen] = useState(onASchoolPage);
 
   return (
     <nav className="flex flex-col gap-0.5">
+      <div>
+        <Link href="/" aria-current={path === '/' ? 'page' : undefined} className={`fh-sidebar__item${path === '/' ? ' is-active' : ''}`}>
+          <SideIcon name="dashboard" />
+          <span className="bcn-lbl">
+            Dashboard
+            <NewDot />
+          </span>
+        </Link>
+      </div>
+
       <div>
         <div className="fh-sidebar__section">Overview</div>
         <button
           type="button"
           onClick={() => setSchoolsOpen((v) => !v)}
           aria-expanded={schoolsOpen}
-          className={`fh-sidebar__item w-full${path === '/' ? ' is-active' : ''}`}
+          className={`fh-sidebar__item w-full${onASchoolPage ? ' is-active' : ''}`}
         >
-          <SideIcon name="dashboard" />
-          <span className="bcn-lbl">
-            Schools
-            <NewDot />
-          </span>
+          <SideIcon name="school" />
+          <span className="bcn-lbl">Schools</span>
           <Chevron open={schoolsOpen} />
         </button>
         {schoolsOpen && (
           <div className="ml-8 flex flex-col gap-0.5 border-l border-border pl-2">
-            <Link href="/" aria-current={path === '/' ? 'page' : undefined} className={`fh-sidebar__item py-1.5 text-sm${path === '/' ? ' is-active' : ''}`}>
-              <span className="bcn-lbl">All schools</span>
-            </Link>
             {schools.map((s) => {
               const href = `/schools/${s.code}`;
               const active = path.startsWith(href);

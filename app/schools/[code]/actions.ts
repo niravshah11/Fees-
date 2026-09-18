@@ -3,8 +3,8 @@
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth/session';
-import { assertCanDraftForCampus, assertHasRole } from '@/lib/auth/rights';
-import { computeIncrementedFee, computeTotalFee } from '@/engine/fee';
+import { assertCanDraftForCampus, assertHasRoleForCampus } from '@/lib/auth/rights';
+import { computeIncrementedFee } from '@/engine/fee';
 import { buildApprovalChain, computeApprovalState, type ApprovalLike } from '@/engine/approval';
 import type { FeeRole } from '@/engine/rights';
 import type { ApprovalDecision } from '@/engine/fee';
@@ -15,10 +15,10 @@ async function requireSchool(code: string) {
   return school;
 }
 
-/** Starts a new DRAFT FeeVersion for the given academic year, one FeeLine per current grade
- *  band, pre-filled from the school's latest APPROVED version (baseFee = that version's tuition
- *  fee) with a 0% increment — the Finance Officer sets the real % for this year via per-line
- *  edits or "bulk apply" once the draft exists. */
+/** Starts a new DRAFT FeeVersion for the given academic year — one FeeLine per (grade band x fee
+ *  head) combination, pre-filled from the school's latest APPROVED version (baseFee = that
+ *  head's prior amount for that grade band) with a 0% increment — the Finance Officer sets the
+ *  real % for this year via per-line edits or "bulk apply" once the draft exists. */
 export async function createDraftVersion(schoolCode: string, formData: FormData): Promise<void> {
   const school = await requireSchool(schoolCode);
   await assertCanDraftForCampus(school.code);
@@ -27,11 +27,11 @@ export async function createDraftVersion(schoolCode: string, formData: FormData)
   const academicYear = String(formData.get('academicYear') ?? '').trim();
   if (!academicYear) return;
 
-  const gradeBands = await prisma.gradeBand.findMany({
-    where: { schoolId: school.id },
-    orderBy: { order: 'asc' },
-  });
-  if (gradeBands.length === 0) return;
+  const [gradeBands, feeHeads] = await Promise.all([
+    prisma.gradeBand.findMany({ where: { schoolId: school.id }, orderBy: { order: 'asc' } }),
+    prisma.feeHead.findMany({ where: { schoolId: school.id }, orderBy: { order: 'asc' } }),
+  ]);
+  if (gradeBands.length === 0 || feeHeads.length === 0) return;
 
   const lastApproved = await prisma.feeVersion.findFirst({
     where: { schoolId: school.id, status: 'APPROVED' },
@@ -49,28 +49,18 @@ export async function createDraftVersion(schoolCode: string, formData: FormData)
   });
 
   for (const band of gradeBands) {
-    const priorLine = lastApproved?.feeLines.find((l) => l.gradeBandId === band.id);
-    const baseFee = priorLine?.tuitionFee ?? 0;
-    // No stored default to inherit — the increment is a fresh decision every year, set here via
-    // per-line edits or "bulk apply" once the draft exists (see engine/fee.ts's header).
-    const incrementPct = 0;
-    const tuitionFee = computeIncrementedFee(baseFee, incrementPct);
-    // Term fee and admission fee are retired from the proposal (confirmed with the user) —
-    // every line's total is just its tuition fee now.
-    const totalFee = computeTotalFee(tuitionFee);
+    for (const head of feeHeads) {
+      const priorLine = lastApproved?.feeLines.find((l) => l.gradeBandId === band.id && l.feeHeadId === head.id);
+      const baseFee = priorLine?.amount ?? 0;
+      // No stored default to inherit — the increment is a fresh decision every year, set here
+      // via per-line edits or "bulk apply" once the draft exists (see engine/fee.ts's header).
+      const incrementPct = 0;
+      const amount = computeIncrementedFee(baseFee, incrementPct);
 
-    await prisma.feeLine.create({
-      data: {
-        feeVersionId: draft.id,
-        gradeBandId: band.id,
-        baseFee,
-        incrementPct,
-        tuitionFee,
-        termFee: 0,
-        admissionFee: 0,
-        totalFee,
-      },
-    });
+      await prisma.feeLine.create({
+        data: { feeVersionId: draft.id, gradeBandId: band.id, feeHeadId: head.id, baseFee, incrementPct, amount },
+      });
+    }
   }
 
   revalidatePath(`/schools/${schoolCode}`);
@@ -90,21 +80,18 @@ export async function updateFeeLine(schoolCode: string, feeLineId: string, formD
   if ([baseFee, incrementPctInput].some((n) => Number.isNaN(n))) return;
 
   const incrementPct = incrementPctInput / 100;
-  const tuitionFee = computeIncrementedFee(baseFee, incrementPct);
-  // Term fee and admission fee are retired from the proposal (confirmed with the user) — every
-  // line's total is just its tuition fee now. The columns stay on FeeLine (always 0 going
-  // forward) rather than a schema migration, since it's simple to reintroduce if ever needed.
-  const totalFee = computeTotalFee(tuitionFee);
+  const amount = computeIncrementedFee(baseFee, incrementPct);
 
   await prisma.feeLine.update({
     where: { id: feeLineId },
-    data: { baseFee, incrementPct, tuitionFee, termFee: 0, admissionFee: 0, totalFee, notes },
+    data: { baseFee, incrementPct, amount, notes },
   });
   revalidatePath(`/schools/${schoolCode}`);
 }
 
-/** Applies one increment % to every fee line in `feeVersionId` whose grade band belongs to
- *  `programmeStageId` — the "bulk apply" convenience for the flexible-per-stage requirement. */
+/** Applies one increment % to every fee line in `feeVersionId` for `feeHeadId` whose grade band
+ *  belongs to `programmeStageId` — the "bulk apply" convenience for the flexible-per-stage,
+ *  per-head increment requirement. */
 export async function bulkApplyIncrement(schoolCode: string, feeVersionId: string, formData: FormData): Promise<void> {
   const school = await requireSchool(schoolCode);
   await assertCanDraftForCampus(school.code);
@@ -114,17 +101,17 @@ export async function bulkApplyIncrement(schoolCode: string, feeVersionId: strin
   if (version.status !== 'DRAFT') throw new Error('Only a DRAFT fee version can be edited.');
 
   const programmeStageId = String(formData.get('programmeStageId') ?? '');
+  const feeHeadId = String(formData.get('feeHeadId') ?? '');
   const pctInput = Number(formData.get('incrementPct'));
-  if (!programmeStageId || Number.isNaN(pctInput)) return;
+  if (!programmeStageId || !feeHeadId || Number.isNaN(pctInput)) return;
   const incrementPct = pctInput / 100;
 
   const lines = await prisma.feeLine.findMany({
-    where: { feeVersionId, gradeBand: { programmeStageId } },
+    where: { feeVersionId, feeHeadId, gradeBand: { programmeStageId } },
   });
   for (const line of lines) {
-    const tuitionFee = computeIncrementedFee(line.baseFee, incrementPct);
-    const totalFee = computeTotalFee(tuitionFee);
-    await prisma.feeLine.update({ where: { id: line.id }, data: { incrementPct, tuitionFee, totalFee, termFee: 0, admissionFee: 0 } });
+    const amount = computeIncrementedFee(line.baseFee, incrementPct);
+    await prisma.feeLine.update({ where: { id: line.id }, data: { incrementPct, amount } });
   }
   revalidatePath(`/schools/${schoolCode}`);
 }
@@ -164,7 +151,7 @@ export async function decideApproval(
   });
   if (!approval || approval.feeVersion.schoolId !== school.id) throw new Error('Approval step not found for this school.');
 
-  await assertHasRole(approval.role as FeeRole);
+  await assertHasRoleForCampus(approval.role as FeeRole, school.code);
 
   const approvals = approval.feeVersion.approvals as unknown as ApprovalLike[];
   const state = computeApprovalState(approvals);

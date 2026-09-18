@@ -11,12 +11,13 @@
 // FWGS/FPV/FPA/FALH have no source data in either workbook — every figure for them is a
 // clearly-labelled placeholder for the finance team to replace via the Fee Builder.
 //
-// Term fee and admission fee are retired from the proposal entirely (confirmed with the user) —
-// every FeeLine's total is just its tuition fee. FeeLine.termFee/.admissionFee stay on the model
-// (always 0) rather than a migration, since it's simple to reintroduce if ever needed.
+// Every school charges Tuition Fee, seeded with real base figures where the user supplied them.
+// FeeHead is otherwise campus-specific and extensible via Master Data (confirmed with the user)
+// — FSK also charges a "Beyond Mandate" fee, seeded here with a 0 base as a ready-to-fill
+// placeholder (no source figures for it), since a school's actual set of heads varies.
 
 import { PrismaClient } from '@prisma/client';
-import { computeIncrementedFee, computeTotalFee } from '../engine/fee';
+import { computeIncrementedFee } from '../engine/fee';
 import { buildApprovalChain } from '../engine/approval';
 
 const prisma = new PrismaClient();
@@ -38,8 +39,12 @@ interface SchoolSeed {
   domain: string;
   order: number;
   stages: StageSeed[];
+  /** fee heads this school charges, in display order — only the first gets real baseFee data
+   *  (from `stages[].gradeBands[].baseFee`); any additional heads seed with a 0 base per grade
+   *  band, ready for the Finance Officer to fill in. */
+  feeHeads: string[];
   academicYear: string;
-  /** the increment % actually applied to build this seed's FeeVersion's FeeLines */
+  /** the increment % actually applied to build this seed's FeeVersion's primary-head FeeLines */
   appliedIncrementPct: number;
   versionStatus: 'DRAFT' | 'PENDING_APPROVAL' | 'APPROVED';
   versionNotes: string;
@@ -52,14 +57,15 @@ const SCHOOLS: SchoolSeed[] = [
     board: 'IB',
     domain: 'fsksurat.in',
     order: 0,
+    feeHeads: ['Tuition Fee', 'Beyond Mandate'],
     academicYear: '2026-27',
     appliedIncrementPct: 0.05, // historical FRC increase actually applied 2025-26 -> 2026-27
     versionStatus: 'APPROVED',
     versionNotes:
-      'FRC-approved 2026-27 fee (Tuition Fees Working 2024-25, 2025-26 and 2026-27.xlsx). ' +
-      'Tuition figures are the app-computed 5% increment off the 2025-26 base and may differ ' +
-      'by a few rupees from the exact filed amount due to legacy per-row rounding in the ' +
-      'original FRC filing. Tuition-only — term/admission fee are not tracked in this app.',
+      'FRC-approved 2026-27 Tuition Fee (Tuition Fees Working 2024-25, 2025-26 and 2026-27.xlsx). ' +
+      'Figures are the app-computed 5% increment off the 2025-26 base and may differ by a few ' +
+      'rupees from the exact filed amount due to legacy per-row rounding in the original FRC ' +
+      'filing. "Beyond Mandate" is seeded at 0 — no source figures yet; fill it in via the Fee Builder.',
     stages: [
       // Split one stage per IB programme (confirmed with the user) rather than one "EYP to
       // MYP" stage covering three grade bands — each programme sets its own YoY % independently
@@ -75,6 +81,7 @@ const SCHOOLS: SchoolSeed[] = [
     name: 'Fountainhead School, Malgama',
     board: 'IB',
     domain: 'fsmsurat.in',
+    feeHeads: ['Tuition Fee'],
     order: 1,
     academicYear: '2027-28',
     appliedIncrementPct: 0, // this IS the base year (Parent Undertaking anchor) — no prior year
@@ -108,6 +115,7 @@ const SCHOOLS: SchoolSeed[] = [
     name: 'Fountainhead Workhardt Global School',
     board: 'IB',
     domain: 'fwgs.in',
+    feeHeads: ['Tuition Fee'],
     order: 2,
     academicYear: '2027-28',
     appliedIncrementPct: 0, // AY 2027-28 is Year 1 of the 5-year table — the anchor, not an increment
@@ -130,6 +138,7 @@ const SCHOOLS: SchoolSeed[] = [
     name: 'Fountainhead Avadh Learning Hub',
     board: 'IB',
     domain: 'falh.in',
+    feeHeads: ['Tuition Fee'],
     order: 3,
     academicYear: '2027-28',
     appliedIncrementPct: 0,
@@ -152,6 +161,7 @@ const SCHOOLS: SchoolSeed[] = [
     name: 'Fountainhead Pre-School, Vesu',
     board: 'IB',
     domain: 'fpvesu.in',
+    feeHeads: ['Tuition Fee'],
     order: 4,
     academicYear: '2027-28',
     appliedIncrementPct: 0,
@@ -173,6 +183,7 @@ const SCHOOLS: SchoolSeed[] = [
     name: 'Fountainhead Pre-School, Adajan',
     board: 'IB',
     domain: 'fpadajan.in',
+    feeHeads: ['Tuition Fee'],
     order: 5,
     academicYear: '2027-28',
     appliedIncrementPct: 0,
@@ -198,6 +209,7 @@ async function main() {
   await prisma.feeVersion.deleteMany();
   await prisma.gradeBand.deleteMany();
   await prisma.programmeStage.deleteMany();
+  await prisma.feeHead.deleteMany();
   await prisma.school.deleteMany();
   await prisma.appUserRight.deleteMany();
   await prisma.appUser.deleteMany();
@@ -206,6 +218,11 @@ async function main() {
     const school = await prisma.school.create({
       data: { code: s.code, name: s.name, board: s.board, domain: s.domain, order: s.order },
     });
+
+    const feeHeads = await Promise.all(
+      s.feeHeads.map((label, order) => prisma.feeHead.create({ data: { schoolId: school.id, label, order } })),
+    );
+    const primaryFeeHead = feeHeads[0];
 
     const feeVersion = await prisma.feeVersion.create({
       data: {
@@ -239,21 +256,25 @@ async function main() {
           },
         });
 
-        const tuitionFee = computeIncrementedFee(band.baseFee, s.appliedIncrementPct);
-        const totalFee = computeTotalFee(tuitionFee);
+        // One FeeLine per (grade band x fee head). Only the primary head (feeHeads[0]) has real
+        // baseFee data; any additional heads (e.g. FSK's "Beyond Mandate") seed at 0, ready for
+        // the Finance Officer to fill in via the Fee Builder.
+        for (const head of feeHeads) {
+          const baseFee = head.id === primaryFeeHead.id ? band.baseFee : 0;
+          const incrementPct = head.id === primaryFeeHead.id ? s.appliedIncrementPct : 0;
+          const amount = computeIncrementedFee(baseFee, incrementPct);
 
-        await prisma.feeLine.create({
-          data: {
-            feeVersionId: feeVersion.id,
-            gradeBandId: gradeBand.id,
-            baseFee: band.baseFee,
-            incrementPct: s.appliedIncrementPct,
-            tuitionFee,
-            termFee: 0,
-            admissionFee: 0,
-            totalFee,
-          },
-        });
+          await prisma.feeLine.create({
+            data: {
+              feeVersionId: feeVersion.id,
+              gradeBandId: gradeBand.id,
+              feeHeadId: head.id,
+              baseFee,
+              incrementPct,
+              amount,
+            },
+          });
+        }
       }
     }
 

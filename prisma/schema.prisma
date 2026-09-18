@@ -33,6 +33,7 @@ model School {
   order          Int              @default(0)
   programmeStages ProgrammeStage[]
   gradeBands     GradeBand[]
+  feeHeads       FeeHead[]
   feeVersions    FeeVersion[]
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
@@ -76,6 +77,23 @@ model GradeBand {
   @@index([programmeStageId])
 }
 
+/// A fee category a school charges, beyond just tuition — e.g. FSK's "Tuition Fee" and "Beyond
+/// Mandatory Fee". Campus-specific and extensible via Master Data (confirmed with the user: each
+/// campus can have a different set of heads, and new ones get added as the need arises), not a
+/// fixed global list of columns.
+model FeeHead {
+  id        String    @id @default(cuid())
+  school    School    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  schoolId  String
+  label     String // e.g. "Tuition Fee", "Beyond Mandatory Fee"
+  order     Int       @default(0)
+  feeLines  FeeLine[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([schoolId])
+}
+
 /// One fee proposal for one school for one academic year. Grain: school x academicYear x attempt
 /// — a school can have several FeeVersion rows for the same year across revision cycles, but only
 /// one may be APPROVED at a time (enforced in app/schools/[code]/actions.ts's approve action,
@@ -101,27 +119,31 @@ model FeeVersion {
   @@index([status])
 }
 
-/// One grade band's proposed fee within a FeeVersion. `incrementPct` is editable per row — this
-/// IS the "flexible YoY increment, programme-wise" requirement: two grade bands in the same
-/// ProgrammeStage can still carry different percentages if finance wants to override the default.
+/// One grade band's proposed amount for ONE fee head within a FeeVersion — grain is version x
+/// grade band x fee head. `incrementPct` is editable per row, independently per head: FSK's
+/// "Beyond Mandatory Fee" can grow at a different YoY % than its "Tuition Fee" for the same grade
+/// band (confirmed with the user — each head is its own base/increment/amount, not a shared
+/// rate). A grade band's headline total is the SUM of its FeeLine.amount across every head for
+/// that version, computed at display time (engine/fee.ts's computeTotalFee), not stored.
 model FeeLine {
   id            String     @id @default(cuid())
   feeVersion    FeeVersion @relation(fields: [feeVersionId], references: [id], onDelete: Cascade)
   feeVersionId  String
   gradeBand     GradeBand  @relation(fields: [gradeBandId], references: [id], onDelete: Cascade)
   gradeBandId   String
-  baseFee       Int // prior approved year's tuition fee (or a manually entered anchor for a school's first year)
+  feeHead       FeeHead    @relation(fields: [feeHeadId], references: [id], onDelete: Cascade)
+  feeHeadId     String
+  baseFee       Int // prior approved year's amount for this head (or a manually entered anchor for a school's first year)
   incrementPct  Decimal    @db.Decimal(6, 4)
-  tuitionFee    Int // computed: computeIncrementedFee(baseFee, incrementPct) — stored for audit
-  termFee       Int        @default(0) // informational/editable; see engine/fee.ts's header
-  admissionFee  Int        @default(0)
-  totalFee      Int // computed: computeTotalFee(tuitionFee, termFee, admissionFee)
+  amount        Int // computed: computeIncrementedFee(baseFee, incrementPct) — stored for audit
   notes         String?
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 
+  @@unique([feeVersionId, gradeBandId, feeHeadId])
   @@index([feeVersionId])
   @@index([gradeBandId])
+  @@index([feeHeadId])
 }
 
 /// One step in a fee version's Fees Group Coordinator -> Head of Operations -> Director -> Board

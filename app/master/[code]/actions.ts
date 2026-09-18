@@ -115,3 +115,47 @@ export async function deleteGradeBand(schoolCode: string, bandId: string): Promi
   await prisma.gradeBand.delete({ where: { id: bandId } });
   revalidatePath(`/master/${schoolCode}`);
 }
+
+export async function createFeeHead(schoolCode: string, formData: FormData): Promise<void> {
+  const school = await requireSchool(schoolCode);
+  await assertCanDraftForCampus(school.code);
+
+  const label = String(formData.get('label') ?? '').trim();
+  if (!label) return;
+
+  const count = await prisma.feeHead.count({ where: { schoolId: school.id } });
+  await prisma.feeHead.create({ data: { schoolId: school.id, label, order: count } });
+  revalidatePath(`/master/${schoolCode}`);
+}
+
+export async function updateFeeHead(schoolCode: string, headId: string, formData: FormData): Promise<void> {
+  const school = await requireSchool(schoolCode);
+  await assertCanDraftForCampus(school.code);
+
+  const head = await prisma.feeHead.findUnique({ where: { id: headId } });
+  if (!head || head.schoolId !== school.id) throw new Error('Fee head not found for this school.');
+
+  const label = String(formData.get('label') ?? '').trim();
+  if (!label) return;
+
+  await prisma.feeHead.update({ where: { id: headId }, data: { label } });
+  revalidatePath(`/master/${schoolCode}`);
+}
+
+/** Refuses to delete a fee head that already has fee-line history — deleting it would
+ *  cascade-delete those FeeLine rows and silently erase real fee records. */
+export async function deleteFeeHead(schoolCode: string, headId: string): Promise<void> {
+  const school = await requireSchool(schoolCode);
+  await assertCanDraftForCampus(school.code);
+
+  const head = await prisma.feeHead.findUnique({ where: { id: headId } });
+  if (!head || head.schoolId !== school.id) throw new Error('Fee head not found for this school.');
+
+  const feeLineCount = await prisma.feeLine.count({ where: { feeHeadId: headId } });
+  if (feeLineCount > 0) {
+    throw new Error(`Cannot remove "${head.label}" — it has ${feeLineCount} fee line(s) recorded across fee versions.`);
+  }
+
+  await prisma.feeHead.delete({ where: { id: headId } });
+  revalidatePath(`/master/${schoolCode}`);
+}

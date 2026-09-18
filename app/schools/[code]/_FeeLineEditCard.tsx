@@ -8,29 +8,30 @@ const inr = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR',
 
 interface Line {
   id: string;
-  gradeBand: { label: string };
   baseFee: number;
   incrementPct: unknown;
 }
 
-/** Client component so the computed tuition fee (and the increment amount it represents) updates
- *  live as the Finance Officer types a base fee / increment %, before they commit with Save —
- *  reviewing the number is the point, not just entering inputs blind. */
-export function FeeLineEditCard({ schoolCode, line }: { schoolCode: string; line: Line }) {
+/** One (grade band x fee head) row. Client component so the computed amount (and the increment
+ *  amount it represents) updates live as the Finance Officer types a base fee / increment %,
+ *  before they commit with Save — reviewing the number is the point, not just entering inputs
+ *  blind. `title` is the fee head's label (e.g. "Tuition Fee") — the parent groups these under
+ *  a grade-band heading and shows the summed total across every head there. */
+export function FeeLineEditCard({ schoolCode, title, line }: { schoolCode: string; title: string; line: Line }) {
   const [baseFee, setBaseFee] = useState(String(line.baseFee));
   const [incrementPctInput, setIncrementPctInput] = useState((Number(line.incrementPct) * 100).toFixed(2));
 
   const baseFeeNum = Number(baseFee);
   const pct = Number(incrementPctInput);
   const valid = !Number.isNaN(baseFeeNum) && !Number.isNaN(pct);
-  const tuitionFee = valid ? computeIncrementedFee(baseFeeNum, pct / 100) : null;
-  const incrementAmount = valid ? tuitionFee! - baseFeeNum : null;
+  const amount = valid ? computeIncrementedFee(baseFeeNum, pct / 100) : null;
+  const incrementAmount = valid ? amount! - baseFeeNum : null;
 
   return (
-    <div className="rounded-lg border border-border p-4">
-      <div className="font-heading font-bold text-foreground">{line.gradeBand.label}</div>
-      <form action={updateFeeLine.bind(null, schoolCode, line.id)} className="mt-3 space-y-3">
-        <div className="grid grid-cols-2 gap-3">
+    <div className="rounded-lg border border-border p-3">
+      <div className="text-sm font-medium text-foreground">{title}</div>
+      <form action={updateFeeLine.bind(null, schoolCode, line.id)} className="mt-2 space-y-2">
+        <div className="grid grid-cols-2 gap-2">
           <div>
             <label className="fh-label text-xs">Base fee</label>
             <input
@@ -55,17 +56,17 @@ export function FeeLineEditCard({ schoolCode, line }: { schoolCode: string; line
             />
           </div>
         </div>
-        <div className="rounded-md bg-surface-sunken px-3 py-2 text-sm">
+        <div className="rounded-md bg-surface-sunken px-2 py-1.5 text-xs">
           <div className="flex items-center justify-between text-muted">
             <span>Increment amount</span>
             <span>{incrementAmount === null ? '—' : `${incrementAmount < 0 ? '-' : '+'}${inr.format(Math.abs(incrementAmount))}`}</span>
           </div>
-          <div className="mt-1 flex items-center justify-between">
-            <span className="font-medium text-foreground">New tuition fee (Total)</span>
-            <span className="font-heading font-bold text-foreground">{tuitionFee === null ? '—' : inr.format(tuitionFee)}</span>
+          <div className="mt-0.5 flex items-center justify-between">
+            <span className="font-medium text-foreground">New amount</span>
+            <span className="font-heading font-bold text-foreground">{amount === null ? '—' : inr.format(amount)}</span>
           </div>
         </div>
-        <button type="submit" className="fh-btn fh-btn--secondary w-full">Save</button>
+        <button type="submit" className="fh-btn fh-btn--secondary fh-btn--sm w-full">Save</button>
       </form>
     </div>
   );

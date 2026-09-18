@@ -63,9 +63,13 @@ export default async function Dashboard() {
           const approved = school.feeVersions.find((v) => v.status === 'APPROVED');
           const latest = school.feeVersions[0];
           const latestIsDraftish = latest && latest.status !== 'APPROVED';
-          const tuitionRange = approved
-            ? [Math.min(...approved.feeLines.map((l) => l.tuitionFee)), Math.max(...approved.feeLines.map((l) => l.tuitionFee))]
-            : null;
+          const bandTotals = approved
+            ? [...approved.feeLines.reduce((byBand, l) => {
+                byBand.set(l.gradeBandId, (byBand.get(l.gradeBandId) ?? 0) + l.amount);
+                return byBand;
+              }, new Map<string, number>()).values()]
+            : [];
+          const tuitionRange = bandTotals.length > 0 ? [Math.min(...bandTotals), Math.max(...bandTotals)] : null;
 
           return (
             <Link key={school.id} href={`/schools/${school.code}`} className="fh-card block transition-shadow hover:shadow-fh-md">
@@ -86,7 +90,7 @@ export default async function Dashboard() {
                     </div>
                     {tuitionRange && (
                       <div className="flex items-center justify-between">
-                        <span className="text-muted">Tuition range</span>
+                        <span className="text-muted">Fee range</span>
                         <span className="font-medium text-foreground">
                           {inrCompact.format(tuitionRange[0])} – {inrCompact.format(tuitionRange[1])}
                         </span>

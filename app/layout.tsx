@@ -14,6 +14,15 @@ import { prisma } from '@/lib/db';
 
 const NO_FLASH = `try{var t=localStorage.getItem('fh-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)}catch(e){}`;
 
+// Every page.tsx already opts into force-dynamic since each queries Prisma directly, but that
+// doesn't cover Next's auto-generated /_not-found route — it has no page.tsx of its own, only
+// this layout, which also queries Prisma (for the Nav's school list). Without this, Next
+// sometimes tries to statically prerender /_not-found at build time, where DATABASE_URL points
+// at the Dockerfile's unreachable build-only placeholder — a flaky build failure (see
+// prisma.school.findMany() below) that doesn't reproduce with a real DB reachable, like on local
+// `next build`. Declaring it here forces every route under the root layout to skip prerendering.
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Fountainhead Fees',
   description: 'Fee proposal & approval workspace for the Fountainhead group of schools',

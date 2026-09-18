@@ -24,12 +24,17 @@ describe('computeIncrementedFee — worked examples (10 Years Fees Kunkni.xlsx)'
 });
 
 describe('computeTotalFee', () => {
-  it('sums tuition + term + admission', () => {
-    expect(computeTotalFee(153806, 20157, 0)).toBe(173963);
+  it('sums amounts across however many fee heads a school has', () => {
+    expect(computeTotalFee(153806, 20157)).toBe(173963); // Tuition Fee + Beyond Mandate
+    expect(computeTotalFee(153806, 20157, 5000)).toBe(178963); // + a third head
   });
 
-  it('defaults term/admission to 0 for a lump-sum-only fee line', () => {
+  it('works for a school with just one fee head', () => {
     expect(computeTotalFee(378000)).toBe(378000);
+  });
+
+  it('returns 0 for no heads at all', () => {
+    expect(computeTotalFee()).toBe(0);
   });
 });
 
