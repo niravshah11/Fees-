@@ -262,7 +262,7 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
                 <thead>
                   <tr>
                     <th>Grade band</th>
-                    {projectionYears.slice(1).map((year) => (
+                    {projectionYears.map((year) => (
                       <th key={year}>{year}</th>
                     ))}
                   </tr>
@@ -273,6 +273,7 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
                     return (
                       <tr key={line.id}>
                         <td>{line.gradeBand.label}</td>
+                        <td className="font-medium">{inr.format(line.tuitionFee)}</td>
                         {schedule.map((y) => (
                           <td key={y.yearOffset}>{inr.format(Math.round(y.fee))}</td>
                         ))}
