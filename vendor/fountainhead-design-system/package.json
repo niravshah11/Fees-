@@ -1,0 +1,42 @@
+{
+  "name": "@fountainhead/design-system",
+  "version": "1.17.0",
+  "description": "Fountainhead Design System — brand-accurate, framework-agnostic design tokens and CSS components for the website, ERP apps, and any Fountainhead product.",
+  "private": true,
+  "license": "UNLICENSED",
+  "style": "css/fountainhead.css",
+  "main": "css/fountainhead.css",
+  "sass": "tokens/_fountainhead.scss",
+  "exports": {
+    ".": "./css/fountainhead.css",
+    "./package.json": "./package.json",
+    "./css/*": "./css/*",
+    "./tokens.json": "./tokens/tokens.json",
+    "./tokens.ts": "./tokens/tokens.ts",
+    "./scss": "./tokens/_fountainhead.scss",
+    "./tailwind/*": "./tailwind/*",
+    "./tailwind-preset": "./tailwind/fountainhead-preset.js"
+  },
+  "files": [
+    "css",
+    "tokens",
+    "tailwind",
+    "assets",
+    "docs",
+    "README.md",
+    "INTEGRATION.md"
+  ],
+  "keywords": [
+    "fountainhead",
+    "design-system",
+    "design-tokens",
+    "css",
+    "brand",
+    "erp"
+  ],
+  "scripts": {
+    "tokens": "python scripts/generate_tokens.py",
+    "logo": "python scripts/extract_logo.py",
+    "contrast": "python scripts/check_contrast.py"
+  }
+}

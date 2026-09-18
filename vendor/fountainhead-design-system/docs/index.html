@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-density="comfortable">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fountainhead Design System</title>
+  <meta name="description" content="The Fountainhead Design System — tokens and components for website, ERP, and every Fountainhead product.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;1,700&family=Nunito:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+
+  <link rel="stylesheet" href="../css/fountainhead.css">
+
+  <style>
+    /* Documentation-only layout helpers (prefixed doc-) */
+    .doc-topbar { position: sticky; top: 0; z-index: var(--fh-z-sticky); }
+    .doc-main { padding-block: var(--fh-space-12); }
+    .doc-section { padding-block: var(--fh-space-10); border-top: 1px solid var(--fh-color-border); }
+    .doc-section:first-of-type { border-top: none; }
+    .doc-section > h2 { margin-bottom: var(--fh-space-2); }
+    .doc-section > .fh-lead { margin-bottom: var(--fh-space-6); }
+    .doc-row { display: flex; flex-wrap: wrap; gap: var(--fh-space-3); align-items: center; }
+    .doc-panel { padding: var(--fh-space-6); background: var(--fh-color-surface); border: 1px solid var(--fh-color-border); border-radius: var(--fh-radius-lg); }
+    .doc-ramp { display: grid; grid-template-columns: repeat(10, 1fr); border-radius: var(--fh-radius-md); overflow: hidden; border: 1px solid var(--fh-color-border); }
+    .doc-swatch { height: 56px; display: flex; align-items: flex-end; padding: 4px; font-size: 10px; font-weight: 700; }
+    .doc-brand-swatch { height: 120px; border-radius: var(--fh-radius-lg); display: flex; flex-direction: column; justify-content: flex-end; padding: var(--fh-space-3); color: #fff; font-family: var(--fh-font-heading); font-weight: 700; }
+    .doc-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--fh-space-4); }
+    .doc-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--fh-space-4); }
+    @media (max-width: 860px) { .doc-grid-3, .doc-grid-4 { grid-template-columns: 1fr 1fr; } .fh-appshell { grid-template-columns: 1fr !important; } }
+    .doc-logo-box { display: flex; align-items: center; justify-content: center; min-height: 140px; border-radius: var(--fh-radius-lg); border: 1px solid var(--fh-color-border); }
+    .doc-logo-box img { height: 44px; }
+    .doc-logo-box--dark { background: var(--fh-neutral-900); }
+    .logo-light { display: inline; } .logo-dark { display: none; }
+    [data-theme="dark"] .logo-light { display: none; } [data-theme="dark"] .logo-dark { display: inline; }
+    .doc-toolbar { display: flex; gap: var(--fh-space-2); align-items: center; }
+    .doc-token { font-family: var(--fh-font-mono); font-size: var(--fh-text-xs); color: var(--fh-color-text-muted); }
+  </style>
+</head>
+<body>
+
+  <!-- Top bar with theme + density controls -->
+  <header class="fh-navbar doc-topbar">
+    <a class="fh-navbar__brand" href="#top">
+      <img class="logo-light" src="../assets/logo/fountainhead-logo.png" alt="Fountainhead">
+      <img class="logo-dark" src="../assets/logo/fountainhead-logo-white.png" alt="Fountainhead">
+    </a>
+    <nav class="fh-navbar__links" aria-label="Sections">
+      <a class="fh-navlink" href="#colour">Colour</a>
+      <a class="fh-navlink" href="#type">Type</a>
+      <a class="fh-navlink" href="#buttons">Buttons</a>
+      <a class="fh-navlink" href="#forms">Forms</a>
+      <a class="fh-navlink" href="#data">Data</a>
+    </nav>
+    <div class="doc-toolbar">
+      <div class="fh-btn-group" role="group" aria-label="Density">
+        <button class="fh-btn fh-btn--sm" data-density-set="comfortable">Comfort</button>
+        <button class="fh-btn fh-btn--sm" data-density-set="compact">Compact</button>
+      </div>
+      <button class="fh-btn fh-btn--sm fh-btn--outline" id="themeToggle" aria-label="Toggle dark mode">🌓 Theme</button>
+      <button class="fh-btn fh-btn--sm" id="profileToggle" aria-pressed="false" title="Toggle the product/ERP profile (UI font + tighter contrast + tabular numerals)">Profile: brand</button>
+    </div>
+  </header>
+
+  <main class="fh-container doc-main" id="top">
+
+    <!-- Hero -->
+    <section class="doc-section" id="hero" style="border:none;">
+      <p class="fh-eyebrow">Brand Guidelines 2025 → Code</p>
+      <h1 class="fh-display">Fountainhead<br>Design System</h1>
+      <p class="fh-lead" style="max-width: 60ch;">One source of truth for colour, type, and components — built straight from the
+        brand guidelines. Framework-agnostic CSS that drops into the website, the ERP apps, and anything else we build.
+        Light, dark, and a compact density for data-heavy screens.</p>
+      <div class="doc-row" style="margin-top: var(--fh-space-4);">
+        <span class="fh-badge fh-badge--primary">Blue #005BAA</span>
+        <span class="fh-badge fh-badge--secondary">Red #B8292F</span>
+        <span class="fh-badge fh-badge--accent">Yellow #F2C418</span>
+        <span class="fh-badge">Montserrat + Nunito</span>
+      </div>
+    </section>
+
+    <!-- Logo -->
+    <section class="doc-section" id="logo">
+      <h2 class="fh-h3">Logo</h2>
+      <p class="fh-lead">Full-colour on light, white on dark. Keep clearspace; never tilt, recolour, or add containers.</p>
+      <div class="doc-grid-4">
+        <div class="doc-logo-box"><img src="../assets/logo/fountainhead-logo.png" alt="Primary logo"></div>
+        <div class="doc-logo-box doc-logo-box--dark"><img src="../assets/logo/fountainhead-logo-white.png" alt="Reverse logo"></div>
+        <div class="doc-logo-box"><img src="../assets/logo/fountainhead-brandmark.png" alt="Brandmark" style="height:72px;"></div>
+        <div class="doc-logo-box doc-logo-box--dark"><img src="../assets/logo/fountainhead-brandmark-white.png" alt="Reverse brandmark" style="height:72px;"></div>
+      </div>
+    </section>
+
+    <!-- Colour -->
+    <section class="doc-section" id="colour">
+      <h2 class="fh-h3">Colour</h2>
+      <p class="fh-lead">Three brand colours. Two bases (blue + red) at ~45% each, yellow accent at ~10%.</p>
+
+      <div class="doc-grid-3" style="margin-bottom: var(--fh-space-6);">
+        <div class="doc-brand-swatch" style="background: var(--fh-blue-600);">Blue<br><span style="font-weight:400;">#005BAA · Primary</span></div>
+        <div class="doc-brand-swatch" style="background: var(--fh-red-600);">Red<br><span style="font-weight:400;">#B8292F · Secondary</span></div>
+        <div class="doc-brand-swatch" style="background: var(--fh-yellow-400); color: var(--fh-neutral-900);">Yellow<br><span style="font-weight:400;">#F2C418 · Accent</span></div>
+      </div>
+
+      <p class="fh-subhead" style="font-size: var(--fh-text-sm); margin-bottom: var(--fh-space-2);">45 / 45 / 10 proportion</p>
+      <div class="fh-proportion" style="margin-bottom: var(--fh-space-6);"><span></span><span></span><span></span></div>
+
+      <div class="fh-stack fh-stack--3">
+        <div>
+          <div class="doc-token">--fh-blue-50 … 900</div>
+          <div class="doc-ramp">
+            <div class="doc-swatch" style="background:var(--fh-blue-50)">50</div>
+            <div class="doc-swatch" style="background:var(--fh-blue-100)">100</div>
+            <div class="doc-swatch" style="background:var(--fh-blue-200)">200</div>
+            <div class="doc-swatch" style="background:var(--fh-blue-300)">300</div>
+            <div class="doc-swatch" style="background:var(--fh-blue-400);color:#fff">400</div>
+            <div class="doc-swatch" style="background:var(--fh-blue-500);color:#fff">500</div>
+            <div class="doc-swatch" style="background:var(--fh-blue-600);color:#fff">600</div>
+            <div class="doc-swatch" style="background:var(--fh-blue-700);color:#fff">700</div>
+            <div class="doc-swatch" style="background:var(--fh-blue-800);color:#fff">800</div>
+            <div class="doc-swatch" style="background:var(--fh-blue-900);color:#fff">900</div>
+          </div>
+        </div>
+        <div>
+          <div class="doc-token">--fh-red-50 … 900</div>
+          <div class="doc-ramp">
+            <div class="doc-swatch" style="background:var(--fh-red-50)">50</div>
+            <div class="doc-swatch" style="background:var(--fh-red-100)">100</div>
+            <div class="doc-swatch" style="background:var(--fh-red-200)">200</div>
+            <div class="doc-swatch" style="background:var(--fh-red-300)">300</div>
+            <div class="doc-swatch" style="background:var(--fh-red-400);color:#fff">400</div>
+            <div class="doc-swatch" style="background:var(--fh-red-500);color:#fff">500</div>
+            <div class="doc-swatch" style="background:var(--fh-red-600);color:#fff">600</div>
+            <div class="doc-swatch" style="background:var(--fh-red-700);color:#fff">700</div>
+            <div class="doc-swatch" style="background:var(--fh-red-800);color:#fff">800</div>
+            <div class="doc-swatch" style="background:var(--fh-red-900);color:#fff">900</div>
+          </div>
+        </div>
+        <div>
+          <div class="doc-token">--fh-yellow-50 … 900</div>
+          <div class="doc-ramp">
+            <div class="doc-swatch" style="background:var(--fh-yellow-50)">50</div>
+            <div class="doc-swatch" style="background:var(--fh-yellow-100)">100</div>
+            <div class="doc-swatch" style="background:var(--fh-yellow-200)">200</div>
+            <div class="doc-swatch" style="background:var(--fh-yellow-300)">300</div>
+            <div class="doc-swatch" style="background:var(--fh-yellow-400)">400</div>
+            <div class="doc-swatch" style="background:var(--fh-yellow-500)">500</div>
+            <div class="doc-swatch" style="background:var(--fh-yellow-600);color:#fff">600</div>
+            <div class="doc-swatch" style="background:var(--fh-yellow-700);color:#fff">700</div>
+            <div class="doc-swatch" style="background:var(--fh-yellow-800);color:#fff">800</div>
+            <div class="doc-swatch" style="background:var(--fh-yellow-900);color:#fff">900</div>
+          </div>
+        </div>
+        <div>
+          <div class="doc-token">--fh-neutral-50 … 950 + green (success)</div>
+          <div class="doc-ramp">
+            <div class="doc-swatch" style="background:var(--fh-neutral-50)">50</div>
+            <div class="doc-swatch" style="background:var(--fh-neutral-100)">100</div>
+            <div class="doc-swatch" style="background:var(--fh-neutral-200)">200</div>
+            <div class="doc-swatch" style="background:var(--fh-neutral-300)">300</div>
+            <div class="doc-swatch" style="background:var(--fh-neutral-400)">400</div>
+            <div class="doc-swatch" style="background:var(--fh-neutral-500);color:#fff">500</div>
+            <div class="doc-swatch" style="background:var(--fh-neutral-600);color:#fff">600</div>
+            <div class="doc-swatch" style="background:var(--fh-neutral-700);color:#fff">700</div>
+            <div class="doc-swatch" style="background:var(--fh-neutral-900);color:#fff">900</div>
+            <div class="doc-swatch" style="background:var(--fh-green-600);color:#fff">✓</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Typography -->
+    <section class="doc-section" id="type">
+      <h2 class="fh-h3">Typography</h2>
+      <p class="fh-lead">Montserrat for headlines &amp; subheads, Nunito for body.</p>
+      <div class="doc-panel fh-stack fh-stack--4">
+        <div><span class="doc-token">Display · Montserrat ExtraBold</span><div class="fh-display">Nurture leaders</div></div>
+        <div><span class="doc-token">H1 · 42px Bold</span><h1>To nurture leaders with character</h1></div>
+        <div><span class="doc-token">H3 · 30px Bold</span><h3>Innovation in curriculum and pedagogy</h3></div>
+        <div><span class="doc-token">Subhead · Montserrat Medium, uppercase</span><div class="fh-subhead">Committed to an institution of excellence</div></div>
+        <div><span class="doc-token">Body · Nunito Regular 16px</span><p style="max-width:60ch;">At Fountainhead, we believe that learning is a lifelong process. We aim to inculcate a sheer sense of joy in the learning process among students, parents, and teachers alike.</p></div>
+        <div><span class="doc-token">Eyebrow · Montserrat SemiBold</span><div class="fh-eyebrow">Admissions open</div></div>
+      </div>
+    </section>
+
+    <!-- Buttons -->
+    <section class="doc-section" id="buttons">
+      <h2 class="fh-h3">Buttons</h2>
+      <div class="doc-panel fh-stack fh-stack--4">
+        <div class="doc-row">
+          <button class="fh-btn fh-btn--primary">Primary</button>
+          <button class="fh-btn fh-btn--secondary">Secondary</button>
+          <button class="fh-btn fh-btn--accent">Accent</button>
+          <button class="fh-btn fh-btn--success">Success</button>
+          <button class="fh-btn fh-btn--danger">Danger</button>
+        </div>
+        <div class="doc-row">
+          <button class="fh-btn">Default</button>
+          <button class="fh-btn fh-btn--outline">Outline</button>
+          <button class="fh-btn fh-btn--ghost">Ghost</button>
+          <button class="fh-btn fh-btn--subtle">Subtle</button>
+          <button class="fh-btn fh-btn--link">Link button</button>
+          <button class="fh-btn fh-btn--primary" disabled>Disabled</button>
+        </div>
+        <div class="doc-row">
+          <button class="fh-btn fh-btn--primary fh-btn--sm">Small</button>
+          <button class="fh-btn fh-btn--primary">Medium</button>
+          <button class="fh-btn fh-btn--primary fh-btn--lg">Large</button>
+          <button class="fh-btn fh-btn--primary"><span class="fh-spinner" style="width:1em;height:1em;border-color:rgba(255,255,255,.4);border-top-color:#fff;"></span> Loading</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Forms -->
+    <section class="doc-section" id="forms">
+      <h2 class="fh-h3">Forms</h2>
+      <div class="doc-panel doc-grid-3">
+        <div class="fh-field">
+          <label class="fh-label" for="f1">Student name <span class="fh-label__req">*</span></label>
+          <input class="fh-input" id="f1" type="text" placeholder="e.g. Aanya Shah">
+          <span class="fh-help">As it appears on records.</span>
+        </div>
+        <div class="fh-field is-invalid">
+          <label class="fh-label" for="f2">Email</label>
+          <input class="fh-input" id="f2" type="email" value="not-an-email" aria-invalid="true">
+          <span class="fh-error">Enter a valid email address.</span>
+        </div>
+        <div class="fh-field">
+          <label class="fh-label" for="f3">Grade</label>
+          <select class="fh-select" id="f3"><option>Nursery</option><option>Grade 1</option><option>Grade 5</option></select>
+        </div>
+        <div class="fh-field">
+          <label class="fh-label" for="f4">Amount</label>
+          <div class="fh-input-group">
+            <span class="fh-input-group__addon">₹</span>
+            <input class="fh-input" id="f4" type="text" value="25,000">
+          </div>
+        </div>
+        <div class="fh-field">
+          <label class="fh-label">Options</label>
+          <label class="fh-check"><input type="checkbox" checked> Transport opted</label>
+          <label class="fh-check"><input type="radio" name="r" checked> Annual</label>
+          <label class="fh-check"><input type="radio" name="r"> Term-wise</label>
+        </div>
+        <div class="fh-field">
+          <label class="fh-label">Notifications</label>
+          <label class="fh-switch"><input type="checkbox" checked><span class="fh-switch__track"></span> Email alerts</label>
+          <label class="fh-switch"><input type="checkbox"><span class="fh-switch__track"></span> SMS alerts</label>
+        </div>
+      </div>
+    </section>
+
+    <!-- Components -->
+    <section class="doc-section">
+      <h2 class="fh-h3">Badges, chips &amp; alerts</h2>
+      <div class="doc-panel fh-stack fh-stack--4">
+        <div class="doc-row">
+          <span class="fh-badge fh-badge--primary">Active</span>
+          <span class="fh-badge fh-badge--success"><span class="fh-badge__dot"></span>Paid</span>
+          <span class="fh-badge fh-badge--warning">Pending</span>
+          <span class="fh-badge fh-badge--danger">Overdue</span>
+          <span class="fh-badge fh-badge--info">New</span>
+          <span class="fh-chip">Grade 5 <button class="fh-chip__remove" aria-label="Remove">×</button></span>
+        </div>
+        <div class="fh-alert fh-alert--info"><span class="fh-alert__icon">ℹ️</span><div class="fh-alert__body"><div class="fh-alert__title">Heads up</div>Fee schedule for the new term is published.</div></div>
+        <div class="fh-alert fh-alert--success"><span class="fh-alert__icon">✓</span><div class="fh-alert__body"><div class="fh-alert__title">Saved</div>Student record updated successfully.</div></div>
+        <div class="fh-alert fh-alert--warning"><span class="fh-alert__icon">⚠️</span><div class="fh-alert__body"><div class="fh-alert__title">Action needed</div>3 admission forms are incomplete.</div></div>
+        <div class="fh-alert fh-alert--danger"><span class="fh-alert__icon">⨯</span><div class="fh-alert__body"><div class="fh-alert__title">Payment failed</div>Retry the transaction or use another method.</div></div>
+      </div>
+    </section>
+
+    <!-- Cards & stats -->
+    <section class="doc-section">
+      <h2 class="fh-h3">Cards &amp; KPIs</h2>
+      <div class="doc-grid-4" style="margin-bottom: var(--fh-space-4);">
+        <div class="fh-stat"><span class="fh-stat__label">Total students</span><span class="fh-stat__value">2,418</span><span class="fh-stat__delta fh-stat__delta--up">▲ 4.2%</span></div>
+        <div class="fh-stat"><span class="fh-stat__label">Attendance</span><span class="fh-stat__value">96%</span><span class="fh-stat__delta fh-stat__delta--up">▲ 1.1%</span></div>
+        <div class="fh-stat"><span class="fh-stat__label">Fees pending</span><span class="fh-stat__value">₹3.2L</span><span class="fh-stat__delta fh-stat__delta--down">▼ 8%</span></div>
+        <div class="fh-stat"><span class="fh-stat__label">Staff</span><span class="fh-stat__value">184</span><span class="fh-stat__delta">—</span></div>
+      </div>
+      <div class="doc-grid-3">
+        <div class="fh-card fh-card--accent-top">
+          <div class="fh-card__header"><div class="fh-card__title">Admissions</div></div>
+          <div class="fh-card__body"><p class="fh-u-text-muted">Nurturing leaders with character and competence. Applications for 2025–26 are open.</p></div>
+          <div class="fh-card__footer fh-cluster--end"><button class="fh-btn fh-btn--primary fh-btn--sm">Apply now</button></div>
+        </div>
+        <div class="fh-card">
+          <div class="fh-card__body fh-stack fh-stack--3">
+            <div class="fh-cluster"><span class="fh-avatar">FS</span><div><strong>Fee receipt</strong><div class="fh-caption">#FH-2025-1042</div></div></div>
+            <div class="fh-progress"><div class="fh-progress__bar" style="width:72%"></div></div>
+            <span class="fh-caption">72% of term fees collected</span>
+          </div>
+        </div>
+        <div class="fh-card fh-card--interactive">
+          <div class="fh-card__body fh-stack fh-stack--2">
+            <span class="fh-badge fh-badge--primary">Event</span>
+            <strong>Annual Day 2025</strong>
+            <p class="fh-u-text-muted fh-small">A celebration of learning, growth, and community spirit.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Data / table -->
+    <section class="doc-section" id="data">
+      <h2 class="fh-h3">Tables</h2>
+      <p class="fh-lead">Try the Compact toggle — tables tighten for data-dense ERP screens.</p>
+      <div class="fh-table-wrap">
+        <table class="fh-table fh-table--striped fh-table--hover">
+          <thead><tr><th>Student</th><th>Grade</th><th>Status</th><th class="fh-table__num">Fees due (₹)</th></tr></thead>
+          <tbody>
+            <tr><td>Aanya Shah</td><td>Grade 5</td><td><span class="fh-badge fh-badge--success">Paid</span></td><td class="fh-table__num">0</td></tr>
+            <tr><td>Vivaan Patel</td><td>Grade 3</td><td><span class="fh-badge fh-badge--warning">Pending</span></td><td class="fh-table__num">12,500</td></tr>
+            <tr><td>Diya Mehta</td><td>Nursery</td><td><span class="fh-badge fh-badge--danger">Overdue</span></td><td class="fh-table__num">25,000</td></tr>
+            <tr><td>Kabir Rao</td><td>Grade 8</td><td><span class="fh-badge fh-badge--success">Paid</span></td><td class="fh-table__num">0</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="doc-row" style="margin-top: var(--fh-space-4); justify-content: space-between;">
+        <div class="fh-pagination">
+          <button class="fh-pagination__item" disabled>‹</button>
+          <button class="fh-pagination__item is-active">1</button>
+          <button class="fh-pagination__item">2</button>
+          <button class="fh-pagination__item">3</button>
+          <button class="fh-pagination__item">›</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Navigation -->
+    <section class="doc-section">
+      <h2 class="fh-h3">Navigation</h2>
+      <nav class="fh-breadcrumb" aria-label="Breadcrumb" style="margin-bottom: var(--fh-space-4);">
+        <li><a href="#">Home</a></li><li><a href="#">Students</a></li><li>Aanya Shah</li>
+      </nav>
+      <div class="fh-tabs" style="margin-bottom: var(--fh-space-6);">
+        <button class="fh-tab is-active">Overview</button>
+        <button class="fh-tab">Attendance</button>
+        <button class="fh-tab">Fees</button>
+        <button class="fh-tab">Reports</button>
+      </div>
+
+      <!-- Mini ERP app shell preview -->
+      <div class="fh-card" style="overflow:hidden;">
+        <div class="fh-appshell" style="min-height: 280px;">
+          <aside class="fh-sidebar">
+            <div class="fh-sidebar__brand">
+              <img class="logo-light" src="../assets/logo/fountainhead-brandmark.png" alt="" style="height:1.75rem;">
+              <img class="logo-dark" src="../assets/logo/fountainhead-brandmark-white.png" alt="" style="height:1.75rem;">
+              <strong>ERP</strong>
+            </div>
+            <a class="fh-sidebar__item is-active" href="#data">▦ Dashboard</a>
+            <a class="fh-sidebar__item" href="#data">👤 Students</a>
+            <a class="fh-sidebar__item" href="#data">₹ Fees <span class="fh-badge fh-badge--danger">3</span></a>
+            <a class="fh-sidebar__item" href="#data">📅 Attendance</a>
+            <div class="fh-sidebar__section">Admin</div>
+            <a class="fh-sidebar__item" href="#data">⚙ Settings</a>
+          </aside>
+          <div style="padding: var(--fh-space-6);">
+            <div class="fh-cluster--between" style="display:flex; margin-bottom: var(--fh-space-4);">
+              <h4 class="fh-h5" style="margin:0;">Dashboard</h4>
+              <button class="fh-btn fh-btn--primary fh-btn--sm">+ New admission</button>
+            </div>
+            <p class="fh-u-text-muted">The same tokens power the public website and the internal ERP — one brand, every surface.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Feedback -->
+    <section class="doc-section">
+      <h2 class="fh-h3">Feedback &amp; loaders</h2>
+      <div class="doc-panel doc-row" style="gap: var(--fh-space-6);">
+        <button class="fh-btn fh-btn--primary" id="openModal">Open modal</button>
+        <button class="fh-btn fh-btn--danger" id="openConfirm">Confirm dialog</button>
+        <span class="fh-tooltip"><button class="fh-btn">Hover me<span class="fh-tooltip__content">On-brand tooltip</span></button></span>
+        <div class="fh-spinner"></div>
+        <div class="fh-spinner fh-spinner--lg"></div>
+        <div style="flex:1; min-width:200px;">
+          <div class="fh-skeleton fh-skeleton--text" style="width:80%"></div>
+          <div class="fh-skeleton fh-skeleton--text" style="width:60%"></div>
+        </div>
+      </div>
+
+      <p class="fh-caption" style="margin: var(--fh-space-6) 0 var(--fh-space-2);">
+        Toasts · <code>.fh-toast</code> (<code>--success --warning --danger</code>) — stack them fixed bottom-right with <code>.fh-toaster</code>; rendered in-flow here
+      </p>
+      <div style="display:grid; gap: var(--fh-space-2); max-width: 420px;">
+        <div class="fh-toast fh-toast--success" role="status">
+          <span class="fh-toast__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg></span>
+          <div class="fh-toast__body"><div class="fh-toast__title">Fees recorded</div>₹25,000 received from Aanya Shah · receipt #R-1042 emailed.</div>
+          <button class="fh-toast__close" aria-label="Dismiss">×</button>
+        </div>
+        <div class="fh-toast fh-toast--danger" role="alert">
+          <span class="fh-toast__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg></span>
+          <div class="fh-toast__body"><div class="fh-toast__title">Import failed</div>Row 14: unknown grade code “G13”. Nothing was written.</div>
+          <button class="fh-toast__close" aria-label="Dismiss">×</button>
+        </div>
+        <div class="fh-toast fh-toast--warning" role="status">
+          <span class="fh-toast__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>
+          <div class="fh-toast__body"><div class="fh-toast__title">3 routes over capacity</div>Route A · Vapi is at 104% — review allocations.</div>
+          <button class="fh-toast__close" aria-label="Dismiss">×</button>
+        </div>
+      </div>
+
+      <p class="fh-caption" style="margin: var(--fh-space-6) 0 var(--fh-space-2);">
+        Empty / error states · <code>.fh-empty-state</code> (<code>--plain --page --danger</code>) — no-data, filtered-no-results, errors, access-denied
+      </p>
+      <div class="fh-empty-state">
+        <span class="fh-empty-state__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m13.5 8.5-5 5"/><path d="m8.5 8.5 5 5"/><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span>
+        <div class="fh-empty-state__title">No students match</div>
+        <p class="fh-empty-state__desc">Nothing in your scope matches the current search and filters.</p>
+        <div class="fh-empty-state__actions">
+          <button class="fh-btn fh-btn--sm">Clear filters</button>
+          <button class="fh-btn fh-btn--sm fh-btn--primary">+ New admission</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ERP flow patterns (v1.5 CRUD foundations) -->
+    <section class="doc-section" id="flows">
+      <h2 class="fh-h3">ERP flow patterns</h2>
+      <p class="fh-lead">The CRUD building blocks: approval pipelines, people lists, and bulk actions.</p>
+
+      <p class="fh-caption" style="margin: 0 0 var(--fh-space-3);">
+        Stepper / approval pipeline · <code>.fh-stepper</code> — steps take <code>.is-complete .is-active .is-danger</code> (maker-checker: Uploaded → Verified → Approved → Released)
+      </p>
+      <div class="doc-panel" style="margin-bottom: var(--fh-space-6);">
+        <div class="fh-stepper">
+          <div class="fh-stepper__step is-complete"><span class="fh-stepper__dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span class="fh-stepper__label">Uploaded</span><span class="fh-stepper__meta">28 Jun · Asha</span></div>
+          <div class="fh-stepper__step is-complete"><span class="fh-stepper__dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span class="fh-stepper__label">Parsed</span><span class="fh-stepper__meta">28 Jun</span></div>
+          <div class="fh-stepper__step is-active"><span class="fh-stepper__dot">3</span><span class="fh-stepper__label">Verified</span><span class="fh-stepper__meta">awaiting checker</span></div>
+          <div class="fh-stepper__step"><span class="fh-stepper__dot">4</span><span class="fh-stepper__label">Approved</span></div>
+          <div class="fh-stepper__step"><span class="fh-stepper__dot">5</span><span class="fh-stepper__label">Released</span></div>
+        </div>
+      </div>
+
+      <p class="fh-caption" style="margin: 0 0 var(--fh-space-3);">
+        Person cell + row selection + bulk bar · <code>.fh-person</code> · <code>.fh-table__check</code> + <code>tr.is-selected</code> · <code>.fh-bulkbar</code>
+      </p>
+      <div class="fh-stack" style="gap: var(--fh-space-3);">
+        <div class="fh-bulkbar">
+          <span><span class="fh-bulkbar__count">2 selected</span> of 3</span>
+          <span class="fh-bulkbar__spacer"></span>
+          <button class="fh-btn fh-btn--sm">Send circular</button>
+          <button class="fh-btn fh-btn--sm">Export</button>
+          <button class="fh-btn fh-btn--sm fh-btn--ghost">Clear</button>
+        </div>
+        <div class="fh-table-wrap">
+          <table class="fh-table fh-table--hover">
+            <thead><tr>
+              <th class="fh-table__check"><label class="fh-check"><input type="checkbox" checked aria-label="Select all"></label></th>
+              <th>Student</th><th>Section</th><th>Status</th>
+            </tr></thead>
+            <tbody>
+              <tr class="is-selected">
+                <td class="fh-table__check"><label class="fh-check"><input type="checkbox" checked aria-label="Select Aanya Shah"></label></td>
+                <td><span class="fh-person"><span class="fh-avatar fh-avatar--sm">AS</span><span class="fh-person__info"><span class="fh-person__name">Aanya Shah</span><span class="fh-person__meta">Grade 5 · FWGS PYP</span></span></span></td>
+                <td>G5-A</td><td><span class="fh-badge fh-badge--success">Paid</span></td>
+              </tr>
+              <tr class="is-selected">
+                <td class="fh-table__check"><label class="fh-check"><input type="checkbox" checked aria-label="Select Vivaan Patel"></label></td>
+                <td><span class="fh-person"><span class="fh-avatar fh-avatar--sm">VP</span><span class="fh-person__info"><span class="fh-person__name">Vivaan Patel</span><span class="fh-person__meta">Grade 3 · FWGS PYP</span></span></span></td>
+                <td>G3-B</td><td><span class="fh-badge fh-badge--warning">Pending</span></td>
+              </tr>
+              <tr>
+                <td class="fh-table__check"><label class="fh-check"><input type="checkbox" aria-label="Select Diya Mehta"></label></td>
+                <td><span class="fh-person"><span class="fh-avatar fh-avatar--sm">DM</span><span class="fh-person__info"><span class="fh-person__name">Diya Mehta</span><span class="fh-person__meta">Nursery · FSNC</span></span></span></td>
+                <td>—</td><td><span class="fh-badge fh-badge--danger">Overdue</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Field & paper patterns (v1.6–v1.9) -->
+    <section class="doc-section" id="field">
+      <h2 class="fh-h3">Field &amp; paper patterns</h2>
+      <p class="fh-lead">Grades, attendance, calendars, identity — and print. Full screen compositions live in
+        <a href="examples/erp-archetypes.html">erp-archetypes.html</a> (form · detail · wizard · grid · attendance · calendar · map · settings · comms)
+        and <a href="examples/erp-print.html">erp-print.html</a> (receipt · report · ID card).</p>
+
+      <p class="fh-caption" style="margin: 0 0 var(--fh-space-2);">Grade chips · <code>.fh-grade--1…7</code> (1 is red-tinted; <code>--na</code> = not assessed) — for grids, gradebooks, report sheets</p>
+      <div class="doc-row" style="margin-bottom: var(--fh-space-6);">
+        <span class="fh-grade fh-grade--1">1</span><span class="fh-grade fh-grade--2">2</span>
+        <span class="fh-grade fh-grade--3">3</span><span class="fh-grade fh-grade--4">4</span>
+        <span class="fh-grade fh-grade--5">5</span><span class="fh-grade fh-grade--6">6</span>
+        <span class="fh-grade fh-grade--7">7</span><span class="fh-grade fh-grade--na">–</span>
+        <span class="doc-token" style="margin-left:var(--fh-space-3);">pair with .fh-table--frozen-first + .fh-table__center for the students × subjects grid</span>
+      </div>
+
+      <p class="fh-caption" style="margin: 0 0 var(--fh-space-2);">Attendance marks · <code>.fh-mark</code> (<code>--present --absent --late</code>) — tap-friendly daily-marking toggles</p>
+      <div class="doc-row" style="margin-bottom: var(--fh-space-6);">
+        <button class="fh-mark fh-mark--present" aria-label="Present">P</button>
+        <button class="fh-mark fh-mark--absent" aria-label="Absent">A</button>
+        <button class="fh-mark fh-mark--late" aria-label="Late">L</button>
+        <button class="fh-mark" aria-label="Unmarked">·</button>
+      </div>
+
+      <p class="fh-caption" style="margin: 0 0 var(--fh-space-2);">Calendar grid · <code>.fh-cal</code> — day-type tints (<code>--event --break --holiday</code>), <code>is-today</code>, <code>is-outside</code></p>
+      <div class="fh-cal" style="max-width: 40rem; margin-bottom: var(--fh-space-6);">
+        <div class="fh-cal__head"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+        <div class="fh-cal__grid">
+          <div class="fh-cal__day is-outside"><span class="fh-cal__date">30</span></div>
+          <div class="fh-cal__day"><span class="fh-cal__date">1</span></div>
+          <div class="fh-cal__day is-today"><span class="fh-cal__date">2</span><span class="fh-cal__tag">Term 1 begins</span></div>
+          <div class="fh-cal__day fh-cal__day--event"><span class="fh-cal__date">3</span><span class="fh-cal__tag">Exhibition</span></div>
+          <div class="fh-cal__day fh-cal__day--break"><span class="fh-cal__date">4</span><span class="fh-cal__tag">Staff day</span></div>
+          <div class="fh-cal__day"><span class="fh-cal__date">5</span></div>
+          <div class="fh-cal__day fh-cal__day--holiday"><span class="fh-cal__date">6</span><span class="fh-cal__tag">Sunday</span></div>
+        </div>
+      </div>
+
+      <div class="doc-row" style="gap: var(--fh-space-10); align-items: flex-start;">
+        <div>
+          <p class="fh-caption" style="margin: 0 0 var(--fh-space-2);">Acting-as identity · <code>.fh-actingas</code> — role-scoped screens</p>
+          <div class="fh-actingas" style="text-align:left;">
+            <span class="fh-actingas__label">Acting as</span>
+            <span class="fh-actingas__name">Asha Admin</span>
+            <span class="fh-actingas__role">Tenant Administrator</span>
+          </div>
+        </div>
+        <div>
+          <p class="fh-caption" style="margin: 0 0 var(--fh-space-2);">Term switcher · <code>.fh-btn-group</code> + <code>.fh-btn.is-active</code></p>
+          <div class="fh-btn-group" role="group" aria-label="Term">
+            <button class="fh-btn fh-btn--sm is-active" aria-pressed="true">Term 1</button>
+            <button class="fh-btn fh-btn--sm">Term 2</button>
+            <button class="fh-btn fh-btn--sm">Year</button>
+          </div>
+        </div>
+        <div style="max-width: 26rem;">
+          <p class="fh-caption" style="margin: 0 0 var(--fh-space-2);">Print · <code>.fh-sheet</code> (+ <code>--a5 --card</code>)</p>
+          <p class="fh-small" style="margin:0;">Paper documents (receipts, report sheets, ID cards) preview on screen and print clean —
+            app chrome auto-hides under <code>@media print</code>. Templates: <a href="examples/erp-print.html">erp-print.html</a>.
+            The mobile <strong>drawer</strong> (<code>.fh-appshell--drawer</code>) and <strong>map chrome</strong>
+            (<code>.fh-mapframe</code>) are shell-level — see the archetype pages.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Product / ERP patterns -->
+    <section class="doc-section" id="product">
+      <h2 class="fh-h3">Product / ERP patterns</h2>
+      <p class="fh-lead">Toggle <strong>Profile: product</strong> in the top bar — body text switches to a crisp UI font,
+        secondary text tightens, and numerals go tabular. The print brand is for impact; this is the operational counterpart.</p>
+
+      <div class="doc-panel fh-stack fh-stack--6">
+        <div>
+          <span class="doc-token">Filter toolbar · .fh-toolbar + .fh-select--auto (controls size to content, wrap gracefully)</span>
+          <div class="fh-toolbar" style="margin-top: var(--fh-space-2);">
+            <select class="fh-select fh-select--auto"><option>All cohorts</option><option>Class of 2027</option></select>
+            <select class="fh-select fh-select--auto"><option>All groups</option><option>Sciences</option></select>
+            <select class="fh-select fh-select--auto"><option>All terms</option><option>Term 1</option></select>
+            <input class="fh-input fh-input--auto" type="search" placeholder="Search…">
+            <button class="fh-btn fh-btn--primary">Apply</button>
+            <span class="fh-toolbar__spacer"></span>
+            <button class="fh-btn fh-btn--outline fh-btn--sm">Export</button>
+          </div>
+        </div>
+
+        <div>
+          <span class="doc-token">Calmer KPI tones · .fh-stat--danger/warning/success (value uses the darker text token, not full-saturation brand)</span>
+          <div class="doc-grid-4" style="margin-top: var(--fh-space-2);">
+            <div class="fh-stat fh-stat--success"><span class="fh-stat__label">On schedule</span><span class="fh-stat__value">549</span><span class="fh-stat__delta fh-stat__delta--up">▲ 60%</span></div>
+            <div class="fh-stat fh-stat--danger"><span class="fh-stat__label">Overdue</span><span class="fh-stat__value">355</span><span class="fh-stat__delta fh-stat__delta--down">39%</span></div>
+            <div class="fh-stat fh-stat--warning"><span class="fh-stat__label">At risk</span><span class="fh-stat__value">13</span><span class="fh-stat__delta">due ≤ 7 days</span></div>
+            <div class="fh-stat"><span class="fh-stat__label">Actuals logged</span><span class="fh-stat__value">24</span><span class="fh-stat__delta">of 917</span></div>
+          </div>
+        </div>
+
+        <div>
+          <span class="doc-token">Tabular figures · dates &amp; numbers align down the column (toggle the profile to feel the type change)</span>
+          <div class="fh-table-wrap" style="margin-top: var(--fh-space-2);">
+            <table class="fh-table fh-table--striped fh-table--hover">
+              <thead><tr><th>Unit</th><th>Start</th><th>Deadline</th><th class="fh-table__num">Sessions</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td>Paper 1 Guided Analysis</td><td>2025-06-25</td><td>2025-08-07</td><td class="fh-table__num">15</td><td><span class="fh-badge fh-badge--success">Completed</span></td></tr>
+                <tr><td>Poems by Carol Ann Duffy</td><td>2025-07-25</td><td>2026-03-09</td><td class="fh-table__num">25</td><td><span class="fh-badge fh-badge--warning">At risk</span></td></tr>
+                <tr><td>Time Magazine Cover Pages</td><td>2025-08-20</td><td>2026-03-14</td><td class="fh-table__num">14</td><td><span class="fh-badge fh-badge--danger">Overdue</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div>
+          <span class="doc-token">Data-viz fills · soft tokens (.fh-color-*-soft) for large areas; keep saturated brand only for small accents/text</span>
+          <div style="display:flex; gap:var(--fh-space-4); flex-wrap:wrap; margin-top: var(--fh-space-2);">
+            <span style="display:flex; align-items:center; gap:var(--fh-space-2);"><span style="width:2.5rem; height:1.5rem; border-radius:var(--fh-radius-sm); background:var(--fh-color-danger-soft);"></span><span class="fh-small">danger-soft</span></span>
+            <span style="display:flex; align-items:center; gap:var(--fh-space-2);"><span style="width:2.5rem; height:1.5rem; border-radius:var(--fh-radius-sm); background:var(--fh-color-warning-soft);"></span><span class="fh-small">warning-soft</span></span>
+            <span style="display:flex; align-items:center; gap:var(--fh-space-2);"><span style="width:2.5rem; height:1.5rem; border-radius:var(--fh-radius-sm); background:var(--fh-color-success-soft);"></span><span class="fh-small">success-soft</span></span>
+          </div>
+        </div>
+
+        <div>
+          <span class="doc-token">Diverging scale · .fh-color-diverging-* for signed deltas (over ↔ exact ↔ under) — valence-neutral, soft mids, strong ends for magnitude</span>
+          <div style="display:flex; margin-top: var(--fh-space-2); border-radius:var(--fh-radius-sm); overflow:hidden; max-width:32rem;">
+            <span style="flex:1; height:2rem; background:var(--fh-color-diverging-neg-strong);"></span>
+            <span style="flex:1; height:2rem; background:var(--fh-color-diverging-neg);"></span>
+            <span style="flex:1; height:2rem; background:var(--fh-color-diverging-neutral);"></span>
+            <span style="flex:1; height:2rem; background:var(--fh-color-diverging-pos);"></span>
+            <span style="flex:1; height:2rem; background:var(--fh-color-diverging-pos-strong);"></span>
+          </div>
+        </div>
+
+        <div>
+          <span class="doc-token">Quality scale · .fh-color-scale-quality-1…6 (best→worst) for ordinal categories that must stay distinguishable in a stack — color alone must never carry ordinal meaning via a single-hue ramp; grade chips (.fh-grade--1…7) are exempt since the digit itself carries the signal</span>
+          <div style="display:flex; margin-top: var(--fh-space-2); border-radius:var(--fh-radius-sm); overflow:hidden; max-width:32rem;">
+            <span style="flex:1; height:2rem; background:var(--fh-color-scale-quality-1);"></span>
+            <span style="flex:1; height:2rem; background:var(--fh-color-scale-quality-2);"></span>
+            <span style="flex:1; height:2rem; background:var(--fh-color-scale-quality-3);"></span>
+            <span style="flex:1; height:2rem; background:var(--fh-color-scale-quality-4);"></span>
+            <span style="flex:1; height:2rem; background:var(--fh-color-scale-quality-5);"></span>
+            <span style="flex:1; height:2rem; background:var(--fh-color-scale-quality-6);"></span>
+            <span style="flex:1; height:2rem; background:var(--fh-color-scale-quality-none);"></span>
+          </div>
+        </div>
+
+        <div>
+          <span class="doc-token">Reference line · .fh-color-chart-reference for benchmarks / targets / world-average markers (neutral — never a data series)</span>
+          <div style="position:relative; max-width:32rem; margin-top:var(--fh-space-2); height:3rem; background:var(--fh-color-surface-sunken); border-radius:var(--fh-radius-sm); overflow:hidden;">
+            <span style="position:absolute; left:2%; bottom:0; width:16%; height:70%; background:var(--fh-color-primary);"></span>
+            <span style="position:absolute; left:22%; bottom:0; width:16%; height:92%; background:var(--fh-color-primary);"></span>
+            <span style="position:absolute; left:42%; bottom:0; width:16%; height:60%; background:var(--fh-color-primary);"></span>
+            <span style="position:absolute; left:62%; bottom:0; width:16%; height:84%; background:var(--fh-color-primary);"></span>
+            <span style="position:absolute; left:0; right:0; top:22%; border-top:2px dashed var(--fh-color-chart-reference);"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="doc-section fh-u-text-muted fh-small">
+      Fountainhead Design System v1.7 · Built from Brand Guidelines 2025 · Tokens are the source of truth.
+    </footer>
+  </main>
+
+  <!-- Modal demo -->
+  <div class="fh-modal-overlay" id="modal" style="display:none;">
+    <div class="fh-modal" role="dialog" aria-modal="true" aria-labelledby="mt">
+      <div class="fh-modal__header"><h3 class="fh-modal__title" id="mt">Confirm admission</h3><button class="fh-btn fh-btn--ghost fh-btn--icon" id="closeModal" aria-label="Close">×</button></div>
+      <div class="fh-modal__body"><p>Approve <strong>Aanya Shah</strong> for Grade 5? A confirmation email will be sent to the parent.</p></div>
+      <div class="fh-modal__footer"><button class="fh-btn" id="cancelModal">Cancel</button><button class="fh-btn fh-btn--primary">Approve</button></div>
+    </div>
+  </div>
+
+  <!-- Confirm dialog demo (fh-modal--confirm) -->
+  <div class="fh-modal-overlay" id="confirm" style="display:none;">
+    <div class="fh-modal fh-modal--confirm" role="alertdialog" aria-modal="true" aria-labelledby="ct" aria-describedby="cd">
+      <div class="fh-modal__body">
+        <span class="fh-modal__badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span>
+        <h3 class="fh-modal__title" id="ct">Delete this invoice?</h3>
+        <p id="cd" class="fh-u-text-muted" style="margin:0;">Invoice <strong>#INV-0231</strong> (₹25,000, Aanya Shah) will be permanently removed. This cannot be undone.</p>
+      </div>
+      <div class="fh-modal__footer"><button class="fh-btn" id="cancelConfirm">Cancel</button><button class="fh-btn fh-btn--danger" id="okConfirm">Delete invoice</button></div>
+    </div>
+  </div>
+
+  <script>
+    var html = document.documentElement;
+    // Honour ?theme= and ?density= for shareable/previewable links.
+    var params = new URLSearchParams(location.search);
+    if (params.get('theme')) html.setAttribute('data-theme', params.get('theme'));
+    if (params.get('density')) html.setAttribute('data-density', params.get('density'));
+    if (params.get('profile')) html.setAttribute('data-profile', params.get('profile'));
+    if (params.get('scroll')) window.addEventListener('load', function () { window.scrollTo(0, parseInt(params.get('scroll'), 10) || 0); });
+    // Focus view (used for screenshot verification): hide the upper reference
+    // sections so component demos start at the top.
+    if (params.get('focus')) ['hero', 'logo', 'colour', 'type'].forEach(function (id) {
+      var el = document.getElementById(id); if (el) el.style.display = 'none';
+    });
+    document.getElementById('themeToggle').addEventListener('click', function () {
+      html.setAttribute('data-theme', html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+    document.querySelectorAll('[data-density-set]').forEach(function (b) {
+      b.addEventListener('click', function () { html.setAttribute('data-density', b.getAttribute('data-density-set')); });
+    });
+    var profileBtn = document.getElementById('profileToggle');
+    profileBtn.addEventListener('click', function () {
+      var on = html.getAttribute('data-profile') === 'product';
+      if (on) { html.removeAttribute('data-profile'); profileBtn.textContent = 'Profile: brand'; profileBtn.setAttribute('aria-pressed', 'false'); profileBtn.classList.remove('fh-btn--primary'); }
+      else { html.setAttribute('data-profile', 'product'); profileBtn.textContent = 'Profile: product'; profileBtn.setAttribute('aria-pressed', 'true'); profileBtn.classList.add('fh-btn--primary'); }
+    });
+    if (html.getAttribute('data-profile') === 'product') { profileBtn.textContent = 'Profile: product'; profileBtn.setAttribute('aria-pressed', 'true'); profileBtn.classList.add('fh-btn--primary'); }
+    var modal = document.getElementById('modal');
+    function show(v){ modal.style.display = v ? 'flex' : 'none'; }
+    document.getElementById('openModal').addEventListener('click', function(){ show(true); });
+    document.getElementById('closeModal').addEventListener('click', function(){ show(false); });
+    document.getElementById('cancelModal').addEventListener('click', function(){ show(false); });
+    modal.addEventListener('click', function(e){ if (e.target === modal) show(false); });
+    var confirmM = document.getElementById('confirm');
+    function showConfirm(v){ confirmM.style.display = v ? 'flex' : 'none'; }
+    document.getElementById('openConfirm').addEventListener('click', function(){ showConfirm(true); });
+    document.getElementById('cancelConfirm').addEventListener('click', function(){ showConfirm(false); });
+    document.getElementById('okConfirm').addEventListener('click', function(){ showConfirm(false); });
+    confirmM.addEventListener('click', function(e){ if (e.target === confirmM) showConfirm(false); });
+  </script>
+</body>
+</html>

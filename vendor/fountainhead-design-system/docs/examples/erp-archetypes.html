@@ -1,0 +1,1721 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-density="comfortable" data-profile="product">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nucleus — page archetypes (form · detail · wizard)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Nunito:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="../../css/fountainhead.css">
+  <style>
+    /* Recipe-only layout glue (doc- prefixed); everything visual is design-system.
+       ?page=form|detail|wizard switches the archetype (also via the topbar select). */
+    .doc-appcol { display: flex; flex-direction: column; min-width: 0; }
+    .doc-main { padding: var(--fh-space-6); overflow: auto; }
+    .doc-page { display: none; }
+    .doc-page.is-open { display: block; }
+    .doc-formgrid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--fh-space-4) var(--fh-space-5); }
+    .doc-formgrid .doc-span2 { grid-column: 1 / -1; }
+    .doc-detail { display: grid; grid-template-columns: 1.7fr 1fr; gap: var(--fh-space-4); align-items: start; }
+    .doc-kv { display: grid; grid-template-columns: 10rem 1fr; row-gap: var(--fh-space-3); font-size: var(--fh-text-sm); }
+    .doc-kv dt { color: var(--fh-color-text-muted); }
+    .doc-kv dd { margin: 0; color: var(--fh-color-text); font-weight: var(--fh-weight-medium); }
+    .ic { display: inline-flex; align-items: center; justify-content: center; }
+    .ic svg { width: 18px; height: 18px; display: block; }
+    .doc-builder { display: grid; grid-template-columns: 230px 1fr 280px; gap: var(--fh-space-4); align-items: start; }
+    @media (max-width: 900px) { .doc-formgrid, .doc-detail { grid-template-columns: 1fr; } }
+    @media (max-width: 1000px) { .doc-builder { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="fh-appshell">
+    <aside class="fh-sidebar">
+      <div class="fh-sidebar__brand">
+        <img class="fh-logo--on-light" src="../../assets/logo/fountainhead-brandmark.png" alt="" style="height:1.6rem;">
+        <img class="fh-logo--on-dark" src="../../assets/logo/fountainhead-brandmark-white.png" alt="" style="height:1.6rem;">
+        <strong style="font-family:var(--fh-font-heading); font-size:var(--fh-text-lg);">Nucleus</strong>
+      </div>
+      <div class="fh-sidebar__section">Academics</div>
+      <a class="fh-sidebar__item is-active" href="#"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span>Students</span></a>
+      <a class="fh-sidebar__item" href="#"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg></span><span>Fees</span></a>
+    </aside>
+
+    <div class="doc-appcol">
+      <header class="fh-navbar">
+        <span class="fh-u-text-subtle" style="font-size:var(--fh-text-xs);">Nucleus · page archetypes</span>
+        <div class="fh-navbar__links" style="margin-left:auto; align-items:center; gap:var(--fh-space-3);">
+          <select id="pageSel" class="fh-select fh-select--auto" aria-label="Archetype">
+            <option value="form">Form page</option>
+            <option value="detail">Detail page</option>
+            <option value="wizard">Wizard</option>
+            <option value="grid">Grade grid</option>
+            <option value="attendance">Attendance</option>
+            <option value="calendar">Calendar</option>
+            <option value="map">Map</option>
+            <option value="settings">Settings</option>
+            <option value="comms">Comms</option>
+            <option value="org">Org tree</option>
+            <option value="recruitment">Recruitment</option>
+            <option value="payroll">Payroll</option>
+            <option value="formbuilder">Form builder</option>
+            <option value="faces">Faces</option>
+            <option value="lock">Lock states</option>
+            <option value="governed">Governed values</option>
+            <option value="ledger">Ledger</option>
+            <option value="capacity">Capacity &amp; masks</option>
+            <option value="review">Review &amp; worklist</option>
+            <option value="commitgrid">Commit grid</option>
+          </select>
+          <button class="fh-btn fh-btn--sm fh-btn--outline" id="themeToggle">Theme</button>
+        </div>
+      </header>
+
+      <main class="doc-main">
+
+        <!-- ============================== FORM PAGE ============================== -->
+        <section class="doc-page" data-page="form">
+          <nav class="fh-breadcrumb" style="margin-bottom:var(--fh-space-2);"><li><a href="#">Students</a></li><li>New admission</li></nav>
+          <div style="margin-bottom:var(--fh-space-5);">
+            <h1 class="fh-h3" style="margin-bottom:var(--fh-space-1);">New admission</h1>
+            <p class="fh-u-text-muted" style="margin:0;">Academic year 2025–26 · creation is an Admissions outcome</p>
+          </div>
+
+          <div class="fh-stack" style="gap:var(--fh-space-4); max-width: 56rem;">
+            <div class="fh-card">
+              <div class="fh-card__header"><div class="fh-card__title">Student details</div></div>
+              <div class="fh-card__body doc-formgrid">
+                <div class="fh-field">
+                  <label class="fh-label" for="f-name">Full name <span class="fh-label__req">*</span></label>
+                  <input class="fh-input" id="f-name" value="Aanya Shah">
+                </div>
+                <div class="fh-field">
+                  <label class="fh-label" for="f-dob">Date of birth <span class="fh-label__req">*</span></label>
+                  <input class="fh-input" id="f-dob" type="date" value="2019-04-12">
+                </div>
+                <div class="fh-field">
+                  <label class="fh-label" for="f-grade">Grade <span class="fh-label__req">*</span></label>
+                  <select class="fh-select" id="f-grade"><option>Grade 5</option><option>Grade 4</option><option>Grade 3</option></select>
+                </div>
+                <div class="fh-field">
+                  <label class="fh-label" for="f-campus">Campus</label>
+                  <select class="fh-select" id="f-campus"><option>FWGS</option><option>FSNC</option></select>
+                  <span class="fh-help">Section is allocated after confirmation (R3-11).</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="fh-card">
+              <div class="fh-card__header"><div class="fh-card__title">Guardian</div></div>
+              <div class="fh-card__body doc-formgrid">
+                <div class="fh-field">
+                  <label class="fh-label" for="g-name">Parent / guardian name <span class="fh-label__req">*</span></label>
+                  <input class="fh-input" id="g-name" value="Rohan Shah">
+                </div>
+                <div class="fh-field is-invalid">
+                  <label class="fh-label" for="g-email">Email <span class="fh-label__req">*</span></label>
+                  <input class="fh-input" id="g-email" value="rohan.shah@" aria-invalid="true">
+                  <span class="fh-error">Enter a valid email — the enrolment offer is sent here.</span>
+                </div>
+                <div class="fh-field">
+                  <label class="fh-label" for="g-phone">Phone</label>
+                  <div class="fh-input-group">
+                    <span class="fh-input-group__addon">+91</span>
+                    <input class="fh-input" id="g-phone" value="98250 12345">
+                  </div>
+                </div>
+                <div class="fh-field">
+                  <span class="fh-label">Transport</span>
+                  <label class="fh-check"><input type="checkbox" checked> Needs bus allocation</label>
+                </div>
+                <div class="fh-field doc-span2">
+                  <label class="fh-label" for="g-notes">Notes</label>
+                  <textarea class="fh-textarea" id="g-notes" placeholder="Anything the admissions team should know…"></textarea>
+                </div>
+              </div>
+              <!-- Action footer — the form-page pattern: meta left, actions right -->
+              <div class="fh-card__footer" style="display:flex; align-items:center; gap:var(--fh-space-3);">
+                <span class="fh-u-text-subtle" style="font-size:var(--fh-text-xs);">Draft autosaved · 2 min ago</span>
+                <span style="margin-left:auto;"></span>
+                <button class="fh-btn fh-btn--ghost">Cancel</button>
+                <button class="fh-btn">Save draft</button>
+                <button class="fh-btn fh-btn--primary">Submit for review</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================== DETAIL PAGE ============================== -->
+        <section class="doc-page" data-page="detail">
+          <nav class="fh-breadcrumb" style="margin-bottom:var(--fh-space-2);"><li><a href="#">Students</a></li><li>Aanya Shah</li></nav>
+
+          <!-- Identity header: person block left, status + actions right -->
+          <div style="display:flex; flex-wrap:wrap; align-items:center; gap:var(--fh-space-4); margin-bottom:var(--fh-space-4);">
+            <span class="fh-person">
+              <span class="fh-avatar fh-avatar--lg">AS</span>
+              <span class="fh-person__info">
+                <span class="fh-person__name" style="font-size:var(--fh-text-xl);">Aanya Shah</span>
+                <span class="fh-person__meta">Grade 5 · FWGS PYP · G5-A · ID STU-0412</span>
+              </span>
+            </span>
+            <span class="fh-badge fh-badge--success">allocated</span>
+            <span style="margin-left:auto;"></span>
+            <button class="fh-btn">Export</button>
+            <button class="fh-btn fh-btn--primary">Edit profile</button>
+          </div>
+
+          <div class="fh-tabs" style="margin-bottom:var(--fh-space-4);">
+            <button class="fh-tab is-active">Overview</button>
+            <button class="fh-tab">Attendance</button>
+            <button class="fh-tab">Fees</button>
+            <button class="fh-tab">Reports</button>
+          </div>
+
+          <div class="doc-detail">
+            <div class="fh-stack" style="gap:var(--fh-space-4);">
+              <div class="fh-card">
+                <div class="fh-card__header"><div class="fh-card__title">Profile</div></div>
+                <div class="fh-card__body">
+                  <dl class="doc-kv">
+                    <dt>Date of birth</dt><dd>12 Apr 2019</dd>
+                    <dt>Campus</dt><dd>FWGS · PYP</dd>
+                    <dt>Section</dt><dd>G5-A · since 14 Jun 2025</dd>
+                    <dt>Transport</dt><dd>Route B · GIDC · stop 7</dd>
+                  </dl>
+                </div>
+              </div>
+              <div class="fh-card">
+                <div class="fh-card__header"><div class="fh-card__title">Guardians</div></div>
+                <div class="fh-card__body fh-stack" style="gap:var(--fh-space-3);">
+                  <span class="fh-person"><span class="fh-avatar fh-avatar--sm">RS</span><span class="fh-person__info"><span class="fh-person__name">Rohan Shah</span><span class="fh-person__meta">Father · rohan.shah@example.com · +91 98250 12345</span></span></span>
+                  <span class="fh-person"><span class="fh-avatar fh-avatar--sm">PS</span><span class="fh-person__info"><span class="fh-person__name">Priya Shah</span><span class="fh-person__meta">Mother · subject-bound login active</span></span></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="fh-stack" style="gap:var(--fh-space-4);">
+              <div class="fh-stat fh-stat--danger">
+                <span class="fh-stat__label">Fees outstanding</span>
+                <span class="fh-stat__value">₹12,500</span>
+                <span class="fh-stat__delta">due 15 Jul · Term 1</span>
+              </div>
+              <div class="fh-card">
+                <div class="fh-card__header"><div class="fh-card__title">Attendance · Term 1</div></div>
+                <div class="fh-card__body fh-stack" style="gap:var(--fh-space-2);">
+                  <div style="display:flex; justify-content:space-between; font-size:var(--fh-text-sm);"><span>Present</span><strong>96%</strong></div>
+                  <div class="fh-progress"><div class="fh-progress__bar fh-progress__bar--success" style="width:96%;"></div></div>
+                  <span class="fh-u-text-subtle" style="font-size:var(--fh-text-xs);">2 absences · both notified by guardian</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================== WIZARD ============================== -->
+        <section class="doc-page" data-page="wizard">
+          <nav class="fh-breadcrumb" style="margin-bottom:var(--fh-space-2);"><li><a href="#">Students</a></li><li>Bulk import</li></nav>
+          <div style="margin-bottom:var(--fh-space-5);">
+            <h1 class="fh-h3" style="margin-bottom:var(--fh-space-1);">Bulk import students</h1>
+            <p class="fh-u-text-muted" style="margin:0;">CSV → mapped → validated → imported, with maker-checker on release</p>
+          </div>
+
+          <div class="fh-card" style="max-width: 56rem;">
+            <div class="fh-card__body" style="padding-bottom: var(--fh-space-4);">
+              <div class="fh-stepper" style="margin-bottom:var(--fh-space-6);">
+                <div class="fh-stepper__step is-complete"><span class="fh-stepper__dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span class="fh-stepper__label">Upload</span><span class="fh-stepper__meta">students.csv · 214 rows</span></div>
+                <div class="fh-stepper__step is-active"><span class="fh-stepper__dot">2</span><span class="fh-stepper__label">Map columns</span></div>
+                <div class="fh-stepper__step"><span class="fh-stepper__dot">3</span><span class="fh-stepper__label">Validate</span></div>
+                <div class="fh-stepper__step"><span class="fh-stepper__dot">4</span><span class="fh-stepper__label">Import</span></div>
+              </div>
+
+              <div class="fh-alert fh-alert--info" style="margin-bottom:var(--fh-space-4);">
+                <span class="fh-alert__icon ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></span>
+                <div class="fh-alert__body">Match your CSV columns to Nucleus fields. Unmapped columns are ignored.</div>
+              </div>
+
+              <div class="doc-formgrid">
+                <div class="fh-field">
+                  <label class="fh-label" for="w-name">“student_name” →</label>
+                  <select class="fh-select" id="w-name"><option>Full name</option><option>Ignore</option></select>
+                </div>
+                <div class="fh-field">
+                  <label class="fh-label" for="w-grade">“class” →</label>
+                  <select class="fh-select" id="w-grade"><option>Grade</option><option>Section</option><option>Ignore</option></select>
+                </div>
+                <div class="fh-field">
+                  <label class="fh-label" for="w-dob">“birth_date” →</label>
+                  <select class="fh-select" id="w-dob"><option>Date of birth</option><option>Ignore</option></select>
+                </div>
+                <div class="fh-field">
+                  <label class="fh-label" for="w-guardian">“parent_email” →</label>
+                  <select class="fh-select" id="w-guardian"><option>Guardian email</option><option>Ignore</option></select>
+                </div>
+              </div>
+            </div>
+            <div class="fh-card__footer" style="display:flex; align-items:center; gap:var(--fh-space-3);">
+              <span class="fh-u-text-subtle" style="font-size:var(--fh-text-xs);">Step 2 of 4</span>
+              <span style="margin-left:auto;"></span>
+              <button class="fh-btn fh-btn--ghost">Back</button>
+              <button class="fh-btn fh-btn--primary">Continue to validation</button>
+            </div>
+          </div>
+        </section>
+        <!-- ============================== GRADE GRID ============================== -->
+        <section class="doc-page" data-page="grid">
+          <nav class="fh-breadcrumb" style="margin-bottom:var(--fh-space-2);"><li><a href="#">Students</a></li><li>Results — G5-A</li></nav>
+          <div style="display:flex; flex-wrap:wrap; align-items:flex-end; gap:var(--fh-space-3); margin-bottom:var(--fh-space-4);">
+            <div style="margin-right:auto;">
+              <h1 class="fh-h3" style="margin-bottom:var(--fh-space-1);">Results — G5-A</h1>
+              <p class="fh-u-text-muted" style="margin:0;">2025–26 · grade chips 1–7 · frozen name column</p>
+            </div>
+            <!-- Term / academic-year switcher: fh-btn-group + is-active -->
+            <div class="fh-btn-group" role="group" aria-label="Term">
+              <button class="fh-btn fh-btn--sm is-active" aria-pressed="true">Term 1</button>
+              <button class="fh-btn fh-btn--sm">Term 2</button>
+              <button class="fh-btn fh-btn--sm">Year</button>
+            </div>
+            <button class="fh-btn fh-btn--sm">Export</button>
+          </div>
+
+          <div class="fh-table-wrap">
+            <table class="fh-table fh-table--striped fh-table--hover fh-table--frozen-first" style="min-width: 60rem;">
+              <thead><tr>
+                <th>Student</th>
+                <th class="fh-table__center">English</th><th class="fh-table__center">Maths</th>
+                <th class="fh-table__center">Science</th><th class="fh-table__center">Social</th>
+                <th class="fh-table__center">Hindi</th><th class="fh-table__center">Art</th>
+                <th class="fh-table__num">Total</th>
+              </tr></thead>
+              <tbody>
+                <tr>
+                  <td><span class="fh-person"><span class="fh-avatar fh-avatar--sm">AS</span><span class="fh-person__info"><span class="fh-person__name">Aanya Shah</span><span class="fh-person__meta">STU-0412</span></span></span></td>
+                  <td class="fh-table__center"><span class="fh-grade fh-grade--6">6</span></td><td class="fh-table__center"><span class="fh-grade fh-grade--7">7</span></td>
+                  <td class="fh-table__center"><span class="fh-grade fh-grade--5">5</span></td><td class="fh-table__center"><span class="fh-grade fh-grade--6">6</span></td>
+                  <td class="fh-table__center"><span class="fh-grade fh-grade--4">4</span></td><td class="fh-table__center"><span class="fh-grade fh-grade--na">–</span></td>
+                  <td class="fh-table__num">28</td>
+                </tr>
+                <tr>
+                  <td><span class="fh-person"><span class="fh-avatar fh-avatar--sm">VP</span><span class="fh-person__info"><span class="fh-person__name">Vivaan Patel</span><span class="fh-person__meta">STU-0398</span></span></span></td>
+                  <td class="fh-table__center"><span class="fh-grade fh-grade--5">5</span></td><td class="fh-table__center"><span class="fh-grade fh-grade--5">5</span></td>
+                  <td class="fh-table__center"><span class="fh-grade fh-grade--6">6</span></td><td class="fh-table__center"><span class="fh-grade fh-grade--4">4</span></td>
+                  <td class="fh-table__center"><span class="fh-grade fh-grade--5">5</span></td><td class="fh-table__center"><span class="fh-grade fh-grade--6">6</span></td>
+                  <td class="fh-table__num">31</td>
+                </tr>
+                <tr>
+                  <td><span class="fh-person"><span class="fh-avatar fh-avatar--sm">DM</span><span class="fh-person__info"><span class="fh-person__name">Diya Mehta</span><span class="fh-person__meta">STU-0510</span></span></span></td>
+                  <td class="fh-table__center"><span class="fh-grade fh-grade--3">3</span></td><td class="fh-table__center"><span class="fh-grade fh-grade--2">2</span></td>
+                  <td class="fh-table__center"><span class="fh-grade fh-grade--1">1</span></td><td class="fh-table__center"><span class="fh-grade fh-grade--3">3</span></td>
+                  <td class="fh-table__center"><span class="fh-grade fh-grade--2">2</span></td><td class="fh-table__center"><span class="fh-grade fh-grade--3">3</span></td>
+                  <td class="fh-table__num">14</td>
+                </tr>
+                <tr>
+                  <td><span class="fh-person"><span class="fh-avatar fh-avatar--sm">KR</span><span class="fh-person__info"><span class="fh-person__name">Kabir Rao</span><span class="fh-person__meta">STU-0355</span></span></span></td>
+                  <td class="fh-table__center"><span class="fh-grade fh-grade--7">7</span></td><td class="fh-table__center"><span class="fh-grade fh-grade--6">6</span></td>
+                  <td class="fh-table__center"><span class="fh-grade fh-grade--7">7</span></td><td class="fh-table__center"><span class="fh-grade fh-grade--5">5</span></td>
+                  <td class="fh-table__center"><span class="fh-grade fh-grade--6">6</span></td><td class="fh-table__center"><span class="fh-grade fh-grade--5">5</span></td>
+                  <td class="fh-table__num">36</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="fh-u-text-subtle" style="font-size:var(--fh-text-xs); margin-top:var(--fh-space-2);">Scroll horizontally — the student column stays frozen. Chips: 1 (red-tinted) → 7 on the brand-blue ramp; – = not assessed.</p>
+        </section>
+        <!-- ============================== ATTENDANCE MARK-GRID ============================== -->
+        <section class="doc-page" data-page="attendance">
+          <nav class="fh-breadcrumb" style="margin-bottom:var(--fh-space-2);"><li><a href="#">Attendance</a></li><li>Mark — G5-A</li></nav>
+          <div style="display:flex; flex-wrap:wrap; align-items:flex-end; gap:var(--fh-space-3); margin-bottom:var(--fh-space-4);">
+            <div style="margin-right:auto;">
+              <h1 class="fh-h3" style="margin-bottom:var(--fh-space-1);">Mark attendance — G5-A</h1>
+              <p class="fh-u-text-muted" style="margin:0;">Wed 02 Jul 2026 · tap to cycle P / A / L</p>
+            </div>
+            <button class="fh-btn">Mark all present</button>
+            <button class="fh-btn fh-btn--primary">Save (3/4)</button>
+          </div>
+          <div class="fh-table-wrap">
+            <table class="fh-table fh-table--hover">
+              <thead><tr><th>Student</th><th class="fh-table__center">Today</th><th>Note</th></tr></thead>
+              <tbody>
+                <tr><td><span class="fh-person"><span class="fh-avatar fh-avatar--sm">AS</span><span class="fh-person__info"><span class="fh-person__name">Aanya Shah</span><span class="fh-person__meta">STU-0412</span></span></span></td><td class="fh-table__center"><button class="fh-mark fh-mark--present">P</button></td><td class="fh-u-text-subtle" style="font-size:var(--fh-text-xs);">—</td></tr>
+                <tr><td><span class="fh-person"><span class="fh-avatar fh-avatar--sm">VP</span><span class="fh-person__info"><span class="fh-person__name">Vivaan Patel</span><span class="fh-person__meta">STU-0398</span></span></span></td><td class="fh-table__center"><button class="fh-mark fh-mark--late">L</button></td><td class="fh-u-text-subtle" style="font-size:var(--fh-text-xs);">Bus delay · Route B</td></tr>
+                <tr><td><span class="fh-person"><span class="fh-avatar fh-avatar--sm">DM</span><span class="fh-person__info"><span class="fh-person__name">Diya Mehta</span><span class="fh-person__meta">STU-0510</span></span></span></td><td class="fh-table__center"><button class="fh-mark fh-mark--absent">A</button></td><td class="fh-u-text-subtle" style="font-size:var(--fh-text-xs);">Guardian notified 07:40</td></tr>
+                <tr><td><span class="fh-person"><span class="fh-avatar fh-avatar--sm">KR</span><span class="fh-person__info"><span class="fh-person__name">Kabir Rao</span><span class="fh-person__meta">STU-0355</span></span></span></td><td class="fh-table__center"><button class="fh-mark">·</button></td><td class="fh-u-text-subtle" style="font-size:var(--fh-text-xs);">unmarked</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ============================== CALENDAR ============================== -->
+        <section class="doc-page" data-page="calendar">
+          <nav class="fh-breadcrumb" style="margin-bottom:var(--fh-space-2);"><li><a href="#">Calendar</a></li><li>July 2026</li></nav>
+          <div style="display:flex; flex-wrap:wrap; align-items:flex-end; gap:var(--fh-space-3); margin-bottom:var(--fh-space-4);">
+            <div style="margin-right:auto;">
+              <h1 class="fh-h3" style="margin-bottom:var(--fh-space-1);">School calendar — July 2026</h1>
+              <p class="fh-u-text-muted" style="margin:0;">Day types resolve nearest-wins (R3-13) · maker-checker on publish</p>
+            </div>
+            <div class="fh-btn-group" role="group"><button class="fh-btn fh-btn--sm">‹</button><button class="fh-btn fh-btn--sm is-active">July</button><button class="fh-btn fh-btn--sm">›</button></div>
+          </div>
+          <div class="fh-cal">
+            <div class="fh-cal__head"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+            <div class="fh-cal__grid">
+              <div class="fh-cal__day is-outside"><span class="fh-cal__date">29</span></div>
+              <div class="fh-cal__day is-outside"><span class="fh-cal__date">30</span></div>
+              <div class="fh-cal__day"><span class="fh-cal__date">1</span></div>
+              <div class="fh-cal__day is-today"><span class="fh-cal__date">2</span><span class="fh-cal__tag">Term 1 begins</span></div>
+              <div class="fh-cal__day"><span class="fh-cal__date">3</span></div>
+              <div class="fh-cal__day fh-cal__day--event"><span class="fh-cal__date">4</span><span class="fh-cal__tag">PYP exhibition</span></div>
+              <div class="fh-cal__day fh-cal__day--holiday"><span class="fh-cal__date">5</span><span class="fh-cal__tag">Sunday</span></div>
+              <div class="fh-cal__day"><span class="fh-cal__date">6</span></div>
+              <div class="fh-cal__day"><span class="fh-cal__date">7</span></div>
+              <div class="fh-cal__day fh-cal__day--break"><span class="fh-cal__date">8</span><span class="fh-cal__tag">Staff day — no classes</span></div>
+              <div class="fh-cal__day"><span class="fh-cal__date">9</span></div>
+              <div class="fh-cal__day"><span class="fh-cal__date">10</span></div>
+              <div class="fh-cal__day"><span class="fh-cal__date">11</span></div>
+              <div class="fh-cal__day fh-cal__day--holiday"><span class="fh-cal__date">12</span><span class="fh-cal__tag">Sunday</span></div>
+            </div>
+          </div>
+          <p class="fh-u-text-subtle" style="font-size:var(--fh-text-xs); margin-top:var(--fh-space-2);">Tints: blue = event · yellow = break/no-classes · red = holiday · filled date = today.</p>
+        </section>
+
+        <!-- ============================== MAP (TRANSPORT) ============================== -->
+        <section class="doc-page" data-page="map">
+          <nav class="fh-breadcrumb" style="margin-bottom:var(--fh-space-2);"><li><a href="#">Transport</a></li><li>Route planner</li></nav>
+          <div style="margin-bottom:var(--fh-space-4);">
+            <h1 class="fh-h3" style="margin-bottom:var(--fh-space-1);">Route planner</h1>
+            <p class="fh-u-text-muted" style="margin:0;">DS chrome around a third-party map canvas (Leaflet / MapLibre mounts in __canvas)</p>
+          </div>
+          <div class="fh-mapframe">
+            <div class="fh-mapframe__canvas" style="display:flex; align-items:center; justify-content:center; color:var(--fh-color-text-subtle); font-size:var(--fh-text-sm);">map canvas (third-party)</div>
+            <div class="fh-mapframe__toolbar">
+              <select class="fh-select fh-select--auto"><option>Route B · GIDC</option><option>Route A · Vapi</option></select>
+              <button class="fh-btn">Add stop</button>
+            </div>
+            <div class="fh-mapframe__legend">
+              <span class="fh-badge fh-badge--primary">● stop</span>
+              <span class="fh-badge fh-badge--danger">● over capacity</span>
+              <span class="fh-badge">— route</span>
+            </div>
+            <div class="fh-mapframe__panel">
+              <div class="fh-card__header"><div class="fh-card__title">Route B · GIDC</div></div>
+              <div class="fh-card__body fh-stack" style="gap:var(--fh-space-3);">
+                <div style="display:flex; justify-content:space-between; font-size:var(--fh-text-sm);"><span>Load</span><strong>88% · 42/48</strong></div>
+                <div class="fh-progress"><div class="fh-progress__bar" style="width:88%;"></div></div>
+                <div class="fh-divider" style="margin:0;"></div>
+                <div style="font-size:var(--fh-text-sm);">Stop 7 · GIDC Char Rasta<br><span class="fh-u-text-subtle" style="font-size:var(--fh-text-xs);">07:12 · 6 students</span></div>
+                <div style="font-size:var(--fh-text-sm);">Stop 8 · Ambika Niketan<br><span class="fh-u-text-subtle" style="font-size:var(--fh-text-xs);">07:19 · 4 students</span></div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <!-- ============================== SETTINGS ============================== -->
+        <section class="doc-page" data-page="settings">
+          <nav class="fh-breadcrumb" style="margin-bottom:var(--fh-space-2);"><li><a href="#">Admin</a></li><li>Settings</li></nav>
+          <div style="display:flex; flex-wrap:wrap; align-items:flex-end; gap:var(--fh-space-4); margin-bottom:var(--fh-space-5);">
+            <div style="margin-right:auto;">
+              <h1 class="fh-h3" style="margin-bottom:var(--fh-space-1);">School settings</h1>
+              <p class="fh-u-text-muted" style="margin:0;">Changes are audited · maker-checker applies to policy edits</p>
+            </div>
+            <div class="fh-actingas">
+              <span class="fh-actingas__label">Acting as</span>
+              <span class="fh-actingas__name">Asha Admin</span>
+              <span class="fh-actingas__role">Tenant Administrator</span>
+            </div>
+          </div>
+
+          <div class="fh-stack" style="gap:var(--fh-space-4); max-width: 52rem;">
+            <div class="fh-card">
+              <div class="fh-card__header"><div class="fh-card__title">Academic year</div></div>
+              <div class="fh-card__body doc-formgrid">
+                <div class="fh-field"><label class="fh-label" for="s-year">Current year</label><select class="fh-select" id="s-year"><option>2025–26</option><option>2026–27</option></select></div>
+                <div class="fh-field"><label class="fh-label" for="s-term">Active term</label><select class="fh-select" id="s-term"><option>Term 1</option><option>Term 2</option></select><span class="fh-help">Drives fees schedules and attendance registers.</span></div>
+              </div>
+            </div>
+            <div class="fh-card">
+              <div class="fh-card__header"><div class="fh-card__title">Branding</div></div>
+              <div class="fh-card__body doc-formgrid">
+                <div class="fh-field"><label class="fh-label" for="s-name">Display name</label><input class="fh-input" id="s-name" value="Fountainhead School"></div>
+                <div class="fh-field"><span class="fh-label">Receipts</span><label class="fh-check"><input type="checkbox" checked> Include brandmark on printed documents</label></div>
+              </div>
+              <div class="fh-card__footer" style="display:flex; gap:var(--fh-space-3);"><span style="margin-left:auto;"></span><button class="fh-btn fh-btn--ghost">Discard</button><button class="fh-btn fh-btn--primary">Save changes</button></div>
+            </div>
+            <div class="fh-card fh-card--danger">
+              <div class="fh-card__header"><div class="fh-card__title">Danger zone</div></div>
+              <div class="fh-card__body" style="display:flex; flex-wrap:wrap; align-items:center; gap:var(--fh-space-4);">
+                <div style="margin-right:auto; font-size:var(--fh-text-sm);"><strong>Suspend this tenant</strong><br><span class="fh-u-text-muted">Logins are blocked until reactivated; data is retained per policy (R3-6).</span></div>
+                <button class="fh-btn fh-btn--danger">Suspend tenant…</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================== COMMS COMPOSER ============================== -->
+        <section class="doc-page" data-page="comms">
+          <nav class="fh-breadcrumb" style="margin-bottom:var(--fh-space-2);"><li><a href="#">Comms</a></li><li>New circular</li></nav>
+          <div style="margin-bottom:var(--fh-space-5);">
+            <h1 class="fh-h3" style="margin-bottom:var(--fh-space-1);">New circular</h1>
+            <p class="fh-u-text-muted" style="margin:0;">Consent-gated dispatch (R3-8) · Tier-2 audiences cannot be broadcast</p>
+          </div>
+
+          <div class="fh-card" style="max-width: 52rem;">
+            <div class="fh-card__body fh-stack" style="gap:var(--fh-space-4);">
+              <div class="fh-field">
+                <span class="fh-label">Audience</span>
+                <div style="display:flex; flex-wrap:wrap; gap:var(--fh-space-2); align-items:center;">
+                  <span class="fh-chip">Grade 5 · all sections <button class="fh-chip__remove" aria-label="Remove">×</button></span>
+                  <span class="fh-chip">Route B guardians <button class="fh-chip__remove" aria-label="Remove">×</button></span>
+                  <select class="fh-select fh-select--auto"><option>+ Add audience…</option><option>Grade 4</option><option>All staff</option></select>
+                </div>
+                <span class="fh-help">2 audiences · ≈312 recipients after consent filtering.</span>
+              </div>
+              <div class="fh-field">
+                <label class="fh-label" for="c-subject">Subject <span class="fh-label__req">*</span></label>
+                <input class="fh-input" id="c-subject" value="PYP exhibition — Saturday 4 July">
+              </div>
+              <div class="fh-field">
+                <label class="fh-label" for="c-body">Message <span class="fh-label__req">*</span></label>
+                <textarea class="fh-textarea" id="c-body" style="min-height:8rem;">Dear parents, we warmly invite you to the Grade 5 PYP exhibition this Saturday…</textarea>
+                <span class="fh-help">Attachments and translations can be added after saving a draft.</span>
+              </div>
+              <div class="fh-field fh-field--inline">
+                <span class="fh-label">Schedule</span>
+                <label class="fh-check"><input type="radio" name="sched" checked> Send now</label>
+                <label class="fh-check"><input type="radio" name="sched"> Later:</label>
+                <input class="fh-input fh-input--auto" type="datetime-local" value="2026-07-03T07:30" aria-label="Send at">
+              </div>
+            </div>
+            <div class="fh-card__footer" style="display:flex; align-items:center; gap:var(--fh-space-3);">
+              <span class="fh-u-text-subtle" style="font-size:var(--fh-text-xs);">Draft autosaved · dispatch is audited</span>
+              <span style="margin-left:auto;"></span>
+              <button class="fh-btn fh-btn--ghost">Discard</button>
+              <button class="fh-btn">Save draft</button>
+              <button class="fh-btn fh-btn--primary">Send circular</button>
+            </div>
+          </div>
+        </section>
+        <!-- ============================== ORG TREE (HRIS) ============================== -->
+        <section class="doc-page" data-page="org">
+          <nav class="fh-breadcrumb" style="margin-bottom:var(--fh-space-2);"><li><a href="#">Staff</a></li><li>Organisation</li></nav>
+          <div style="display:flex; flex-wrap:wrap; align-items:flex-end; gap:var(--fh-space-3); margin-bottom:var(--fh-space-4);">
+            <div style="margin-right:auto;">
+              <h1 class="fh-h3" style="margin-bottom:var(--fh-space-1);">Organisation</h1>
+              <p class="fh-u-text-muted" style="margin:0;">Postings live at nodes; access cascades down (org-scope). Click a branch to collapse.</p>
+            </div>
+            <button class="fh-btn">Export</button>
+            <button class="fh-btn fh-btn--primary">+ New posting</button>
+          </div>
+
+          <div class="fh-card" style="max-width: 46rem;"><div class="fh-card__body">
+            <ul class="fh-tree">
+              <li>
+                <details class="fh-tree__branch" open>
+                  <summary class="fh-tree__row">
+                    <span class="fh-tree__chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span>
+                    <span class="fh-tree__label">Fountainhead Group</span>
+                    <span class="fh-badge fh-badge--outline">GROUP</span>
+                    <span class="fh-tree__meta">412 staff</span>
+                  </summary>
+                  <ul class="fh-tree__children">
+                    <li><div class="fh-tree__row"><span class="fh-person"><span class="fh-avatar fh-avatar--sm">AA</span><span class="fh-person__info"><span class="fh-person__name">Asha Admin</span><span class="fh-person__meta">Tenant Administrator · posting at GROUP</span></span></span></div></li>
+                    <li>
+                      <details class="fh-tree__branch" open>
+                        <summary class="fh-tree__row">
+                          <span class="fh-tree__chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span>
+                          <span class="fh-tree__label">West Region</span>
+                          <span class="fh-badge fh-badge--outline">REGION</span>
+                          <span class="fh-tree__meta">3 campuses</span>
+                        </summary>
+                        <ul class="fh-tree__children">
+                          <li>
+                            <details class="fh-tree__branch" open>
+                              <summary class="fh-tree__row is-selected">
+                                <span class="fh-tree__chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span>
+                                <span class="fh-tree__label">FWGS</span>
+                                <span class="fh-badge fh-badge--outline">CAMPUS</span>
+                                <span class="fh-tree__meta">186 staff</span>
+                              </summary>
+                              <ul class="fh-tree__children">
+                                <li><div class="fh-tree__row"><span class="fh-person"><span class="fh-avatar fh-avatar--sm">CH</span><span class="fh-person__info"><span class="fh-person__name">Campus Head</span><span class="fh-person__meta">acts + reads at FWGS ↓</span></span></span></div></li>
+                                <li><div class="fh-tree__row"><span class="fh-tree__label">FWGS PYP</span><span class="fh-badge fh-badge--outline">PROGRAM</span><span class="fh-tree__meta">64 staff</span></div></li>
+                                <li><div class="fh-tree__row"><span class="fh-tree__label">FWGS DP</span><span class="fh-badge fh-badge--outline">PROGRAM</span><span class="fh-tree__meta">41 staff</span></div></li>
+                              </ul>
+                            </details>
+                          </li>
+                          <li><div class="fh-tree__row"><span class="fh-tree__label">FSNC</span><span class="fh-badge fh-badge--outline">CAMPUS</span><span class="fh-tree__meta">98 staff</span></div></li>
+                          <li><div class="fh-tree__row"><span class="fh-tree__label">TVELC</span><span class="fh-badge fh-badge--outline">CAMPUS</span><span class="fh-tree__meta">54 staff</span></div></li>
+                        </ul>
+                      </details>
+                    </li>
+                    <li><div class="fh-tree__row"><span class="fh-tree__label">Central HR</span><span class="fh-badge fh-badge--outline">CENTRAL</span><span class="fh-tree__meta">12 staff</span></div></li>
+                    <li><div class="fh-tree__row"><span class="fh-tree__label">Central Finance</span><span class="fh-badge fh-badge--outline">CENTRAL</span><span class="fh-tree__meta">9 staff</span></div></li>
+                  </ul>
+                </details>
+              </li>
+            </ul>
+          </div></div>
+          <p class="fh-u-text-subtle" style="font-size:var(--fh-text-xs); margin-top:var(--fh-space-2);">The selected row (FWGS) shows picker use — the same tree, inside a modal, is the org-node picker for postings and role scopes.</p>
+        </section>
+
+        <!-- ============================== RECRUITMENT BOARD (HRIS) ============================== -->
+        <section class="doc-page" data-page="recruitment">
+          <nav class="fh-breadcrumb" style="margin-bottom:var(--fh-space-2);"><li><a href="#">Staff</a></li><li>Recruitment — PYP educators</li></nav>
+          <div style="display:flex; flex-wrap:wrap; align-items:flex-end; gap:var(--fh-space-3); margin-bottom:var(--fh-space-4);">
+            <div style="margin-right:auto;">
+              <h1 class="fh-h3" style="margin-bottom:var(--fh-space-1);">Recruitment — PYP educators</h1>
+              <p class="fh-u-text-muted" style="margin:0;">2 openings · FWGS PYP · drag between stages (consumer DnD)</p>
+            </div>
+            <button class="fh-btn">Job post</button>
+            <button class="fh-btn fh-btn--primary">+ Add candidate</button>
+          </div>
+
+          <div style="display:grid; grid-template-columns: 1fr 300px; gap: var(--fh-space-4); align-items:start;">
+            <div class="fh-board">
+              <div class="fh-board__col">
+                <div class="fh-board__head">Applied <span class="fh-badge">3</span></div>
+                <div class="fh-board__cards">
+                  <div class="fh-board__card"><span class="fh-person"><span class="fh-avatar fh-avatar--sm">RK</span><span class="fh-person__info"><span class="fh-person__name">Riya Kapoor</span><span class="fh-person__meta">PYP educator · 6 yrs</span></span></span><div style="display:flex; gap:var(--fh-space-1);"><span class="fh-badge fh-badge--primary">IB trained</span><span class="fh-badge fh-badge--outline">2d</span></div></div>
+                  <div class="fh-board__card"><span class="fh-person"><span class="fh-avatar fh-avatar--sm">MS</span><span class="fh-person__info"><span class="fh-person__name">Manav Shah</span><span class="fh-person__meta">Primary teacher · 3 yrs</span></span></span><div style="display:flex; gap:var(--fh-space-1);"><span class="fh-badge fh-badge--outline">1d</span></div></div>
+                  <div class="fh-board__card"><span class="fh-person"><span class="fh-avatar fh-avatar--sm">PJ</span><span class="fh-person__info"><span class="fh-person__name">Priya Joshi</span><span class="fh-person__meta">PYP educator · 8 yrs</span></span></span><div style="display:flex; gap:var(--fh-space-1);"><span class="fh-badge fh-badge--primary">IB trained</span><span class="fh-badge fh-badge--outline">4h</span></div></div>
+                </div>
+              </div>
+              <div class="fh-board__col">
+                <div class="fh-board__head">Screening <span class="fh-badge">1</span></div>
+                <div class="fh-board__cards">
+                  <div class="fh-board__card"><span class="fh-person"><span class="fh-avatar fh-avatar--sm">AN</span><span class="fh-person__info"><span class="fh-person__name">Arjun Nair</span><span class="fh-person__meta">PYP educator · 5 yrs</span></span></span><div style="display:flex; gap:var(--fh-space-1);"><span class="fh-badge fh-badge--warning">refs pending</span></div></div>
+                </div>
+              </div>
+              <div class="fh-board__col is-over">
+                <div class="fh-board__head">Interview <span class="fh-badge">1</span></div>
+                <div class="fh-board__cards">
+                  <div class="fh-board__card is-dragging"><span class="fh-person"><span class="fh-avatar fh-avatar--sm">SD</span><span class="fh-person__info"><span class="fh-person__name">Sara D'Souza</span><span class="fh-person__meta">PYP coordinator · 9 yrs</span></span></span><div style="display:flex; gap:var(--fh-space-1);"><span class="fh-badge fh-badge--success">panel 4 Jul</span></div></div>
+                </div>
+              </div>
+              <div class="fh-board__col">
+                <div class="fh-board__head">Offer <span class="fh-badge">1</span></div>
+                <div class="fh-board__cards">
+                  <div class="fh-board__card"><span class="fh-person"><span class="fh-avatar fh-avatar--sm">KM</span><span class="fh-person__info"><span class="fh-person__name">Kavya Menon</span><span class="fh-person__meta">PYP educator · 7 yrs</span></span></span><div style="display:flex; gap:var(--fh-space-1);"><span class="fh-badge fh-badge--success">offer sent</span><span class="fh-badge fh-badge--outline">exp 08 Jul</span></div></div>
+                </div>
+              </div>
+              <div class="fh-board__col">
+                <div class="fh-board__head">Induction <span class="fh-badge">0</span></div>
+                <div class="fh-board__cards"></div>
+              </div>
+            </div>
+
+            <aside class="fh-card">
+              <div class="fh-card__header"><div class="fh-card__title">Kavya Menon · activity</div></div>
+              <div class="fh-card__body">
+                <ol class="fh-timeline">
+                  <li class="fh-timeline__item fh-timeline__item--success"><div class="fh-timeline__time">Today · 10:12</div><div class="fh-timeline__title">Offer sent</div><div class="fh-timeline__body">₹9.2L · joining 21 Jul · expires 08 Jul.</div></li>
+                  <li class="fh-timeline__item fh-timeline__item--primary"><div class="fh-timeline__time">30 Jun</div><div class="fh-timeline__title">Panel interview cleared</div><div class="fh-timeline__body">4.6/5 — strong inquiry-based practice.</div></li>
+                  <li class="fh-timeline__item fh-timeline__item--warning"><div class="fh-timeline__time">27 Jun</div><div class="fh-timeline__title">Reference delayed</div><div class="fh-timeline__body">Previous school responded after follow-up.</div></li>
+                  <li class="fh-timeline__item"><div class="fh-timeline__time">21 Jun</div><div class="fh-timeline__title">Applied</div><div class="fh-timeline__body">Via careers page · PYP educator, FWGS.</div></li>
+                </ol>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <!-- ============================== PAYROLL (v1.12 money-for-people) ============================== -->
+        <section class="doc-page" data-page="payroll">
+          <nav class="fh-breadcrumb" style="margin-bottom:var(--fh-space-2);"><li><a href="#">HR</a></li><li>Payroll — July 2026</li></nav>
+          <div style="display:flex; flex-wrap:wrap; align-items:flex-end; gap:var(--fh-space-3); margin-bottom:var(--fh-space-4);">
+            <div style="margin-right:auto;">
+              <h1 class="fh-h3" style="margin-bottom:var(--fh-space-1);">Payroll — July 2026</h1>
+              <p class="fh-u-text-muted" style="margin:0;">112 staff · pay date 31 Jul · amounts in ₹, <span class="fh-u-tabular">en-IN</span> tabular numerals</p>
+            </div>
+            <div class="fh-btn-group">
+              <button class="fh-btn fh-btn--sm">May</button>
+              <button class="fh-btn fh-btn--sm">Jun</button>
+              <button class="fh-btn fh-btn--sm is-active">Jul</button>
+            </div>
+            <a class="fh-btn fh-btn--sm" href="erp-print.html?doc=payslip" target="_blank">Payslip template ↗</a>
+            <button class="fh-btn fh-btn--primary">Run payroll</button>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:var(--fh-space-4); margin-bottom:var(--fh-space-4);">
+            <div class="fh-stat fh-stat--primary"><span class="fh-stat__label">Gross — Jul</span><span class="fh-stat__value fh-u-tabular">₹78.4L</span><span class="fh-stat__delta">112 staff</span></div>
+            <div class="fh-stat fh-stat--primary"><span class="fh-stat__label">Deductions</span><span class="fh-stat__value fh-u-tabular">₹11.2L</span><span class="fh-stat__delta">PF · PT · TDS</span></div>
+            <div class="fh-stat fh-stat--success"><span class="fh-stat__label">Net payable</span><span class="fh-stat__value fh-u-tabular">₹67.2L</span><span class="fh-stat__delta fh-stat__delta--up">▲ 2 joiners pro-rated</span></div>
+            <div class="fh-stat fh-stat--warning"><span class="fh-stat__label">On hold</span><span class="fh-stat__value">3</span><span class="fh-stat__delta">bank details pending</span></div>
+          </div>
+
+          <div class="doc-detail">
+            <div class="fh-card">
+              <div class="fh-card__header">
+                <div class="fh-card__title">Pay run — salary register</div>
+                <span class="fh-badge fh-badge--warning">draft · maker-checker</span>
+              </div>
+              <div class="fh-card__body">
+                <div class="fh-table-wrap">
+                  <table class="fh-table fh-table--frozen-first">
+                    <thead>
+                      <tr><th>Employee</th><th>Unit</th><th class="fh-table__num">Gross</th><th class="fh-table__num">PF</th><th class="fh-table__num">PT</th><th class="fh-table__num">TDS</th><th class="fh-table__num">Net</th><th class="fh-table__center">Status</th></tr>
+                    </thead>
+                    <tbody class="fh-u-tabular">
+                      <tr><td><span class="fh-person"><span class="fh-avatar fh-avatar--sm">MK</span><span class="fh-person__info"><span class="fh-person__name">Meera Krishnan</span><span class="fh-person__meta">MYP Coordinator</span></span></span></td><td>FWGS · MYP</td><td class="fh-table__num">69,667</td><td class="fh-table__num">5,520</td><td class="fh-table__num">200</td><td class="fh-table__num">4,100</td><td class="fh-table__num" style="font-weight:700;">59,847</td><td class="fh-table__center"><span class="fh-badge fh-badge--success">paid</span></td></tr>
+                      <tr><td><span class="fh-person"><span class="fh-avatar fh-avatar--sm">SI</span><span class="fh-person__info"><span class="fh-person__name">S. Iyer</span><span class="fh-person__meta">PYP Coordinator</span></span></span></td><td>FWGS · PYP</td><td class="fh-table__num">72,400</td><td class="fh-table__num">5,760</td><td class="fh-table__num">200</td><td class="fh-table__num">4,480</td><td class="fh-table__num" style="font-weight:700;">61,960</td><td class="fh-table__center"><span class="fh-badge fh-badge--success">paid</span></td></tr>
+                      <tr><td><span class="fh-person"><span class="fh-avatar fh-avatar--sm">RB</span><span class="fh-person__info"><span class="fh-person__name">Rohit Bansal</span><span class="fh-person__meta">Lab Assistant</span></span></span></td><td>FWGS · DP</td><td class="fh-table__num">27,548</td><td class="fh-table__num">2,520</td><td class="fh-table__num">200</td><td class="fh-table__num">—</td><td class="fh-table__num" style="font-weight:700;">24,828</td><td class="fh-table__center"><span class="fh-badge fh-badge--outline">queued</span></td></tr>
+                      <tr><td><span class="fh-person"><span class="fh-avatar fh-avatar--sm">KM</span><span class="fh-person__info"><span class="fh-person__name">Kavya Menon</span><span class="fh-person__meta">PYP Educator · joins 21 Jul</span></span></span></td><td>FWGS · PYP</td><td class="fh-table__num">27,258</td><td class="fh-table__num">2,208</td><td class="fh-table__num">200</td><td class="fh-table__num">—</td><td class="fh-table__num" style="font-weight:700;">24,850</td><td class="fh-table__center"><span class="fh-badge fh-badge--warning">hold</span></td></tr>
+                      <tr><td><span class="fh-person"><span class="fh-avatar fh-avatar--sm">AD</span><span class="fh-person__info"><span class="fh-person__name">A. Deshpande</span><span class="fh-person__meta">Admissions Head</span></span></span></td><td>FWGS · Admin</td><td class="fh-table__num">84,200</td><td class="fh-table__num">6,120</td><td class="fh-table__num">200</td><td class="fh-table__num">6,940</td><td class="fh-table__num" style="font-weight:700;">70,940</td><td class="fh-table__center"><span class="fh-badge fh-badge--outline">queued</span></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p class="fh-u-text-subtle" style="margin:var(--fh-space-3) 0 0; font-size:var(--fh-text-xs);">
+                  First column frozen (<code>.fh-table--frozen-first</code>) — the register scrolls wide with earnings/deduction component columns.
+                  Approval is maker-checker: “Run payroll” proposes; finance approves per the stepper pattern.
+                </p>
+              </div>
+            </div>
+
+            <div class="fh-card">
+              <div class="fh-card__header"><div class="fh-card__title">Salary structure — Teaching band B</div></div>
+              <div class="fh-card__body">
+                <div class="fh-table-wrap">
+                  <table class="fh-table">
+                    <thead><tr><th>Component</th><th>Basis</th><th class="fh-table__num">Monthly (₹)</th></tr></thead>
+                    <tbody class="fh-u-tabular">
+                      <tr><td>Basic <span class="fh-badge fh-badge--primary">earning</span></td><td>50% of CTC</td><td class="fh-table__num">46,000</td></tr>
+                      <tr><td>HRA <span class="fh-badge fh-badge--primary">earning</span></td><td>40% of basic</td><td class="fh-table__num">18,400</td></tr>
+                      <tr><td>Transport <span class="fh-badge fh-badge--primary">earning</span></td><td>flat</td><td class="fh-table__num">3,000</td></tr>
+                      <tr><td>Prof. development <span class="fh-badge fh-badge--primary">earning</span></td><td>flat</td><td class="fh-table__num">2,267</td></tr>
+                      <tr><td>PF — employee <span class="fh-badge">deduction</span></td><td>12% of basic</td><td class="fh-table__num">5,520</td></tr>
+                      <tr><td>Professional tax <span class="fh-badge">deduction</span></td><td>flat (GJ)</td><td class="fh-table__num">200</td></tr>
+                      <tr><td>PF — employer <span class="fh-badge fh-badge--outline">benefit</span></td><td>12% of basic</td><td class="fh-table__num">5,520</td></tr>
+                      <tr><td style="font-weight:700;">Gross / month</td><td></td><td class="fh-table__num" style="font-weight:700;">69,667</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p class="fh-u-text-subtle" style="margin:var(--fh-space-3) 0 0; font-size:var(--fh-text-xs);">
+                  Structures are versioned per band + academic year; TDS is slab-computed, not a structure row.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================== FORM BUILDER (FDC checkpoint) ============================== -->
+        <section class="doc-page" data-page="formbuilder">
+          <nav class="fh-breadcrumb" style="margin-bottom:var(--fh-space-2);"><li><a href="#">Admin</a></li><li>Form builder — FDC</li></nav>
+          <div style="display:flex; flex-wrap:wrap; align-items:flex-end; gap:var(--fh-space-3); margin-bottom:var(--fh-space-4);">
+            <div style="margin-right:auto;">
+              <h1 class="fh-h3" style="margin-bottom:var(--fh-space-1);">Grade 5 river-study trip — consent form <span class="fh-badge fh-badge--outline">draft</span></h1>
+              <p class="fh-u-text-muted" style="margin:0;">Field palette → canvas → properties. Reuses the board's drag hooks (<code>is-dragging</code>/<code>is-over</code>) for insertion.</p>
+            </div>
+            <button class="fh-btn">Preview</button>
+            <button class="fh-btn fh-btn--primary">Publish to parents</button>
+          </div>
+
+          <div class="doc-builder">
+            <div class="fh-card">
+              <div class="fh-card__header"><div class="fh-card__title">Fields</div></div>
+              <div class="fh-card__body" style="display:flex; flex-direction:column; gap:var(--fh-space-2);">
+                <div style="display:flex; align-items:center; gap:var(--fh-space-2); border:1px solid var(--fh-color-border); border-radius:var(--fh-radius-sm); padding:6px 10px; cursor:grab; font-size:var(--fh-text-sm);">≡ Short text</div>
+                <div style="display:flex; align-items:center; gap:var(--fh-space-2); border:1px solid var(--fh-color-border); border-radius:var(--fh-radius-sm); padding:6px 10px; cursor:grab; font-size:var(--fh-text-sm);">≡ Paragraph</div>
+                <div style="display:flex; align-items:center; gap:var(--fh-space-2); border:1px solid var(--fh-color-border); border-radius:var(--fh-radius-sm); padding:6px 10px; cursor:grab; font-size:var(--fh-text-sm);">≡ Choice</div>
+                <div style="display:flex; align-items:center; gap:var(--fh-space-2); border:1px solid var(--fh-color-border); border-radius:var(--fh-radius-sm); padding:6px 10px; cursor:grab; font-size:var(--fh-text-sm);">≡ Checkboxes</div>
+                <div style="display:flex; align-items:center; gap:var(--fh-space-2); border:1px solid var(--fh-color-border); border-radius:var(--fh-radius-sm); padding:6px 10px; cursor:grab; font-size:var(--fh-text-sm);">≡ Date</div>
+                <div style="display:flex; align-items:center; gap:var(--fh-space-2); border:1px solid var(--fh-color-border); border-radius:var(--fh-radius-sm); padding:6px 10px; cursor:grab; font-size:var(--fh-text-sm);">≡ File upload</div>
+                <div style="display:flex; align-items:center; gap:var(--fh-space-2); border:1px solid var(--fh-color-border); border-radius:var(--fh-radius-sm); padding:6px 10px; cursor:grab; font-size:var(--fh-text-sm);">≡ Student picker</div>
+                <div style="display:flex; align-items:center; gap:var(--fh-space-2); border:1px solid var(--fh-color-border); border-radius:var(--fh-radius-sm); padding:6px 10px; cursor:grab; font-size:var(--fh-text-sm);">≡ Signature</div>
+              </div>
+            </div>
+
+            <div class="fh-card">
+              <div class="fh-card__header"><div class="fh-card__title">Canvas</div><span class="fh-u-text-subtle" style="font-size:var(--fh-text-xs);">3 fields · parents of G5-A, G5-B</span></div>
+              <div class="fh-card__body" style="display:flex; flex-direction:column; gap:var(--fh-space-4);">
+                <div class="fh-field" style="border:1px solid var(--fh-color-border); border-radius:var(--fh-radius-sm); padding:var(--fh-space-3);">
+                  <label class="fh-label">Student <span class="fh-badge fh-badge--outline">picker</span></label>
+                  <input class="fh-input" placeholder="Search your children…" disabled>
+                </div>
+                <div class="fh-field" style="border:2px solid var(--fh-color-primary); border-radius:var(--fh-radius-sm); padding:var(--fh-space-3); box-shadow:var(--fh-shadow-sm);">
+                  <label class="fh-label">Emergency contact on trip day <span class="fh-badge fh-badge--danger">required</span></label>
+                  <input class="fh-input" placeholder="+91 …" disabled>
+                  <p class="fh-help">Reachable between 07:00–16:00 · selected field — edit in properties →</p>
+                </div>
+                <div style="border-top:2px dashed var(--fh-color-primary); margin:calc(-1 * var(--fh-space-2)) 0;" aria-hidden></div>
+                <div class="fh-field" style="border:1px solid var(--fh-color-border); border-radius:var(--fh-radius-sm); padding:var(--fh-space-3);">
+                  <label class="fh-label">Consent <span class="fh-badge fh-badge--danger">required</span></label>
+                  <label class="fh-check"><input type="checkbox" disabled> I consent to my child joining the river-study trip on 18 Jul.</label>
+                </div>
+                <button class="fh-btn fh-btn--sm" style="align-self:center;">+ Add field</button>
+              </div>
+            </div>
+
+            <div class="fh-card">
+              <div class="fh-card__header"><div class="fh-card__title">Properties</div></div>
+              <div class="fh-card__body" style="display:flex; flex-direction:column; gap:var(--fh-space-4);">
+                <div class="fh-field"><label class="fh-label">Label</label><input class="fh-input" value="Emergency contact on trip day"></div>
+                <div class="fh-field"><label class="fh-label">Help text</label><input class="fh-input" value="Reachable between 07:00–16:00"></div>
+                <div class="fh-field"><label class="fh-label">Validation</label><select class="fh-select"><option>Phone number (IN)</option><option>None</option><option>Email</option></select></div>
+                <label class="fh-check"><input type="checkbox" checked> Required</label>
+                <label class="fh-check"><input type="checkbox"> Staff-only field</label>
+                <button class="fh-btn fh-btn--sm">Remove field</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="fh-alert fh-alert--info" style="margin-top:var(--fh-space-4);">
+            <span class="fh-alert__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></span>
+            <div class="fh-alert__body">
+              <div class="fh-alert__title">FDC checkpoint verdict (v1.12)</div>
+              The form-builder composes entirely from existing primitives — cards, fields, badges, checks, plus the
+              board's drag-state hooks for palette→canvas insertion. <strong>No new archetype CSS required.</strong>
+              Recipe-only affordances: selected-field ring (2px primary border) and the dashed insertion marker.
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================== FACES (v1.13 photo roster / attendance wall) ============================== -->
+        <section class="doc-page" data-page="faces">
+          <nav class="fh-breadcrumb" style="margin-bottom:var(--fh-space-2);"><li><a href="#">Academics</a></li><li>Attendance — faces</li></nav>
+          <div style="display:flex; flex-wrap:wrap; align-items:flex-end; gap:var(--fh-space-3); margin-bottom:var(--fh-space-3);">
+            <div style="margin-right:auto;">
+              <h1 class="fh-h3" style="margin-bottom:var(--fh-space-1);">Attendance — G5-A · Thu 02 Jul</h1>
+              <p class="fh-u-text-muted" style="margin:0;">18 students · homeroom · tap a face to cycle P → A → L (tiles are real <code>&lt;button&gt;</code>s — the keyboard path is Tab + Enter)</p>
+            </div>
+            <select class="fh-select fh-select--auto" aria-label="Section"><option>G5-A</option><option>G5-B</option><option>G5-C</option></select>
+            <button class="fh-btn">Mark all present</button>
+            <button class="fh-btn fh-btn--primary">Submit attendance</button>
+          </div>
+          <div style="display:flex; gap:var(--fh-space-2); flex-wrap:wrap; margin-bottom:var(--fh-space-4);">
+            <span class="fh-badge fh-badge--success">13 present</span>
+            <span class="fh-badge fh-badge--danger">2 absent</span>
+            <span class="fh-badge fh-badge--warning">1 late</span>
+            <span class="fh-badge fh-badge--outline">2 unmarked</span>
+          </div>
+
+          <div class="fh-facegrid" style="margin-bottom:var(--fh-space-5);">
+            <button class="fh-facegrid__tile fh-facegrid__tile--present"><span class="fh-facegrid__photo">AS<img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' fill='%23D7E4F2'/><circle cx='32' cy='25' r='11' fill='%236B87A6'/><path d='M10 60c2-14 11-20 22-20s20 6 22 20z' fill='%236B87A6'/></svg>" alt=""></span><span class="fh-facegrid__name">Aanya Shah</span><span class="fh-facegrid__meta">STU-0412</span><span class="fh-facegrid__mark">P</span></button>
+            <button class="fh-facegrid__tile fh-facegrid__tile--present"><span class="fh-facegrid__photo">VN</span><span class="fh-facegrid__name">Ved Nanda</span><span class="fh-facegrid__meta">STU-0418</span><span class="fh-facegrid__mark">P</span></button>
+            <button class="fh-facegrid__tile fh-facegrid__tile--absent"><span class="fh-facegrid__photo">RD<img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' fill='%23FBE9C9'/><circle cx='32' cy='25' r='11' fill='%23A98B4F'/><path d='M10 60c2-14 11-20 22-20s20 6 22 20z' fill='%23A98B4F'/></svg>" alt=""></span><span class="fh-facegrid__name">Reyansh Datta</span><span class="fh-facegrid__meta">STU-0421</span><span class="fh-facegrid__mark">A</span></button>
+            <button class="fh-facegrid__tile fh-facegrid__tile--present"><span class="fh-facegrid__photo">ZK</span><span class="fh-facegrid__name">Zara Khan</span><span class="fh-facegrid__meta">STU-0397</span><span class="fh-facegrid__mark">P</span></button>
+            <button class="fh-facegrid__tile fh-facegrid__tile--present"><span class="fh-facegrid__photo">IM</span><span class="fh-facegrid__name">Ishaan Mehta</span><span class="fh-facegrid__meta">STU-0402</span><span class="fh-facegrid__mark">P</span></button>
+            <button class="fh-facegrid__tile fh-facegrid__tile--late"><span class="fh-facegrid__photo">MP<img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' fill='%23D7E4F2'/><circle cx='32' cy='25' r='11' fill='%236B87A6'/><path d='M10 60c2-14 11-20 22-20s20 6 22 20z' fill='%236B87A6'/></svg>" alt=""></span><span class="fh-facegrid__name">Myra Patel</span><span class="fh-facegrid__meta">bus B · 08:12</span><span class="fh-facegrid__mark">L</span></button>
+            <button class="fh-facegrid__tile fh-facegrid__tile--present"><span class="fh-facegrid__photo">AJ</span><span class="fh-facegrid__name">Advik Jain</span><span class="fh-facegrid__meta">STU-0409</span><span class="fh-facegrid__mark">P</span></button>
+            <button class="fh-facegrid__tile fh-facegrid__tile--present"><span class="fh-facegrid__photo">SR</span><span class="fh-facegrid__name">Sia Rao</span><span class="fh-facegrid__meta">photo consent off</span><span class="fh-facegrid__mark">P</span></button>
+            <button class="fh-facegrid__tile fh-facegrid__tile--present"><span class="fh-facegrid__photo">KB</span><span class="fh-facegrid__name">Kabir Bose</span><span class="fh-facegrid__meta">STU-0415</span><span class="fh-facegrid__mark">P</span></button>
+            <button class="fh-facegrid__tile fh-facegrid__tile--absent"><span class="fh-facegrid__photo">NA</span><span class="fh-facegrid__name">Nyra Agarwal</span><span class="fh-facegrid__meta">informed · fever</span><span class="fh-facegrid__mark">A</span></button>
+            <button class="fh-facegrid__tile fh-facegrid__tile--present"><span class="fh-facegrid__photo">VS<img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' fill='%23FBE9C9'/><circle cx='32' cy='25' r='11' fill='%23A98B4F'/><path d='M10 60c2-14 11-20 22-20s20 6 22 20z' fill='%23A98B4F'/></svg>" alt=""></span><span class="fh-facegrid__name">Vihaan Singh</span><span class="fh-facegrid__meta">STU-0399</span><span class="fh-facegrid__mark">P</span></button>
+            <button class="fh-facegrid__tile fh-facegrid__tile--present"><span class="fh-facegrid__photo">AD</span><span class="fh-facegrid__name">Anaya Desai</span><span class="fh-facegrid__meta">STU-0404</span><span class="fh-facegrid__mark">P</span></button>
+            <button class="fh-facegrid__tile fh-facegrid__tile--present"><span class="fh-facegrid__photo">RS</span><span class="fh-facegrid__name">Rudra Sharma</span><span class="fh-facegrid__meta">STU-0408</span><span class="fh-facegrid__mark">P</span></button>
+            <button class="fh-facegrid__tile"><span class="fh-facegrid__photo">TI</span><span class="fh-facegrid__name">Tara Iyer</span><span class="fh-facegrid__meta">unmarked</span></button>
+            <button class="fh-facegrid__tile fh-facegrid__tile--present"><span class="fh-facegrid__photo">AK</span><span class="fh-facegrid__name">Arnav Kulkarni</span><span class="fh-facegrid__meta">STU-0417</span><span class="fh-facegrid__mark">P</span></button>
+            <button class="fh-facegrid__tile fh-facegrid__tile--present"><span class="fh-facegrid__photo">SM</span><span class="fh-facegrid__name">Saanvi Menon</span><span class="fh-facegrid__meta">STU-0410</span><span class="fh-facegrid__mark">P</span></button>
+            <button class="fh-facegrid__tile"><span class="fh-facegrid__photo">DP</span><span class="fh-facegrid__name">Dev Purohit</span><span class="fh-facegrid__meta">unmarked</span></button>
+            <button class="fh-facegrid__tile fh-facegrid__tile--present"><span class="fh-facegrid__photo">JW</span><span class="fh-facegrid__name">Jiya Wadhwa</span><span class="fh-facegrid__meta">STU-0419</span><span class="fh-facegrid__mark">P</span></button>
+          </div>
+
+          <div class="doc-detail">
+            <div class="fh-card">
+              <div class="fh-card__header"><div class="fh-card__title">Roster — “who's in my class”</div><span class="fh-u-text-subtle" style="font-size:var(--fh-text-xs);">same grid, tiles are links; one row shows the picker .is-selected state</span></div>
+              <div class="fh-card__body">
+                <div class="fh-facegrid">
+                  <a class="fh-facegrid__tile" href="#"><span class="fh-facegrid__photo">AS<img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' fill='%23D7E4F2'/><circle cx='32' cy='25' r='11' fill='%236B87A6'/><path d='M10 60c2-14 11-20 22-20s20 6 22 20z' fill='%236B87A6'/></svg>" alt=""></span><span class="fh-facegrid__name">Aanya Shah</span><span class="fh-facegrid__meta">G5-A</span></a>
+                  <a class="fh-facegrid__tile is-selected" href="#" aria-current="true"><span class="fh-facegrid__photo">ZK</span><span class="fh-facegrid__name">Zara Khan</span><span class="fh-facegrid__meta">G5-A · selected</span></a>
+                  <a class="fh-facegrid__tile" href="#"><span class="fh-facegrid__photo">IM</span><span class="fh-facegrid__name">Ishaan Mehta</span><span class="fh-facegrid__meta">G5-A</span></a>
+                  <a class="fh-facegrid__tile" href="#"><span class="fh-facegrid__photo">MP<img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' fill='%23FBE9C9'/><circle cx='32' cy='25' r='11' fill='%23A98B4F'/><path d='M10 60c2-14 11-20 22-20s20 6 22 20z' fill='%23A98B4F'/></svg>" alt=""></span><span class="fh-facegrid__name">Myra Patel</span><span class="fh-facegrid__meta">G5-A</span></a>
+                </div>
+              </div>
+            </div>
+            <div class="fh-card">
+              <div class="fh-card__header"><div class="fh-card__title">Staff — FWGS MYP</div></div>
+              <div class="fh-card__body">
+                <div class="fh-facegrid" style="grid-template-columns:repeat(auto-fill, minmax(6.5rem, 1fr));">
+                  <a class="fh-facegrid__tile" href="#"><span class="fh-facegrid__photo">MK</span><span class="fh-facegrid__name">Meera Krishnan</span><span class="fh-facegrid__meta">Coordinator</span></a>
+                  <a class="fh-facegrid__tile" href="#"><span class="fh-facegrid__photo">MD<img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' fill='%23D7E4F2'/><circle cx='32' cy='25' r='11' fill='%236B87A6'/><path d='M10 60c2-14 11-20 22-20s20 6 22 20z' fill='%236B87A6'/></svg>" alt=""></span><span class="fh-facegrid__name">M. Desai</span><span class="fh-facegrid__meta">Mathematics</span></a>
+                  <a class="fh-facegrid__tile" href="#"><span class="fh-facegrid__photo">VR</span><span class="fh-facegrid__name">Vikram Rathod</span><span class="fh-facegrid__meta">Mathematics</span></a>
+                  <a class="fh-facegrid__tile" href="#"><span class="fh-facegrid__photo">RB</span><span class="fh-facegrid__name">Rohit Bansal</span><span class="fh-facegrid__meta">Lab · DP</span></a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p class="fh-u-text-subtle" style="font-size:var(--fh-text-xs); margin-top:var(--fh-space-3);">
+            Photos render only where one exists and consent allows — the initials fallback is the same markup minus the
+            <code>&lt;img&gt;</code> (demo uses synthetic silhouettes, never real faces). Lazy-load walls with
+            <code>loading="lazy"</code>; keep <code>alt=""</code> (the name is adjacent text). Submit is a maker-checker write.
+          </p>
+        </section>
+
+        <!-- ============================== LOCK STATES ============================== -->
+        <section class="doc-page" data-page="lock">
+          <nav class="fh-breadcrumb" style="margin-bottom:var(--fh-space-2);"><li><a href="#">HR</a></li><li>Month-end close</li></nav>
+          <div style="margin-bottom:var(--fh-space-5);">
+            <h1 class="fh-h3" style="margin-bottom:var(--fh-space-1);">Month-end close — AY 2026–27</h1>
+            <p class="fh-u-text-muted" style="margin:0;">Per-campus two-tier lock: <strong>StaffLock</strong> stops staff &amp; TL writes; <strong>HRLock</strong> (after payroll) stops even campus HR. Closing one campus never blocks another.</p>
+          </div>
+
+          <div class="fh-card" style="margin-bottom:var(--fh-space-4);">
+            <div class="fh-card__header">
+              <div class="fh-card__title">Close board</div>
+              <span class="fh-u-text-subtle" style="font-size:var(--fh-text-xs);">.fh-lockmatrix — cells are buttons when they drill down</span>
+            </div>
+            <div class="fh-card__body">
+              <div class="fh-lockmatrix" style="--fh-lockmatrix-cols:12;">
+                <span></span>
+                <span class="fh-lockmatrix__collabel">Apr</span><span class="fh-lockmatrix__collabel">May</span><span class="fh-lockmatrix__collabel">Jun</span><span class="fh-lockmatrix__collabel">Jul</span><span class="fh-lockmatrix__collabel">Aug</span><span class="fh-lockmatrix__collabel">Sep</span><span class="fh-lockmatrix__collabel">Oct</span><span class="fh-lockmatrix__collabel">Nov</span><span class="fh-lockmatrix__collabel">Dec</span><span class="fh-lockmatrix__collabel">Jan</span><span class="fh-lockmatrix__collabel">Feb</span><span class="fh-lockmatrix__collabel">Mar</span>
+
+                <span class="fh-lockmatrix__rowlabel">FWGS</span>
+                <button class="fh-lockmatrix__cell fh-lockmatrix__cell--hard" aria-label="FWGS · Apr — HR-locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
+                <button class="fh-lockmatrix__cell fh-lockmatrix__cell--hard" aria-label="FWGS · May — HR-locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
+                <button class="fh-lockmatrix__cell fh-lockmatrix__cell--hard" aria-label="FWGS · Jun — HR-locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
+                <button class="fh-lockmatrix__cell fh-lockmatrix__cell--hard" aria-label="FWGS · Jul — HR-locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
+                <button class="fh-lockmatrix__cell fh-lockmatrix__cell--hard" aria-label="FWGS · Aug — HR-locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
+                <button class="fh-lockmatrix__cell fh-lockmatrix__cell--hard" aria-label="FWGS · Sep — HR-locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
+                <button class="fh-lockmatrix__cell fh-lockmatrix__cell--hard" aria-label="FWGS · Oct — HR-locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
+                <button class="fh-lockmatrix__cell fh-lockmatrix__cell--hard" aria-label="FWGS · Nov — HR-locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
+                <span class="fh-lockmatrix__cell fh-lockmatrix__cell--na" aria-hidden="true"></span>
+                <span class="fh-lockmatrix__cell fh-lockmatrix__cell--na" aria-hidden="true"></span>
+                <span class="fh-lockmatrix__cell fh-lockmatrix__cell--na" aria-hidden="true"></span>
+                <span class="fh-lockmatrix__cell fh-lockmatrix__cell--na" aria-hidden="true"></span>
+
+                <span class="fh-lockmatrix__rowlabel">FSNC</span>
+                <button class="fh-lockmatrix__cell fh-lockmatrix__cell--hard" aria-label="FSNC · Apr — HR-locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
+                <button class="fh-lockmatrix__cell fh-lockmatrix__cell--hard" aria-label="FSNC · May — HR-locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
+                <button class="fh-lockmatrix__cell fh-lockmatrix__cell--hard" aria-label="FSNC · Jun — HR-locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
+                <button class="fh-lockmatrix__cell fh-lockmatrix__cell--hard" aria-label="FSNC · Jul — HR-locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
+                <button class="fh-lockmatrix__cell fh-lockmatrix__cell--hard" aria-label="FSNC · Aug — HR-locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
+                <button class="fh-lockmatrix__cell fh-lockmatrix__cell--hard" aria-label="FSNC · Sep — HR-locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
+                <button class="fh-lockmatrix__cell fh-lockmatrix__cell--hard" aria-label="FSNC · Oct — HR-locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
+                <button class="fh-lockmatrix__cell fh-lockmatrix__cell--soft is-current" aria-label="FSNC · Nov — StaffLock, close in progress"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg></button>
+                <span class="fh-lockmatrix__cell fh-lockmatrix__cell--na" aria-hidden="true"></span>
+                <span class="fh-lockmatrix__cell fh-lockmatrix__cell--na" aria-hidden="true"></span>
+                <span class="fh-lockmatrix__cell fh-lockmatrix__cell--na" aria-hidden="true"></span>
+                <span class="fh-lockmatrix__cell fh-lockmatrix__cell--na" aria-hidden="true"></span>
+
+                <span class="fh-lockmatrix__rowlabel">TVELC</span>
+                <button class="fh-lockmatrix__cell fh-lockmatrix__cell--hard" aria-label="TVELC · Apr — HR-locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
+                <button class="fh-lockmatrix__cell fh-lockmatrix__cell--hard" aria-label="TVELC · May — HR-locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
+                <button class="fh-lockmatrix__cell fh-lockmatrix__cell--hard" aria-label="TVELC · Jun — HR-locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
+                <button class="fh-lockmatrix__cell fh-lockmatrix__cell--hard" aria-label="TVELC · Jul — HR-locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
+                <button class="fh-lockmatrix__cell fh-lockmatrix__cell--hard" aria-label="TVELC · Aug — HR-locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
+                <button class="fh-lockmatrix__cell fh-lockmatrix__cell--hard" aria-label="TVELC · Sep — HR-locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
+                <button class="fh-lockmatrix__cell fh-lockmatrix__cell--hard" aria-label="TVELC · Oct — HR-locked"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
+                <button class="fh-lockmatrix__cell is-current" aria-label="TVELC · Nov — open, close in progress"></button>
+                <span class="fh-lockmatrix__cell fh-lockmatrix__cell--na" aria-hidden="true"></span>
+                <span class="fh-lockmatrix__cell fh-lockmatrix__cell--na" aria-hidden="true"></span>
+                <span class="fh-lockmatrix__cell fh-lockmatrix__cell--na" aria-hidden="true"></span>
+                <span class="fh-lockmatrix__cell fh-lockmatrix__cell--na" aria-hidden="true"></span>
+              </div>
+
+              <div style="display:flex; flex-wrap:wrap; align-items:center; gap:var(--fh-space-3); margin-top:var(--fh-space-4);">
+                <span class="fh-lock"><span class="fh-lock__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg></span>Open</span>
+                <span class="fh-lock fh-lock--soft"><span class="fh-lock__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>StaffLock</span>
+                <span class="fh-lock fh-lock--hard"><span class="fh-lock__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>HRLock</span>
+                <span class="fh-lock fh-lock--superseded"><span class="fh-lock__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>Superseded</span>
+                <span class="fh-u-text-subtle" style="font-size:var(--fh-text-xs); margin-left:auto;">the two-tier lock holds per campus — one campus's close never blocks another (HR spec §20.11)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="doc-detail">
+            <div class="fh-stack" style="gap:var(--fh-space-4);">
+              <div class="fh-lockbar fh-lockbar--soft">
+                <span class="fh-lockbar__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg></span>
+                <div class="fh-lockbar__body">
+                  <div class="fh-lockbar__title">November 2026 — StaffLock · FSNC</div>
+                  <div class="fh-lockbar__meta">Staff &amp; TL writes blocked · campus HR may still regularize until HRLock</div>
+                </div>
+                <div class="fh-lockbar__actions"><button class="fh-btn fh-btn--sm fh-btn--primary">Run month-end close</button></div>
+              </div>
+
+              <div class="fh-lockbar fh-lockbar--hard">
+                <span class="fh-lockbar__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+                <div class="fh-lockbar__body">
+                  <div class="fh-lockbar__title">November 2026 — HR-locked · FWGS</div>
+                  <div class="fh-lockbar__meta">Locked 05 Dec 2026 · after payroll · paid days, LWP &amp; credits resolved and frozen</div>
+                </div>
+                <div class="fh-lockbar__actions"><span class="fh-lockbar__checksum">sha-256 · 9f2c…41ab</span></div>
+              </div>
+
+              <div class="fh-card fh-frozen">
+                <div class="fh-card__header">
+                  <div class="fh-card__title">Attendance — November 2026</div>
+                  <span class="fh-lock fh-lock--hard"><span class="fh-lock__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>HRLock</span>
+                </div>
+                <div class="fh-card__body">
+                  <div class="fh-table-wrap">
+                    <table class="fh-table">
+                      <thead><tr><th>Employee</th><th class="fh-table__num">Paid days</th><th class="fh-table__num">LWP</th><th class="fh-table__num">Credits applied</th></tr></thead>
+                      <tbody class="fh-u-tabular">
+                        <tr><td>Meera Krishnan</td><td class="fh-table__num">26</td><td class="fh-table__num">0</td><td class="fh-table__num">0</td></tr>
+                        <tr><td>Vikram Rathod</td><td class="fh-table__num">24</td><td class="fh-table__num">2</td><td class="fh-table__num">1</td></tr>
+                        <tr><td>Rohit Bansal</td><td class="fh-table__num">26</td><td class="fh-table__num">0</td><td class="fh-table__num">2</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div style="display:flex; gap:var(--fh-space-2); margin-top:var(--fh-space-3); align-items:center;">
+                    <input class="fh-input" style="max-width:14rem;" value="Regularize 14 Nov…" disabled>
+                    <button class="fh-btn fh-btn--sm" disabled>Apply</button>
+                    <span class="fh-u-text-subtle" style="font-size:var(--fh-text-xs);">controls are disabled by the consumer — .fh-frozen is the veil, the write plane is the wall</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="fh-stack" style="gap:var(--fh-space-4);">
+              <div class="fh-card">
+                <div class="fh-card__header"><div class="fh-card__title">Payroll run — same language</div></div>
+                <div class="fh-card__body">
+                  <div class="fh-stepper" style="margin-bottom:var(--fh-space-4);">
+                    <div class="fh-stepper__step is-complete"><span class="fh-stepper__dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span class="fh-stepper__label">Draft</span></div>
+                    <div class="fh-stepper__step is-complete"><span class="fh-stepper__dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span class="fh-stepper__label">Review</span></div>
+                    <div class="fh-stepper__step is-complete"><span class="fh-stepper__dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span class="fh-stepper__label">Approve</span><span class="fh-stepper__meta">maker ≠ checker</span></div>
+                    <div class="fh-stepper__step is-complete"><span class="fh-stepper__dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span><span class="fh-stepper__label">Lock</span></div>
+                  </div>
+
+                  <div class="fh-stack" style="gap:var(--fh-space-3);">
+                    <div class="fh-lockbar fh-lockbar--hard">
+                      <span class="fh-lockbar__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+                      <div class="fh-lockbar__body">
+                        <div class="fh-lockbar__title">Run 2026-11 · R2 — locked</div>
+                        <div class="fh-lockbar__meta">Statutory Config v2026.1 · rules frozen by value · prep S. Iyer / approve M. Gupta</div>
+                      </div>
+                      <div class="fh-lockbar__actions"><span class="fh-lockbar__checksum">sha-256 · c81d…07e3</span></div>
+                    </div>
+
+                    <div class="fh-lockbar fh-lockbar--superseded">
+                      <span class="fh-lockbar__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+                      <div class="fh-lockbar__body">
+                        <div class="fh-lockbar__title">Run 2026-11 · R1 — superseded by R2</div>
+                        <div class="fh-lockbar__meta">Original preserved untouched — the correction paid forward as labelled arrears, never an in-place edit</div>
+                      </div>
+                      <div class="fh-lockbar__actions"><button class="fh-btn fh-btn--sm">Open R2</button></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p class="fh-u-text-subtle" style="font-size:var(--fh-text-xs); margin-top:var(--fh-space-3);">
+            <strong>locked = immutable is absolute</strong> — a locked record is never edited; corrections are delta-forward
+            arrears or a superseding run. One vocabulary for HR month-end (StaffLock → HRLock, per campus) and payroll runs
+            (draft → review → approve → lock → superseded). CSS is only the language; enforcement lives in the write plane.
+          </p>
+        </section>
+
+        <!-- ============================== GOVERNED VALUES ============================== -->
+        <section class="doc-page" data-page="governed">
+          <nav class="fh-breadcrumb" style="margin-bottom:var(--fh-space-2);"><li><a href="#">Policies</a></li><li>Leave Policy</li></nav>
+          <div style="margin-bottom:var(--fh-space-5);">
+            <h1 class="fh-h3" style="margin-bottom:var(--fh-space-1);">Leave Policy — governed values</h1>
+            <p class="fh-u-text-muted" style="margin:0;">One stored value, two faces (POL-5) · resolution precedence: <strong>personal deviation ▸ campus tweak ▸ group master</strong> — nearest wins; fixed floors bind everything (POL-4/11)</p>
+          </div>
+
+          <div class="doc-detail">
+            <div class="fh-stack" style="gap:var(--fh-space-4);">
+              <div class="fh-card">
+                <div class="fh-card__header">
+                  <div class="fh-card__title">Casual leave days — “says who?”</div>
+                  <span class="fh-u-text-subtle" style="font-size:var(--fh-text-xs);">.fh-source — specificity reads as intensity</span>
+                </div>
+                <div class="fh-card__body">
+                  <div class="fh-stack" style="gap:var(--fh-space-3);">
+                    <div style="display:flex; align-items:center; gap:var(--fh-space-3);">
+                      <span style="font-size:var(--fh-text-sm); min-width:11rem;">Group master</span>
+                      <strong class="fh-u-tabular">10 days</strong>
+                      <span class="fh-source"><span class="fh-source__dot"></span>Group master</span>
+                      <span class="fh-u-text-subtle" style="font-size:var(--fh-text-xs); margin-left:auto;">changeable · head-office routed (POL-8)</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:var(--fh-space-3);">
+                      <span style="font-size:var(--fh-text-sm); min-width:11rem;">FSNC campus tweak</span>
+                      <strong class="fh-u-tabular">12 days</strong>
+                      <span class="fh-source fh-source--campus"><span class="fh-source__dot"></span>Overridden at FSNC</span>
+                      <span class="fh-u-text-subtle" style="font-size:var(--fh-text-xs); margin-left:auto;">approved head office · 12 Mar 2026</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:var(--fh-space-3);">
+                      <span style="font-size:var(--fh-text-sm); min-width:11rem;">Retention agreement</span>
+                      <strong class="fh-u-tabular">+2 days</strong>
+                      <span class="fh-source fh-source--person"><span class="fh-source__dot"></span>Personal deviation</span>
+                      <span class="fh-u-text-subtle" style="font-size:var(--fh-text-xs); margin-left:auto;">on the employment record (POL-11) — never on the policy page</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:var(--fh-space-3); padding-top:var(--fh-space-2); border-top:1px solid var(--fh-color-border);">
+                      <span style="font-size:var(--fh-text-sm); min-width:11rem;">Maternity minimum</span>
+                      <strong class="fh-u-tabular">26 weeks</strong>
+                      <span class="fh-source fh-source--fixed"><span class="fh-source__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>Fixed — statutory floor</span>
+                      <span class="fh-u-text-subtle" style="font-size:var(--fh-text-xs); margin-left:auto;">no campus tweak, no private agreement crosses it (POL-1/11)</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="fh-card">
+                <div class="fh-card__header">
+                  <div class="fh-card__title">What does Meera get? — .fh-resolve</div>
+                  <span class="fh-u-text-subtle" style="font-size:var(--fh-text-xs);">acceptance §17.4: same master sentence, each campus’s number</span>
+                </div>
+                <div class="fh-card__body" style="display:grid; grid-template-columns:1fr 1fr; gap:var(--fh-space-4);">
+                  <div>
+                    <div class="fh-u-text-muted" style="font-size:var(--fh-text-xs); margin-bottom:var(--fh-space-2);">Meera · FWGS</div>
+                    <div class="fh-resolve">
+                      <div class="fh-resolve__row is-winner">
+                        <span class="fh-resolve__layer"><span class="fh-source"><span class="fh-source__dot"></span>Group master</span></span>
+                        <span class="fh-resolve__value">10 days</span>
+                        <span class="fh-resolve__note">nearest layer with a value</span>
+                      </div>
+                      <div class="fh-resolve__row fh-resolve__row--skip">
+                        <span class="fh-resolve__layer">FWGS tweak</span>
+                        <span class="fh-resolve__value">—</span>
+                        <span class="fh-resolve__note">none</span>
+                      </div>
+                      <div class="fh-resolve__row fh-resolve__row--skip">
+                        <span class="fh-resolve__layer">Personal deviation</span>
+                        <span class="fh-resolve__value">—</span>
+                        <span class="fh-resolve__note">none</span>
+                      </div>
+                      <div class="fh-resolve__final">
+                        <span>Resolved</span>
+                        <span class="fh-resolve__value">10 days</span>
+                        <span class="fh-resolve__note">the number on her policy page</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="fh-u-text-muted" style="font-size:var(--fh-text-xs); margin-bottom:var(--fh-space-2);">Her colleague · FSNC</div>
+                    <div class="fh-resolve">
+                      <div class="fh-resolve__row">
+                        <span class="fh-resolve__layer"><span class="fh-source"><span class="fh-source__dot"></span>Group master</span></span>
+                        <span class="fh-resolve__value">10 days</span>
+                        <span class="fh-resolve__note">shadowed</span>
+                      </div>
+                      <div class="fh-resolve__row is-winner">
+                        <span class="fh-resolve__layer"><span class="fh-source fh-source--campus"><span class="fh-source__dot"></span>FSNC tweak</span></span>
+                        <span class="fh-resolve__value">12 days</span>
+                        <span class="fh-resolve__note">nearest wins</span>
+                      </div>
+                      <div class="fh-resolve__row fh-resolve__row--skip">
+                        <span class="fh-resolve__layer">Personal deviation</span>
+                        <span class="fh-resolve__value">—</span>
+                        <span class="fh-resolve__note">none</span>
+                      </div>
+                      <div class="fh-resolve__final">
+                        <span>Resolved</span>
+                        <span class="fh-resolve__value">12 days</span>
+                        <span class="fh-resolve__note">same sentence, her number</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="fh-stack" style="gap:var(--fh-space-4);">
+              <div class="fh-card">
+                <div class="fh-card__header"><div class="fh-card__title">Bounded value — .fh-bounds</div></div>
+                <div class="fh-card__body">
+                  <div class="fh-field">
+                    <label class="fh-label" for="gv-grace">Punch-in grace period (mins)</label>
+                    <input class="fh-input" id="gv-grace" value="10" style="max-width:8rem;">
+                    <div class="fh-bounds">
+                      <div class="fh-bounds__track">
+                        <div class="fh-bounds__fill" style="left:0%; right:25%;"></div>
+                        <div class="fh-bounds__dot" style="left:50%;"></div>
+                      </div>
+                      <div class="fh-bounds__labels"><span>0</span><span>allowed 0–15 · Bounded (A2)</span><span>20</span></div>
+                    </div>
+                    <span class="fh-help">campus-approvable (POL-8) — an ordinary operational value, visible to head office</span>
+                  </div>
+                  <div class="fh-field" style="margin-top:var(--fh-space-4);">
+                    <label class="fh-label" for="gv-grace2">FSNC proposal</label>
+                    <input class="fh-input" id="gv-grace2" value="18 → 15" style="max-width:8rem;">
+                    <div class="fh-bounds">
+                      <div class="fh-bounds__track">
+                        <div class="fh-bounds__fill" style="left:0%; right:25%;"></div>
+                        <div class="fh-bounds__dot is-clamped" style="left:75%;"></div>
+                      </div>
+                      <div class="fh-bounds__labels"><span>0</span><span></span><span>20</span></div>
+                      <span class="fh-bounds__note">clamped to the bound — overrides are always clamped, never rejected silently</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="fh-card">
+                <div class="fh-card__header">
+                  <div class="fh-card__title">Policy versions — .fh-validity</div>
+                  <span class="fh-u-text-subtle" style="font-size:var(--fh-text-xs);">“what was the rule on 15 March?”</span>
+                </div>
+                <div class="fh-card__body">
+                  <div class="fh-validity">
+                    <span class="fh-validity__asoflabel">as of 09 Jul 2026</span>
+                    <div class="fh-validity__track" style="--fh-validity-asof:58%;">
+                      <div class="fh-validity__seg fh-validity__seg--expired" style="flex:4;">
+                        <span class="fh-validity__ver">v1</span>
+                        <span class="fh-validity__range">01 Apr 2024 – 31 Mar 2026</span>
+                      </div>
+                      <div class="fh-validity__seg fh-validity__seg--current" style="flex:3;">
+                        <span class="fh-validity__ver">v2 — in force</span>
+                        <span class="fh-validity__range">01 Apr 2026 – 31 Mar 2027</span>
+                      </div>
+                      <div class="fh-validity__seg fh-validity__seg--future fh-validity__seg--open-ended" style="flex:2;">
+                        <span class="fh-validity__ver">v3 — future</span>
+                        <span class="fh-validity__range">01 Apr 2027 →</span>
+                      </div>
+                    </div>
+                  </div>
+                  <p class="fh-u-text-subtle" style="font-size:var(--fh-text-xs); margin:var(--fh-space-3) 0 0;">
+                    future-dated is <em>normal</em> — approved today, effective 1 April, visible in advance;
+                    backdating is a governed exception (POL-15). A published version is immutable — a changed rule is a new version.
+                  </p>
+                </div>
+              </div>
+
+              <div class="fh-card">
+                <div class="fh-card__header"><div class="fh-card__title">Statutory bundle — with a correction lane</div></div>
+                <div class="fh-card__body">
+                  <div class="fh-validity">
+                    <div class="fh-validity__track" style="--fh-validity-asof:70%;">
+                      <div class="fh-validity__seg fh-validity__seg--expired" style="flex:2;">
+                        <span class="fh-validity__ver">FY25 bundle</span>
+                        <span class="fh-validity__range">Apr 2025 – Mar 2026</span>
+                      </div>
+                      <div class="fh-validity__seg fh-validity__seg--current fh-validity__seg--open-ended" style="flex:3;">
+                        <span class="fh-validity__ver">FY26 bundle · r2</span>
+                        <span class="fh-validity__range">Apr 2026 →</span>
+                      </div>
+                    </div>
+                    <div class="fh-validity__track">
+                      <div class="fh-validity__seg" style="flex:2; visibility:hidden;"></div>
+                      <div class="fh-validity__seg fh-validity__seg--superseded" style="flex:3;">
+                        <span class="fh-validity__ver">FY26 bundle · r1</span>
+                        <span class="fh-validity__range">superseded 15 May 2026 — preserved, never edited</span>
+                      </div>
+                    </div>
+                    <span class="fh-validity__lanelabel">the correction lane pairs with 38 LOCK’s superseded treatment — deltas pay forward as labelled arrears</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p class="fh-u-text-subtle" style="font-size:var(--fh-text-xs); margin-top:var(--fh-space-3);">
+            One vocabulary for every governed value: payroll’s baseline→org→entity→employee chain, HR config’s
+            locked-vs-open rows, POL’s master ▸ tweak ▸ resolved view, fees’ most-specific-wins pricing.
+            The chips/marks are the language — resolution itself is the consumer’s service (POL-4), never CSS.
+          </p>
+        </section>
+
+        <!-- ============================== LEDGER ============================== -->
+        <section class="doc-page" data-page="ledger">
+          <nav class="fh-breadcrumb" style="margin-bottom:var(--fh-space-2);"><li><a href="#">Payroll</a></li><li>Register</li></nav>
+          <div style="margin-bottom:var(--fh-space-5);">
+            <h1 class="fh-h3" style="margin-bottom:var(--fh-space-1);">Money at scale — .fh-table--ledger</h1>
+            <p class="fh-u-text-muted" style="margin:0;">Tabular numerals · totals wear the accounting double-rule · colour only carries <em>meaning</em> (direction, delta, credit) — numbers stay ink</p>
+          </div>
+
+          <div class="fh-stack" style="gap:var(--fh-space-4);">
+            <div class="fh-card">
+              <div class="fh-card__header">
+                <div class="fh-card__title">Payroll register — November 2026 · FWGS</div>
+                <span class="fh-lock fh-lock--hard"><span class="fh-lock__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>Locked · R2</span>
+              </div>
+              <div class="fh-card__body">
+                <div class="fh-table-wrap">
+                  <table class="fh-table fh-table--ledger">
+                    <thead>
+                      <tr><th>Employee</th><th class="fh-table__money">Earnings</th><th class="fh-table__money">Deductions</th><th class="fh-table__money">Net pay</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr><td>Meera Krishnan</td><td class="fh-table__money"><span class="fh-money"><span class="fh-money__cur">₹</span>92,400</span></td><td class="fh-table__money"><span class="fh-money"><span class="fh-money__cur">₹</span>11,080</span></td><td class="fh-table__money"><span class="fh-money"><span class="fh-money__cur">₹</span>81,320</span></td></tr>
+                      <tr><td>Vikram Rathod</td><td class="fh-table__money"><span class="fh-money"><span class="fh-money__cur">₹</span>78,150</span></td><td class="fh-table__money"><span class="fh-money"><span class="fh-money__cur">₹</span>9,240</span></td><td class="fh-table__money"><span class="fh-money"><span class="fh-money__cur">₹</span>68,910</span></td></tr>
+                      <tr><td>Rohit Bansal</td><td class="fh-table__money"><span class="fh-money"><span class="fh-money__cur">₹</span>64,800</span></td><td class="fh-table__money"><span class="fh-money"><span class="fh-money__cur">₹</span>7,610</span></td><td class="fh-table__money"><span class="fh-money"><span class="fh-money__cur">₹</span>57,190</span></td></tr>
+                      <tr class="fh-table__row--subtotal"><td>PYP — subtotal</td><td class="fh-table__money"><span class="fh-money"><span class="fh-money__cur">₹</span>2,35,350</span></td><td class="fh-table__money"><span class="fh-money"><span class="fh-money__cur">₹</span>27,930</span></td><td class="fh-table__money"><span class="fh-money"><span class="fh-money__cur">₹</span>2,07,420</span></td></tr>
+                      <tr><td>Sanya Iyer</td><td class="fh-table__money"><span class="fh-money"><span class="fh-money__cur">₹</span>1,04,200</span></td><td class="fh-table__money"><span class="fh-money"><span class="fh-money__cur">₹</span>13,890</span></td><td class="fh-table__money"><span class="fh-money"><span class="fh-money__cur">₹</span>90,310</span></td></tr>
+                      <tr><td>Arif Khan</td><td class="fh-table__money"><span class="fh-money"><span class="fh-money__cur">₹</span>88,600</span></td><td class="fh-table__money"><span class="fh-money"><span class="fh-money__cur">₹</span>10,930</span></td><td class="fh-table__money"><span class="fh-money"><span class="fh-money__cur">₹</span>77,670</span></td></tr>
+                      <tr class="fh-table__row--subtotal"><td>MYP — subtotal</td><td class="fh-table__money"><span class="fh-money"><span class="fh-money__cur">₹</span>1,92,800</span></td><td class="fh-table__money"><span class="fh-money"><span class="fh-money__cur">₹</span>24,820</span></td><td class="fh-table__money"><span class="fh-money"><span class="fh-money__cur">₹</span>1,67,980</span></td></tr>
+                    </tbody>
+                    <tfoot>
+                      <tr><td>FWGS — 5 employees</td><td class="fh-table__money"><span class="fh-money"><span class="fh-money__cur">₹</span>4,28,150</span></td><td class="fh-table__money"><span class="fh-money"><span class="fh-money__cur">₹</span>52,750</span></td><td class="fh-table__money"><span class="fh-money"><span class="fh-money__cur">₹</span>3,75,400</span></td></tr>
+                    </tfoot>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div class="doc-detail">
+              <div class="fh-card">
+                <div class="fh-card__header">
+                  <div class="fh-card__title">Arrears — backdated DA revision</div>
+                  <span class="fh-u-text-subtle" style="font-size:var(--fh-text-xs);">effective 01 Oct · locked months never rewritten — deltas pay forward, labelled</span>
+                </div>
+                <div class="fh-card__body">
+                  <div class="fh-table-wrap">
+                    <table class="fh-table fh-table--ledger">
+                      <thead>
+                        <tr><th>Employee</th><th class="fh-table__money fh-table__groupstart">Oct — paid</th><th class="fh-table__money">recomputed</th><th class="fh-table__money">Δ arrears</th></tr>
+                      </thead>
+                      <tbody>
+                        <tr><td>Meera Krishnan</td><td class="fh-table__money fh-table__groupstart"><span class="fh-was">81,320</span></td><td class="fh-table__money"><span class="fh-money"><span class="fh-money__cur">₹</span>82,560</span></td><td class="fh-table__money"><span class="fh-delta fh-delta--up">1,240</span></td></tr>
+                        <tr><td>Vikram Rathod</td><td class="fh-table__money fh-table__groupstart"><span class="fh-was">68,910</span></td><td class="fh-table__money"><span class="fh-money"><span class="fh-money__cur">₹</span>69,860</span></td><td class="fh-table__money"><span class="fh-delta fh-delta--up">950</span></td></tr>
+                        <tr><td>Rohit Bansal <span class="fh-u-text-subtle" style="font-size:var(--fh-text-xs);">(LWP 2d)</span></td><td class="fh-table__money fh-table__groupstart"><span class="fh-was">57,190</span></td><td class="fh-table__money"><span class="fh-money"><span class="fh-money__cur">₹</span>56,810</span></td><td class="fh-table__money"><span class="fh-delta fh-delta--down">380</span></td></tr>
+                      </tbody>
+                      <tfoot>
+                        <tr><td>Pays forward in Dec</td><td class="fh-table__groupstart"></td><td></td><td class="fh-table__money"><span class="fh-delta fh-delta--up">1,810</span></td></tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                  <p class="fh-u-text-subtle" style="font-size:var(--fh-text-xs); margin:var(--fh-space-3) 0 0;">
+                    the trio reads old → recomputed → signed delta; <code>.fh-was</code> is struck, the delta is
+                    a <em>labelled</em> correction line in a later slip — the R1 run stays untouched (38/39 pair)
+                  </p>
+                </div>
+              </div>
+
+              <div class="fh-card">
+                <div class="fh-card__header">
+                  <div class="fh-card__title">Family ledger — Shah, FWGS</div>
+                  <span class="fh-u-text-subtle" style="font-size:var(--fh-text-xs);">Dr = charge · Cr = payment · balance is the DERIVED column</span>
+                </div>
+                <div class="fh-card__body">
+                  <div class="fh-table-wrap">
+                    <table class="fh-table fh-table--ledger">
+                      <thead>
+                        <tr><th>Date</th><th>Item</th><th style="width:2.2rem;"></th><th class="fh-table__money">Amount</th><th class="fh-table__money">Balance</th></tr>
+                      </thead>
+                      <tbody>
+                        <tr><td>01 Apr</td><td>Term 1 tuition — Aanya (G5)</td><td><span class="fh-drcr fh-drcr--dr">Dr</span></td><td class="fh-table__money"><span class="fh-money"><span class="fh-money__cur">₹</span>85,000</span></td><td class="fh-table__balance">85,000</td></tr>
+                        <tr><td>01 Apr</td><td>Transport — Term 1</td><td><span class="fh-drcr fh-drcr--dr">Dr</span></td><td class="fh-table__money"><span class="fh-money"><span class="fh-money__cur">₹</span>12,000</span></td><td class="fh-table__balance">97,000</td></tr>
+                        <tr><td>04 Apr</td><td>Sibling concession — 10%</td><td><span class="fh-drcr fh-drcr--cr">Cr</span></td><td class="fh-table__money"><span class="fh-money"><span class="fh-money__cur">₹</span>8,500</span></td><td class="fh-table__balance">88,500</td></tr>
+                        <tr><td>10 Apr</td><td>UPI payment · ref 8841</td><td><span class="fh-drcr fh-drcr--cr">Cr</span></td><td class="fh-table__money"><span class="fh-money"><span class="fh-money__cur">₹</span>91,000</span></td><td class="fh-table__balance"><span class="fh-money fh-money--pos">−2,500</span></td></tr>
+                      </tbody>
+                      <tfoot>
+                        <tr><td colspan="4">Closing balance — wallet credit, adjusts against Term 2</td><td class="fh-table__balance"><span class="fh-money fh-money--pos">−2,500</span></td></tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                  <p class="fh-u-text-subtle" style="font-size:var(--fh-text-xs); margin:var(--fh-space-3) 0 0;">
+                    a negative collectible is a <em>credit</em>, not an error — <code>.fh-money--pos</code> greens it;
+                    dues past term would be <code>.fh-money--neg</code>. Indian digit grouping (1,23,456) is the consumer’s formatter.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p class="fh-u-text-subtle" style="font-size:var(--fh-text-xs); margin-top:var(--fh-space-3);">
+            one idiom across payroll registers, fee statements, credit-minute ledgers and marks tables:
+            right-aligned tabular money cells, quiet ₹, subtotal rules, the double-rule grand total —
+            and inside <code>.fh-sheet</code> the same table prints crisp for the parent-facing statement.
+          </p>
+        </section>
+
+        <!-- ============================== CAPACITY & MASKS ============================== -->
+        <section class="doc-page" data-page="capacity">
+          <nav class="fh-breadcrumb" style="margin-bottom:var(--fh-space-2);"><li><a href="#">HR</a></li><li>Vacancies</li></nav>
+          <div style="margin-bottom:var(--fh-space-5);">
+            <h1 class="fh-h3" style="margin-bottom:var(--fh-space-1);">Capacity — used vs allowed, overruns sanctioned</h1>
+            <p class="fh-u-text-muted" style="margin:0;">The gate marks the cap; what lies beyond it is a <strong>first-class flagged state</strong> — striped, never error-red. An audited override earns navy stripes: someone answered for it.</p>
+          </div>
+
+          <div class="doc-detail">
+            <div class="fh-stack" style="gap:var(--fh-space-4);">
+              <div class="fh-card">
+                <div class="fh-card__header"><div class="fh-card__title">Vacancies — Mathematics · FWGS MYP</div><span class="fh-u-text-subtle" style="font-size:var(--fh-text-xs);">§8 over-offer: allowed, warned, standing</span></div>
+                <div class="fh-card__body fh-stack" style="gap:var(--fh-space-4);">
+                  <div>
+                    <div style="display:flex; justify-content:space-between; font-size:var(--fh-text-sm); margin-bottom:var(--fh-space-2);">
+                      <span>Sanctioned <strong>6</strong> · filled 5 · offers in flight 2</span>
+                      <span class="fh-u-text-muted">7 of 6 spoken for</span>
+                    </div>
+                    <div class="fh-capacity">
+                      <div class="fh-capacity__track" style="--fh-capacity-gate:85.7%;">
+                        <div class="fh-capacity__seg fh-capacity__seg--filled" style="flex:5;"></div>
+                        <div class="fh-capacity__seg fh-capacity__seg--soft" style="flex:1;"></div>
+                        <div class="fh-capacity__seg fh-capacity__seg--over" style="flex:1;"></div>
+                        <span class="fh-capacity__gate"></span>
+                      </div>
+                      <div class="fh-capacity__legend">
+                        <span class="fh-capacity__key"><span class="fh-capacity__dot fh-capacity__dot--filled"></span>filled</span>
+                        <span class="fh-capacity__key"><span class="fh-capacity__dot fh-capacity__dot--soft"></span>offer in flight</span>
+                        <span class="fh-capacity__key"><span class="fh-capacity__dot fh-capacity__dot--over"></span>over-offer (standing warning)</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <div style="display:flex; justify-content:space-between; font-size:var(--fh-text-sm); margin-bottom:var(--fh-space-2);">
+                      <span>Science · <strong>4</strong> sanctioned · filled 2 · pipeline 1</span>
+                      <span class="fh-u-text-muted">within plan</span>
+                    </div>
+                    <div class="fh-capacity">
+                      <div class="fh-capacity__track">
+                        <div class="fh-capacity__seg fh-capacity__seg--filled" style="flex:2;"></div>
+                        <div class="fh-capacity__seg fh-capacity__seg--soft" style="flex:1;"></div>
+                        <div style="flex:1;"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="fh-card">
+                <div class="fh-card__header"><div class="fh-card__title">Admissions — Grade 5 · FSNC</div><span class="fh-u-text-subtle" style="font-size:var(--fh-text-xs);">over-cap needs the principal — audited</span></div>
+                <div class="fh-card__body">
+                  <div style="display:flex; justify-content:space-between; font-size:var(--fh-text-sm); margin-bottom:var(--fh-space-2);">
+                    <span>Cap <strong>60</strong> · confirmed 54 · held 6 · principal-approved +2</span>
+                    <span class="fh-u-text-muted">62 of 60</span>
+                  </div>
+                  <div class="fh-capacity">
+                    <div class="fh-capacity__track" style="--fh-capacity-gate:96.8%;">
+                      <div class="fh-capacity__seg fh-capacity__seg--filled" style="flex:54;"></div>
+                      <div class="fh-capacity__seg fh-capacity__seg--soft" style="flex:6;"></div>
+                      <div class="fh-capacity__seg fh-capacity__seg--override" style="flex:2;"></div>
+                      <span class="fh-capacity__gate"></span>
+                    </div>
+                    <div class="fh-capacity__legend">
+                      <span class="fh-capacity__key"><span class="fh-capacity__dot fh-capacity__dot--filled"></span>confirmed</span>
+                      <span class="fh-capacity__key"><span class="fh-capacity__dot fh-capacity__dot--soft"></span>held</span>
+                      <span class="fh-capacity__key"><span class="fh-capacity__dot fh-capacity__dot--override"></span>audited override</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="fh-card">
+                <div class="fh-card__header"><div class="fh-card__title">Comms — circular delivery</div></div>
+                <div class="fh-card__body">
+                  <div style="display:flex; justify-content:space-between; font-size:var(--fh-text-sm); margin-bottom:var(--fh-space-2);">
+                    <span>PTM circular · read by <strong>412</strong> of 540</span><span class="fh-u-text-muted">76%</span>
+                  </div>
+                  <div class="fh-capacity">
+                    <div class="fh-capacity__track">
+                      <div class="fh-capacity__seg fh-capacity__seg--filled" style="flex:412;"></div>
+                      <div style="flex:128;"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="fh-stack" style="gap:var(--fh-space-4);">
+              <div class="fh-card">
+                <div class="fh-card__header">
+                  <div class="fh-card__title">Masked values — .fh-masked</div>
+                  <span class="fh-u-text-subtle" style="font-size:var(--fh-text-xs);">Tier-1 · opening IS the audited read</span>
+                </div>
+                <div class="fh-card__body">
+                  <div class="fh-table-wrap">
+                    <table class="fh-table fh-table--ledger">
+                      <thead><tr><th>Employee</th><th>Role</th><th class="fh-table__money">Annual CTC</th></tr></thead>
+                      <tbody>
+                        <tr><td>Meera Krishnan</td><td>MYP Coordinator</td><td class="fh-table__money">
+                          <details class="fh-masked">
+                            <summary class="fh-masked__mask">••••••••<span class="fh-masked__eye"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></span></summary>
+                            <span class="fh-masked__value">₹18,20,000</span>
+                            <span class="fh-masked__audit">read audited</span>
+                          </details>
+                        </td></tr>
+                        <tr><td>Vikram Rathod</td><td>Mathematics</td><td class="fh-table__money">
+                          <details class="fh-masked" open>
+                            <summary class="fh-masked__mask">••••••••<span class="fh-masked__eye"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></span></summary>
+                            <span class="fh-masked__value">₹14,60,000</span>
+                            <span class="fh-masked__audit">read audited · 09 Jul</span>
+                          </details>
+                        </td></tr>
+                        <tr><td>Rohit Bansal</td><td>Lab · DP</td><td class="fh-table__money">
+                          <details class="fh-masked">
+                            <summary class="fh-masked__mask">••••••••<span class="fh-masked__eye"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></span></summary>
+                            <span class="fh-masked__value">₹11,90,000</span>
+                            <span class="fh-masked__audit">read audited</span>
+                          </details>
+                        </td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <p class="fh-u-text-subtle" style="font-size:var(--fh-text-xs); margin:var(--fh-space-3) 0 0;">
+                    native <code>&lt;details&gt;</code> — no JS in the DS; the consumer logs the R3-4 audited
+                    reveal on toggle (recruitment’s offer screen already does). The amber “read audited”
+                    note is deliberate anatomy: the reader should <em>feel</em> the read being recorded.
+                  </p>
+                </div>
+              </div>
+
+              <div class="fh-card">
+                <div class="fh-card__header"><div class="fh-card__title">Comp envelope — variance beyond 100% is flagged, not forbidden</div></div>
+                <div class="fh-card__body">
+                  <div style="display:flex; justify-content:space-between; font-size:var(--fh-text-sm); margin-bottom:var(--fh-space-2);">
+                    <span>Increment envelope <strong>₹25.0L</strong> · committed ₹23.5L · beyond-envelope ₹2.6L</span>
+                    <span class="fh-u-text-muted">104.4%</span>
+                  </div>
+                  <div class="fh-capacity">
+                    <div class="fh-capacity__track" style="--fh-capacity-gate:95.8%;">
+                      <div class="fh-capacity__seg fh-capacity__seg--filled" style="flex:23.5;"></div>
+                      <div class="fh-capacity__seg fh-capacity__seg--over" style="flex:2.6;"></div>
+                      <span class="fh-capacity__gate"></span>
+                    </div>
+                    <div class="fh-capacity__legend">
+                      <span class="fh-capacity__key"><span class="fh-capacity__dot fh-capacity__dot--filled"></span>committed</span>
+                      <span class="fh-capacity__key"><span class="fh-capacity__dot fh-capacity__dot--over"></span>soft-envelope variance — rides to the head’s review</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p class="fh-u-text-subtle" style="font-size:var(--fh-text-xs); margin-top:var(--fh-space-3);">
+            one meter anatomy for vacancies, seats, envelopes and read-counts — plus the masked-value cell
+            every Tier-1 money screen reuses. The gate and the stripes are the language; the RULE (who may
+            cross, what gets audited) lives in <code>can()</code> and the write plane.
+          </p>
+        </section>
+
+        <!-- ============================== REVIEW & WORKLIST ============================== -->
+        <section class="doc-page" data-page="review">
+          <nav class="fh-breadcrumb" style="margin-bottom:var(--fh-space-2);"><li><a href="#">Approvals</a></li><li>Fee schedule change</li></nav>
+          <div style="margin-bottom:var(--fh-space-5);">
+            <h1 class="fh-h3" style="margin-bottom:var(--fh-space-1);">Maker-checker review — .fh-diff / .fh-pending / .fh-worklist</h1>
+            <p class="fh-u-text-muted" style="margin:0;">The checker sees exactly what changes and why · the originating record wears the pending veil · every work item speaks one status language</p>
+          </div>
+
+          <div class="doc-detail">
+            <div class="fh-stack" style="gap:var(--fh-space-4);">
+              <div class="fh-card">
+                <div class="fh-card__header">
+                  <div class="fh-card__title">Proposed: G5 fee schedule · FSNC</div>
+                  <span class="fh-u-text-subtle" style="font-size:var(--fh-text-xs);">maker R. Shah · 09 Jul · R3-5: the editor never approves their own change</span>
+                </div>
+                <div class="fh-card__body fh-stack" style="gap:var(--fh-space-4);">
+                  <div class="fh-diff">
+                    <div class="fh-diff__head"><span>Field</span><span>Current</span><span>Proposed</span></div>
+                    <div class="fh-diff__row"><span class="fh-diff__field">Grade</span><span class="fh-diff__before">Grade 5</span><span class="fh-diff__after">Grade 5</span></div>
+                    <div class="fh-diff__row is-changed"><span class="fh-diff__field">Term 1 tuition</span><span class="fh-diff__before">₹82,000</span><span class="fh-diff__after">₹85,000</span></div>
+                    <div class="fh-diff__row is-changed"><span class="fh-diff__field">Sibling concession</span><span class="fh-diff__before">8%</span><span class="fh-diff__after">10%</span></div>
+                    <div class="fh-diff__row"><span class="fh-diff__field">Transport slab</span><span class="fh-diff__before">Zone-based</span><span class="fh-diff__after">Zone-based</span></div>
+                  </div>
+                  <div class="fh-field">
+                    <label class="fh-label" for="rv-reason">Decision reason <span class="fh-label__req">*</span></label>
+                    <textarea class="fh-textarea" id="rv-reason" rows="2" placeholder="Captured on the audit record either way — approve or reject."></textarea>
+                  </div>
+                  <div style="display:flex; gap:var(--fh-space-2); justify-content:flex-end;">
+                    <button class="fh-btn fh-btn--outline">Reject</button>
+                    <button class="fh-btn fh-btn--primary">Approve — apply on 01 Aug</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="fh-card">
+                <div class="fh-card__header">
+                  <div class="fh-card__title">Reconciliation — parsed vs authoritative</div>
+                  <span class="fh-u-text-subtle" style="font-size:var(--fh-text-xs);">.is-conflict — a human call, not an approval</span>
+                </div>
+                <div class="fh-card__body">
+                  <div class="fh-diff">
+                    <div class="fh-diff__head"><span>Candidate</span><span>Parsed (IB extract)</span><span>Gradebook</span></div>
+                    <div class="fh-diff__row"><span class="fh-diff__field">Aanya Shah — Math AA</span><span class="fh-diff__before">6</span><span class="fh-diff__after">6</span></div>
+                    <div class="fh-diff__row is-conflict"><span class="fh-diff__field">Kabir Bose — Physics</span><span class="fh-diff__before">5</span><span class="fh-diff__after">6</span></div>
+                    <div class="fh-diff__row"><span class="fh-diff__field">Zara Khan — English A</span><span class="fh-diff__before">7</span><span class="fh-diff__after">7</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="fh-stack" style="gap:var(--fh-space-4);">
+              <div class="fh-pending">
+                <span class="fh-pending__flag">awaiting checker · fees.schedule</span>
+                <div class="fh-card" style="border:none;">
+                  <div class="fh-card__header"><div class="fh-card__title">G5 fee schedule · FSNC (live record)</div></div>
+                  <div class="fh-card__body">
+                    <dl class="doc-kv">
+                      <dt>Term 1 tuition</dt><dd>₹82,000 <span class="fh-u-text-subtle" style="font-size:var(--fh-text-xs);">(change pending)</span></dd>
+                      <dt>Sibling concession</dt><dd>8%</dd>
+                      <dt>Effective</dt><dd>01 Apr 2026</dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+
+              <div class="fh-card">
+                <div class="fh-card__header">
+                  <div class="fh-card__title">My work — Asha (campus head)</div>
+                  <span class="fh-u-text-subtle" style="font-size:var(--fh-text-xs);">.fh-worklist — mixed types, one status language</span>
+                </div>
+                <div class="fh-card__body" style="padding:0;">
+                  <div class="fh-worklist">
+                    <div class="fh-worklist__band fh-worklist__band--overdue">Overdue <span class="fh-worklist__count">· 2</span></div>
+                    <a class="fh-worklist__item fh-worklist__item--overdue" href="#">
+                      <span class="fh-worklist__type">APPR</span>
+                      <span class="fh-worklist__title">Leave — Vikram Rathod · 3d CRL</span>
+                      <span class="fh-worklist__meta">due yesterday</span>
+                      <span class="fh-status fh-status--escalated">escalated</span>
+                    </a>
+                    <a class="fh-worklist__item fh-worklist__item--overdue" href="#">
+                      <span class="fh-worklist__type">TKT</span>
+                      <span class="fh-worklist__title">Projector — Room 214</span>
+                      <span class="fh-worklist__meta">SLA 48h · breached</span>
+                      <span class="fh-status fh-status--overdue">overdue</span>
+                    </a>
+                    <div class="fh-worklist__band">Today <span class="fh-worklist__count">· 2</span></div>
+                    <a class="fh-worklist__item" href="#">
+                      <span class="fh-worklist__type">APPR</span>
+                      <span class="fh-worklist__title">Fee schedule change — G5 · FSNC</span>
+                      <span class="fh-worklist__meta">due 5 pm</span>
+                      <span class="fh-status fh-status--due">due soon</span>
+                    </a>
+                    <a class="fh-worklist__item" href="#">
+                      <span class="fh-worklist__type">TASK</span>
+                      <span class="fh-worklist__title">Sign-off chase — POSH policy · 11 unsigned</span>
+                      <span class="fh-worklist__meta">HDT-6 bulk-assign</span>
+                      <span class="fh-status fh-status--progress">in progress</span>
+                    </a>
+                    <div class="fh-worklist__band">Upcoming <span class="fh-worklist__count">· 2</span></div>
+                    <a class="fh-worklist__item" href="#">
+                      <span class="fh-worklist__type">TASK</span>
+                      <span class="fh-worklist__title">Month-end close — November · FSNC</span>
+                      <span class="fh-worklist__meta">opens 01 Dec</span>
+                      <span class="fh-status fh-status--open">open</span>
+                    </a>
+                    <a class="fh-worklist__item" href="#">
+                      <span class="fh-worklist__type">TKT</span>
+                      <span class="fh-worklist__title">Lab stock audit — awaiting vendor</span>
+                      <span class="fh-worklist__meta">on hold</span>
+                      <span class="fh-status fh-status--paused">paused</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p class="fh-u-text-subtle" style="font-size:var(--fh-text-xs); margin-top:var(--fh-space-3);">
+            the same anatomy serves the R3-5 checker queue (fees, admissions, HR overrides), results-intake
+            reconciliation and duplicate-merge review. Lifecycle and due-state are separate axes on
+            <code>.fh-status</code> — “in progress” and “overdue” can both be true; never conflate them.
+          </p>
+        </section>
+
+        <!-- ============================== COMMIT GRID ============================== -->
+        <section class="doc-page" data-page="commitgrid">
+          <nav class="fh-breadcrumb" style="margin-bottom:var(--fh-space-2);"><li><a href="#">Compensation</a></li><li>Increment cycle 2027</li></nav>
+          <div style="margin-bottom:var(--fh-space-5);">
+            <h1 class="fh-h3" style="margin-bottom:var(--fh-space-1);">Commit grid — suggested is not committed</h1>
+            <p class="fh-u-text-muted" style="margin:0;">Across 300 cells the eye must separate the <em>system’s proposal</em> (ghost italic) from an <em>unsaved edit</em> (accent corner) from a <em>human commitment</em> (ink + quiet check)</p>
+          </div>
+
+          <div class="fh-stack" style="gap:var(--fh-space-4);">
+            <div class="fh-card">
+              <div class="fh-card__header">
+                <div class="fh-card__title">Increment worksheet — MYP · FWGS</div>
+                <div style="display:flex; gap:var(--fh-space-3); font-size:var(--fh-text-xs); color:var(--fh-color-text-muted);">
+                  <span><em style="border-bottom:1px dotted var(--fh-color-border-strong);">6.0%</em> suggested</span>
+                  <span><strong>7.0%</strong><span style="display:inline-block;width:0;height:0;border:4px solid transparent;border-top-color:var(--fh-color-accent);border-right-color:var(--fh-color-accent);vertical-align:top;"></span> unsaved</span>
+                  <span><strong>6.5%</strong> ✓ committed</span>
+                </div>
+              </div>
+              <div class="fh-card__body" style="padding:0;">
+                <div class="fh-table-wrap" style="border:none; border-radius:0;">
+                  <table class="fh-commitgrid">
+                    <thead>
+                      <tr><th>Employee</th><th>Band</th><th>Suggested</th><th>Committed</th><th>New CTC</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Meera Krishnan</td><td><button class="fh-cgcell fh-cgcell--committed"><span class="fh-cgcell__value">B2</span></button></td>
+                        <td><button class="fh-cgcell fh-cgcell--suggested"><span class="fh-cgcell__value">8.0%</span></button></td>
+                        <td><button class="fh-cgcell fh-cgcell--committed"><span class="fh-cgcell__value">8.5%</span></button></td>
+                        <td class="fh-commitgrid__calc">₹19,74,700</td>
+                      </tr>
+                      <tr>
+                        <td>Vikram Rathod</td><td><button class="fh-cgcell fh-cgcell--committed"><span class="fh-cgcell__value">B1</span></button></td>
+                        <td><button class="fh-cgcell fh-cgcell--suggested"><span class="fh-cgcell__value">6.0%</span></button></td>
+                        <td><button class="fh-cgcell fh-cgcell--dirty"><span class="fh-cgcell__value">7.0%</span></button></td>
+                        <td class="fh-commitgrid__calc">₹15,62,200</td>
+                      </tr>
+                      <tr>
+                        <td>Rohit Bansal</td><td><button class="fh-cgcell fh-cgcell--committed"><span class="fh-cgcell__value">B1</span></button></td>
+                        <td><button class="fh-cgcell fh-cgcell--suggested"><span class="fh-cgcell__value">6.0%</span></button></td>
+                        <td><button class="fh-cgcell"><span class="fh-cgcell__value"></span></button></td>
+                        <td class="fh-commitgrid__calc">—</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div style="display:flex; align-items:center; gap:var(--fh-space-4); padding:var(--fh-space-3);">
+                  <div class="fh-capacity" style="flex:1;">
+                    <div class="fh-capacity__track" style="--fh-capacity-gate:95.8%;">
+                      <div class="fh-capacity__seg fh-capacity__seg--filled" style="flex:23.5;"></div>
+                      <div class="fh-capacity__seg fh-capacity__seg--over" style="flex:2.6;"></div>
+                      <span class="fh-capacity__gate"></span>
+                    </div>
+                  </div>
+                  <span class="fh-u-text-muted" style="font-size:var(--fh-text-xs); white-space:nowrap;">envelope 104.4% — variance rides to review (soft, not blocked)</span>
+                  <button class="fh-btn fh-btn--sm fh-btn--primary">Commit 1 unsaved</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="fh-card">
+              <div class="fh-card__header">
+                <div class="fh-card__title">Gradebook — G7 Science · Criterion B</div>
+                <span class="fh-u-text-subtle" style="font-size:var(--fh-text-xs);">ARR-1: the teacher COMMITS a level; the suggestion is never silently real (the DPDP keystone)</span>
+              </div>
+              <div class="fh-card__body" style="padding:0;">
+                <div class="fh-table-wrap" style="border:none; border-radius:0;">
+                  <table class="fh-commitgrid">
+                    <thead>
+                      <tr><th>Student</th><th>Task 1</th><th>Task 2</th><th>Task 3</th><th>Suggested</th><th>Committed</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Aanya Shah</td>
+                        <td><button class="fh-cgcell fh-cgcell--committed"><span class="fh-cgcell__value">6</span></button></td>
+                        <td><button class="fh-cgcell fh-cgcell--committed"><span class="fh-cgcell__value">7</span></button></td>
+                        <td><button class="fh-cgcell fh-cgcell--committed"><span class="fh-cgcell__value">6</span></button></td>
+                        <td><button class="fh-cgcell fh-cgcell--suggested"><span class="fh-cgcell__value">6</span></button></td>
+                        <td><button class="fh-cgcell fh-cgcell--committed"><span class="fh-cgcell__value">7</span></button></td>
+                      </tr>
+                      <tr>
+                        <td>Kabir Bose</td>
+                        <td><button class="fh-cgcell fh-cgcell--committed"><span class="fh-cgcell__value">5</span></button></td>
+                        <td><button class="fh-cgcell fh-cgcell--dirty"><span class="fh-cgcell__value">6</span></button></td>
+                        <td><button class="fh-cgcell"><span class="fh-cgcell__value"></span></button></td>
+                        <td><button class="fh-cgcell fh-cgcell--suggested"><span class="fh-cgcell__value">5</span></button></td>
+                        <td><button class="fh-cgcell"><span class="fh-cgcell__value"></span></button></td>
+                      </tr>
+                      <tr>
+                        <td>Zara Khan</td>
+                        <td><button class="fh-cgcell fh-cgcell--committed"><span class="fh-cgcell__value">8</span></button></td>
+                        <td><button class="fh-cgcell fh-cgcell--committed"><span class="fh-cgcell__value">7</span></button></td>
+                        <td><button class="fh-cgcell fh-cgcell--committed"><span class="fh-cgcell__value">8</span></button></td>
+                        <td><button class="fh-cgcell fh-cgcell--suggested"><span class="fh-cgcell__value">8</span></button></td>
+                        <td><button class="fh-cgcell fh-cgcell--committed"><span class="fh-cgcell__value">8</span></button></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p class="fh-u-text-subtle" style="font-size:var(--fh-text-xs); margin-top:var(--fh-space-3);">
+            cells are <code>&lt;button&gt;</code>s — focus, arrow-key navigation and the editor popover are consumer JS;
+            evidence beside a cell composes <code>.fh-tooltip</code>. The same anatomy runs comp worksheets, gradebooks,
+            rota assignment and price matrices. Live recompute lands in <code>.fh-commitgrid__calc</code> and the
+            envelope meter — §42’s gate doing double duty.
+          </p>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    var html = document.documentElement;
+    var p = new URLSearchParams(location.search);
+    if (p.get('theme')) html.setAttribute('data-theme', p.get('theme'));
+    if (p.get('density')) html.setAttribute('data-density', p.get('density'));
+    var sel = document.getElementById('pageSel');
+    function openPage(key) {
+      document.querySelectorAll('.doc-page').forEach(function (s) { s.classList.toggle('is-open', s.getAttribute('data-page') === key); });
+      sel.value = key;
+    }
+    openPage(['form', 'detail', 'wizard', 'grid', 'attendance', 'calendar', 'map', 'settings', 'comms', 'org', 'recruitment', 'payroll', 'formbuilder', 'faces', 'lock', 'governed', 'ledger', 'capacity', 'review', 'commitgrid'].indexOf(p.get('page')) >= 0 ? p.get('page') : 'form');
+    sel.addEventListener('change', function () {
+      openPage(sel.value);
+      var u = new URL(location.href); u.searchParams.set('page', sel.value); history.replaceState(null, '', u);
+    });
+    document.getElementById('themeToggle').addEventListener('click', function () {
+      html.setAttribute('data-theme', html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+  </script>
+</body>
+</html>

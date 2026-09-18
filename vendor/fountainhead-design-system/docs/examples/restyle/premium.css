@@ -1,0 +1,235 @@
+/* ==========================================================================
+   AURORA — Premium, brand-forward restyle for the Nucleus dashboard.
+   Linear/Stripe-grade polish: calm, confident, Fountainhead-blue DNA.
+   Loaded AFTER fountainhead.css; re-maps semantic tokens, then polishes.
+   ========================================================================== */
+
+/* 1. TOKEN RE-MAP — the whole page re-themes from here */
+:root {
+  /* Type — crisp UI body, expressive Montserrat headings */
+  --fh-font-body:    "Inter", system-ui, -apple-system, sans-serif;
+  --fh-font-heading: "Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* Surfaces & lines — soft cool tint page, pure-white surfaces, hairline borders */
+  --fh-color-bg:             #F7F9FC;
+  --fh-color-surface:        #FFFFFF;
+  --fh-color-surface-raised: #FFFFFF;
+  --fh-color-surface-sunken: #F4F6FA;
+  --fh-color-border:         #E6EAF0;
+  --fh-color-border-strong:  #D5DBE5;
+
+  /* Text — near-ink heading, calm muted/subtle scale (all >= 4.5:1 on white) */
+  --fh-color-text:        #1A2230;
+  --fh-color-text-muted:  #586173;
+  --fh-color-text-subtle: #8A93A3;
+  --fh-color-text-link:   #0A4E96;
+
+  /* Primary — a rich, confident blue */
+  --fh-color-primary:           #0C5FB3;
+  --fh-color-primary-hover:     #0A4E96;
+  --fh-color-primary-active:    #083F7A;
+  --fh-color-primary-fg:        #FFFFFF;
+  --fh-color-primary-subtle:    #EAF2FB;
+  --fh-color-primary-subtle-fg: #0A4E96;
+  --fh-color-primary-border:    #BFD8F1;
+  --fh-color-primary-text:      #0A4E96;
+
+  /* Info mirrors primary so blue accents stay cohesive */
+  --fh-color-info:        #0C5FB3;
+  --fh-color-info-subtle: #EAF2FB;
+  --fh-color-info-subtle-fg: #0A4E96;
+  --fh-color-info-border: #BFD8F1;
+  --fh-color-info-text:   #0A4E96;
+
+  /* Success — calm confident green (AA on white) */
+  --fh-color-success:        #1F8A4C;
+  --fh-color-success-hover:  #186E3D;
+  --fh-color-success-subtle: #E7F4EC;
+  --fh-color-success-subtle-fg: #155F35;
+  --fh-color-success-border: #BEE3CB;
+  --fh-color-success-text:   #157A41;
+
+  /* Warning — soft amber, never saturated; dark-amber text (never white on yellow) */
+  --fh-color-warning:        #E8B016;
+  --fh-color-warning-fg:     #3D2E00;
+  --fh-color-warning-subtle: #FCF4DC;
+  --fh-color-warning-subtle-fg: #6B4E00;
+  --fh-color-warning-border: #F0DDA0;
+  --fh-color-warning-text:   #6B4E00;
+
+  /* Danger — clear but not alarmist red */
+  --fh-color-danger:        #C62A30;
+  --fh-color-danger-hover:  #A6232A;
+  --fh-color-danger-subtle: #FBEAEB;
+  --fh-color-danger-subtle-fg: #8F1D22;
+  --fh-color-danger-border: #F0C2C4;
+  --fh-color-danger-text:   #A6232A;
+
+  /* Accent — yellow reserved for tiny highlights only */
+  --fh-color-accent:        #F2C418;
+  --fh-color-accent-fg:     #1A2230;
+
+  /* Form controls */
+  --fh-color-field-bg:     #FFFFFF;
+  --fh-color-field-border: #D5DBE5;
+
+  /* Focus ring — tuned to the new primary */
+  --fh-color-focus: #0C5FB3;
+  --fh-ring:        0 0 0 3px rgba(12, 95, 179, 0.30);
+
+  /* Radius — 12px cards, 10px controls */
+  --fh-radius-lg:       12px;
+  --fh-control-radius:  10px;
+
+  /* Elevation — refined multi-layer soft shadows */
+  --fh-shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.04), 0 6px 16px -4px rgba(16, 24, 40, 0.10);
+  --fh-shadow-md: 0 1px 2px rgba(16, 24, 40, 0.05), 0 10px 24px -6px rgba(16, 24, 40, 0.12);
+
+  /* Roomier cards */
+  --fh-card-pad: var(--fh-space-6);
+}
+
+/* 2. TYPE — sharp headings + tabular figures */
+.fh-h3 { letter-spacing: -0.02em; font-weight: 700; }
+.fh-stat__value,
+.fh-table__num,
+.fh-cluster--between strong { font-variant-numeric: tabular-nums; }
+
+/* 3. SIDEBAR — white panel, hairline border, refined nav items */
+.fh-sidebar { padding: var(--fh-space-5) var(--fh-space-4); gap: 2px; }
+.fh-sidebar__section {
+  margin-top: var(--fh-space-5);
+  font-size: 0.6875rem;
+  letter-spacing: 0.07em;
+  color: var(--fh-color-text-subtle);
+}
+.fh-sidebar__item {
+  padding: var(--fh-space-2) var(--fh-space-3);
+  border-radius: 8px;
+  color: var(--fh-color-text-muted);
+  transition: background var(--fh-duration-base) var(--fh-ease-standard),
+              color var(--fh-duration-base) var(--fh-ease-standard);
+}
+.fh-sidebar__item .ic { color: var(--fh-color-text-subtle); }
+.fh-sidebar__item:hover { background: var(--fh-color-surface-sunken); color: var(--fh-color-text); }
+.fh-sidebar__item.is-active {
+  background: var(--fh-color-primary-subtle);
+  color: var(--fh-color-primary-text);
+  box-shadow: inset 3px 0 0 var(--fh-color-primary);
+}
+.fh-sidebar__item.is-active .ic { color: var(--fh-color-primary); }
+
+/* 4. TOPBAR — hairline border + faint shadow, inset search fill */
+.fh-navbar {
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+  gap: var(--fh-space-4);
+}
+.doc-search {
+  background: #F4F6FA;
+  border-color: transparent;
+  border-radius: 10px;
+  padding-left: var(--fh-space-8);
+}
+.doc-search:focus { background: #FFFFFF; }
+#dirSel { border-radius: 10px; }
+
+/* 5. KPI STATS — bordered cards, tiny uppercase label, hover lift */
+.fh-stat {
+  padding: var(--fh-space-5);
+  border-radius: 12px;
+  box-shadow: var(--fh-shadow-sm);
+  transition: transform var(--fh-duration-base) var(--fh-ease-standard),
+              box-shadow var(--fh-duration-base) var(--fh-ease-standard);
+}
+.fh-stat:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--fh-shadow-md);
+}
+.fh-stat__label {
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fh-color-text-muted); /* 5.9:1 — AA for small caps label */
+}
+.fh-stat__value { font-size: var(--fh-text-3xl); }
+.fh-stat__delta { font-size: var(--fh-text-xs); }
+.fh-stat__delta--up   { color: var(--fh-color-success-text); }
+.fh-stat__delta--down { color: var(--fh-color-danger-text); }
+
+/* 6. CARDS — refined shadow, header divider, gentle hover lift */
+.fh-card {
+  border-radius: 14px;
+  box-shadow: var(--fh-shadow-sm);
+  transition: transform var(--fh-duration-base) var(--fh-ease-standard),
+              box-shadow var(--fh-duration-base) var(--fh-ease-standard);
+}
+.fh-card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--fh-shadow-md);
+}
+.fh-card__header {
+  border-bottom: 1px solid var(--fh-color-border);
+  align-items: center;
+}
+.fh-card__title { font-weight: 700; letter-spacing: -0.01em; }
+
+/* 7. TABLE — faint header tint, comfy cells, soft row hover */
+.fh-table thead th {
+  background: var(--fh-color-surface-sunken);
+  letter-spacing: 0.06em;
+  color: var(--fh-color-text-subtle);
+}
+.fh-table td { color: var(--fh-color-text); }
+.fh-table--hover tbody tr { transition: background var(--fh-duration-fast) var(--fh-ease-standard); }
+.fh-table--hover tbody tr:hover { background: var(--fh-color-surface-sunken); }
+
+/* 8. BADGES — soft pills, colour-matched text, subtle border */
+.fh-badge { border-radius: 9999px; font-weight: 600; }
+.fh-badge--success { border-color: var(--fh-color-success-border); }
+.fh-badge--warning { border-color: var(--fh-color-warning-border); }
+.fh-badge--danger  { border-color: var(--fh-color-danger-border); }
+
+/* 9. ALERT — calm soft-amber callout, dark-amber text, left accent */
+.fh-alert--warning {
+  background: var(--fh-color-warning-subtle);
+  border-color: var(--fh-color-warning-border);
+  border-left-color: var(--fh-color-warning);
+  color: var(--fh-color-warning-text);
+}
+.fh-alert--warning .fh-alert__icon { color: var(--fh-color-warning); }
+
+/* 10. PROGRESS — rounded track, blue-gradient default; success/danger explicit */
+.fh-progress { height: 8px; background: #EEF1F6; }
+.fh-progress__bar {
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #0C5FB3, #2E79B9);
+}
+.fh-progress__bar--success { background: var(--fh-color-success); }
+/* Route A keeps its inline background:var(--fh-color-danger) — now the Aurora red */
+
+/* 11. BUTTONS — rich primary with shadow + lift, refined neutral/outline/link */
+.fh-btn {
+  border-radius: 10px;
+  font-weight: 600;
+  box-shadow: var(--fh-shadow-xs);
+}
+.fh-btn--primary {
+  box-shadow: 0 1px 2px rgba(8, 63, 122, 0.20), 0 2px 8px -2px rgba(12, 95, 179, 0.35);
+  transition: background var(--fh-duration-fast) var(--fh-ease-standard),
+              transform var(--fh-duration-fast) var(--fh-ease-standard),
+              box-shadow var(--fh-duration-fast) var(--fh-ease-standard);
+}
+.fh-btn--primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(8, 63, 122, 0.22), 0 6px 14px -3px rgba(12, 95, 179, 0.40);
+}
+.fh-btn--outline,
+.fh-btn--link { box-shadow: none; }
+.fh-btn--link { font-weight: 600; }
+
+/* 12. AVATAR — blue gradient circle, white initials, subtle ring */
+.fh-avatar {
+  background: linear-gradient(135deg, #0C5FB3, #083F7A);
+  color: #FFFFFF;
+  box-shadow: 0 0 0 2px #FFFFFF, 0 0 0 3px var(--fh-color-border-strong);
+}

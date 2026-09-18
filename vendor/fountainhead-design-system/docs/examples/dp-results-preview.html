@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-density="comfortable">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IB DP Results — Fountainhead theme preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;1,700&family=Nunito:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="../../css/fountainhead.css">
+  <style>
+    .doc-main { padding: var(--fh-space-6); }
+    .doc-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--fh-space-4); }
+    .doc-split { display: grid; grid-template-columns: 1fr 1fr; gap: var(--fh-space-4); margin-top: var(--fh-space-4); }
+    @media (max-width: 900px){ .doc-kpis{grid-template-columns:1fr 1fr} .doc-split{grid-template-columns:1fr} }
+    /* IB subject grade chips 1–7 on the brand blue ramp */
+    .g { display:inline-flex; align-items:center; justify-content:center; width:1.7rem; height:1.7rem; border-radius:6px; font-family:var(--fh-font-heading); font-weight:700; font-size:var(--fh-text-sm); }
+    .g7{background:var(--fh-blue-700);color:#fff}.g6{background:var(--fh-blue-600);color:#fff}.g5{background:var(--fh-blue-500);color:#fff}
+    .g4{background:var(--fh-blue-300);color:var(--fh-neutral-900)}.g3{background:var(--fh-blue-200);color:var(--fh-neutral-900)}
+    .g2{background:var(--fh-blue-100);color:var(--fh-neutral-900)}.g1{background:var(--fh-red-200);color:var(--fh-neutral-900)}
+    .grades td { text-align:center; }
+    .stepper { display:flex; align-items:center; gap:var(--fh-space-2); flex-wrap:wrap; }
+    .step { display:inline-flex; align-items:center; gap:var(--fh-space-2); }
+    .step .sep { color:var(--fh-color-text-subtle); }
+    .dist { display:grid; grid-template-columns:1.5rem 1fr 2.5rem; gap:var(--fh-space-2); align-items:center; font-size:var(--fh-text-sm); }
+    .dist .bar { height:14px; border-radius:4px; background:var(--fh-color-surface-sunken); overflow:hidden; }
+    .dist .bar > span { display:block; height:100%; }
+  </style>
+</head>
+<body>
+  <header class="fh-navbar">
+    <a class="fh-navbar__brand" href="#"><img class="logo-light" src="../../assets/logo/fountainhead-logo.png" alt="" style="height:1.7rem"><img class="logo-dark" src="../../assets/logo/fountainhead-logo-white.png" alt="" style="height:1.7rem"></a>
+    <span class="fh-u-text-subtle" style="font-size:var(--fh-text-xs); border-left:1px solid var(--fh-color-border); padding-left:var(--fh-space-4);">IB DP Results</span>
+    <nav class="fh-navbar__links" style="margin-left:auto;">
+      <a class="fh-navlink is-active" href="#">Dashboard</a>
+      <a class="fh-navlink" href="#">Sessions</a>
+      <a class="fh-navlink" href="#">Upload</a>
+      <a class="fh-navlink" href="#">Approve</a>
+    </nav>
+    <button class="fh-btn fh-btn--sm fh-btn--outline" id="themeToggle">🌓 Theme</button>
+  </header>
+
+  <main class="fh-container doc-main" style="max-width:1200px;">
+    <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:var(--fh-space-4); margin-bottom:var(--fh-space-4);">
+      <div>
+        <h1 class="fh-h3" style="margin-bottom:var(--fh-space-1);">DP Results · May 2025</h1>
+        <p class="fh-u-text-muted" style="margin:0;">FWGS · 118 candidates · IBIS results imported 06 Jul</p>
+      </div>
+      <div class="fh-cluster">
+        <button class="fh-btn fh-btn--sm">Export slips</button>
+        <button class="fh-btn fh-btn--primary fh-btn--sm">Release results</button>
+      </div>
+    </div>
+
+    <!-- Pipeline stepper -->
+    <div class="fh-card" style="margin-bottom:var(--fh-space-4);">
+      <div class="fh-card__body stepper">
+        <span class="step"><span class="fh-badge fh-badge--success">✓ Uploaded</span></span><span class="sep">→</span>
+        <span class="step"><span class="fh-badge fh-badge--success">✓ Parsed</span></span><span class="sep">→</span>
+        <span class="step"><span class="fh-badge fh-badge--success">✓ Verified</span></span><span class="sep">→</span>
+        <span class="step"><span class="fh-badge fh-badge--warning">Awaiting approval</span></span><span class="sep">→</span>
+        <span class="step"><span class="fh-badge">Released</span></span>
+        <span style="margin-left:auto; font-size:var(--fh-text-sm); color:var(--fh-color-text-muted)">Maker: A. Rao · Checker: pending</span>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <section class="doc-kpis">
+      <div class="fh-stat"><span class="fh-stat__label">Pass rate</span><span class="fh-stat__value">98.2%</span><span class="fh-stat__delta fh-stat__delta--up">▲ 1.4% vs 2024</span></div>
+      <div class="fh-stat"><span class="fh-stat__label">Average points</span><span class="fh-stat__value">34.6</span><span class="fh-stat__delta fh-stat__delta--up">▲ 0.8</span></div>
+      <div class="fh-stat"><span class="fh-stat__label">Perfect 45s</span><span class="fh-stat__value">3</span><span class="fh-stat__delta">world avg ≈ 0.4%</span></div>
+      <div class="fh-stat"><span class="fh-stat__label">Grade 7s awarded</span><span class="fh-stat__value">142</span><span class="fh-stat__delta">across 28 subjects</span></div>
+    </section>
+
+    <section class="doc-split">
+      <!-- Candidates -->
+      <div class="fh-card">
+        <div class="fh-card__header" style="display:flex;align-items:center;justify-content:space-between;">
+          <div class="fh-card__title">Candidates</div>
+          <span class="fh-badge fh-badge--info">2 mismatches to review</span>
+        </div>
+        <div class="fh-table-wrap" style="border:none;border-radius:0;">
+          <table class="fh-table fh-table--hover grades">
+            <thead><tr><th style="text-align:left">Candidate</th><th>Eng</th><th>Math</th><th>Phys</th><th>Eco</th><th>Hist</th><th>Art</th><th class="fh-table__num">Pts</th><th>Diploma</th></tr></thead>
+            <tbody>
+              <tr><td style="text-align:left">001234 · Aanya S.</td><td><span class="g g6">6</span></td><td><span class="g g7">7</span></td><td><span class="g g7">7</span></td><td><span class="g g6">6</span></td><td><span class="g g5">5</span></td><td><span class="g g6">6</span></td><td class="fh-table__num">40</td><td><span class="fh-badge fh-badge--success">Awarded</span></td></tr>
+              <tr><td style="text-align:left">001235 · Vivaan P.</td><td><span class="g g5">5</span></td><td><span class="g g4">4</span></td><td><span class="g g5">5</span></td><td><span class="g g5">5</span></td><td><span class="g g6">6</span></td><td><span class="g g5">5</span></td><td class="fh-table__num">32</td><td><span class="fh-badge fh-badge--success">Awarded</span></td></tr>
+              <tr><td style="text-align:left">001236 · Diya M.</td><td><span class="g g4">4</span></td><td><span class="g g2">2</span></td><td><span class="g g3">3</span></td><td><span class="g g4">4</span></td><td><span class="g g4">4</span></td><td><span class="g g5">5</span></td><td class="fh-table__num">24</td><td><span class="fh-badge fh-badge--danger">Not awarded</span></td></tr>
+              <tr><td style="text-align:left">001237 · Kabir R.</td><td><span class="g g7">7</span></td><td><span class="g g7">7</span></td><td><span class="g g6">6</span></td><td><span class="g g7">7</span></td><td><span class="g g6">6</span></td><td><span class="g g7">7</span></td><td class="fh-table__num">42</td><td><span class="fh-badge fh-badge--success">Awarded</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Grade distribution + approval -->
+      <div class="fh-stack fh-stack--4">
+        <div class="fh-card">
+          <div class="fh-card__header"><div class="fh-card__title">Grade distribution (all subjects)</div></div>
+          <div class="fh-card__body fh-stack fh-stack--2">
+            <div class="dist"><span class="g g7">7</span><span class="bar"><span style="width:24%;background:var(--fh-blue-700)"></span></span><span>142</span></div>
+            <div class="dist"><span class="g g6">6</span><span class="bar"><span style="width:31%;background:var(--fh-blue-600)"></span></span><span>183</span></div>
+            <div class="dist"><span class="g g5">5</span><span class="bar"><span style="width:22%;background:var(--fh-blue-500)"></span></span><span>131</span></div>
+            <div class="dist"><span class="g g4">4</span><span class="bar"><span style="width:14%;background:var(--fh-blue-300)"></span></span><span>83</span></div>
+            <div class="dist"><span class="g g3">3</span><span class="bar"><span style="width:6%;background:var(--fh-blue-200)"></span></span><span>34</span></div>
+            <div class="dist"><span class="g g2">2</span><span class="bar"><span style="width:2%;background:var(--fh-blue-100)"></span></span><span>11</span></div>
+            <div class="dist"><span class="g g1">1</span><span class="bar"><span style="width:1%;background:var(--fh-red-200)"></span></span><span>3</span></div>
+          </div>
+        </div>
+        <div class="fh-alert fh-alert--warning">
+          <span class="fh-alert__icon">⚠️</span>
+          <div class="fh-alert__body">
+            <div class="fh-alert__title">Approval required (maker-checker)</div>
+            Release of 118 results is pending a checker decision. Self-approval is disabled.
+            <div class="fh-cluster" style="margin-top:var(--fh-space-3);">
+              <button class="fh-btn fh-btn--success fh-btn--sm">Approve release</button>
+              <button class="fh-btn fh-btn--outline fh-btn--sm">Reject</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <style>.logo-dark{display:none}[data-theme="dark"] .logo-light{display:none}[data-theme="dark"] .logo-dark{display:inline}</style>
+  <script>
+    var html=document.documentElement, p=new URLSearchParams(location.search);
+    if(p.get('theme'))html.setAttribute('data-theme',p.get('theme'));
+    if(p.get('density'))html.setAttribute('data-density',p.get('density'));
+    document.getElementById('themeToggle').onclick=function(){html.setAttribute('data-theme',html.getAttribute('data-theme')==='dark'?'light':'dark')};
+  </script>
+</body>
+</html>

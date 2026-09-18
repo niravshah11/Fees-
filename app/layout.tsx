@@ -2,7 +2,11 @@ import type { Metadata, Viewport } from 'next';
 import Link from 'next/link';
 import { plusJakarta } from './fonts';
 import './globals.css';
-import '@fountainhead/design-system/css/fountainhead.css';
+// Relative path, not the bare '@fountainhead/design-system' specifier: an npm `file:` dependency
+// installs as a symlink, and Next's webpack CSS handling doesn't resolve a global CSS import
+// through a symlinked node_modules package reliably (works under plain Node, fails under
+// `next build`). Importing the vendored file directly sidesteps that entirely.
+import '../vendor/fountainhead-design-system/css/fountainhead.css';
 import { Nav } from './_Nav';
 import { Shell } from './_Shell';
 import { ThemeToggle } from './_ThemeToggle';

@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-density="comfortable" data-profile="product">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nucleus — print templates (receipt · report · ID card · offer · payslip · class sheet)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Nunito:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="../../css/fountainhead.css">
+  <style>
+    /* Recipe-only glue: gray desk behind the sheets; ?doc=receipt|report|idcard switches. */
+    body { padding: var(--fh-space-8) var(--fh-space-4); }
+    .doc-controls { display: flex; gap: var(--fh-space-3); align-items: center; justify-content: center; margin-bottom: var(--fh-space-6); }
+    .doc-doc { display: none; }
+    .doc-doc.is-open { display: block; }
+    .doc-kvrow { display: flex; flex-wrap: wrap; gap: var(--fh-space-2) var(--fh-space-8); margin-bottom: var(--fh-space-4); font-size: inherit; }
+    .doc-kvrow div { min-width: 10rem; }
+    .doc-kvrow dt { color: var(--fh-neutral-600); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    .doc-kvrow dd { margin: 0; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="doc-controls fh-u-print-hidden">
+    <select id="docSel" class="fh-select fh-select--auto" aria-label="Document">
+      <option value="receipt">Fee receipt (A5)</option>
+      <option value="report">Report sheet (A4)</option>
+      <option value="idcard">ID card</option>
+      <option value="offer">Offer letter (A4)</option>
+      <option value="payslip">Payslip (A4)</option>
+      <option value="classsheet">Class sheet (A4)</option>
+      <option value="handbook">Staff handbook (A4 ×3)</option>
+    </select>
+    <button class="fh-btn fh-btn--primary" onclick="window.print()">Print</button>
+  </div>
+
+  <!-- ============================== FEE RECEIPT (A5) ============================== -->
+  <section class="doc-doc" data-doc="receipt">
+    <div class="fh-sheet fh-sheet--a5">
+      <div class="fh-sheet__head">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <img src="../../assets/logo/fountainhead-logo.png" alt="Fountainhead" style="height:26px;">
+        </div>
+        <div style="text-align:right;">
+          <div class="fh-sheet__doc">Fee receipt</div>
+          <div style="font-size:0.72rem; color:var(--fh-neutral-600);">No. R-1042 · 02 Jul 2026</div>
+        </div>
+      </div>
+
+      <dl class="doc-kvrow">
+        <div><dt>Student</dt><dd>Aanya Shah</dd></div>
+        <div><dt>Grade / Section</dt><dd>Grade 5 · G5-A · FWGS</dd></div>
+        <div><dt>Academic year</dt><dd>2025–26 · Term 1</dd></div>
+        <div><dt>Mode</dt><dd>UPI · ref 512cx…91</dd></div>
+      </dl>
+
+      <div class="fh-table-wrap" style="border-radius:4px;">
+        <table class="fh-table">
+          <thead><tr><th>Item</th><th class="fh-table__num">Amount (₹)</th></tr></thead>
+          <tbody>
+            <tr><td>Tuition fee — Term 1</td><td class="fh-table__num">21,500</td></tr>
+            <tr><td>Transport — Route B (GIDC)</td><td class="fh-table__num">3,500</td></tr>
+            <tr><td style="font-weight:700;">Total received</td><td class="fh-table__num" style="font-weight:700;">25,000</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="margin:8px 0 0; font-size:0.75rem; color:var(--fh-neutral-600);">Rupees twenty-five thousand only · payment reflects within 2 working days.</p>
+
+      <div class="fh-sheet__foot">
+        <span style="font-size:0.72rem; color:var(--fh-neutral-500);">System-generated via Nucleus · valid without seal</span>
+        <div class="fh-sheet__sign">Accounts officer</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== REPORT SHEET (A4) ============================== -->
+  <section class="doc-doc" data-doc="report">
+    <div class="fh-sheet">
+      <div class="fh-sheet__head">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <img src="../../assets/logo/fountainhead-logo.png" alt="Fountainhead" style="height:30px;">
+        </div>
+        <div style="text-align:right;">
+          <div class="fh-sheet__doc">Progress report</div>
+          <div style="font-size:0.72rem; color:var(--fh-neutral-600);">Academic year 2025–26 · Term 1</div>
+        </div>
+      </div>
+
+      <dl class="doc-kvrow">
+        <div><dt>Student</dt><dd>Aanya Shah</dd></div>
+        <div><dt>ID</dt><dd>STU-0412</dd></div>
+        <div><dt>Grade / Section</dt><dd>Grade 5 · G5-A</dd></div>
+        <div><dt>Campus</dt><dd>FWGS · PYP</dd></div>
+        <div><dt>Attendance</dt><dd>96% (58/60 days)</dd></div>
+      </dl>
+
+      <div class="fh-table-wrap" style="border-radius:4px; margin-bottom: var(--fh-space-4);">
+        <table class="fh-table">
+          <thead><tr><th>Subject</th><th class="fh-table__center">Grade</th><th>Teacher's remark</th></tr></thead>
+          <tbody>
+            <tr><td>English</td><td class="fh-table__center"><span class="fh-grade fh-grade--6">6</span></td><td>Reads with insight; contributes generously in discussion.</td></tr>
+            <tr><td>Mathematics</td><td class="fh-table__center"><span class="fh-grade fh-grade--7">7</span></td><td>Exceptional reasoning; extends problems unprompted.</td></tr>
+            <tr><td>Science</td><td class="fh-table__center"><span class="fh-grade fh-grade--5">5</span></td><td>Curious and methodical in inquiry cycles.</td></tr>
+            <tr><td>Social studies</td><td class="fh-table__center"><span class="fh-grade fh-grade--6">6</span></td><td>Connects ideas across units confidently.</td></tr>
+            <tr><td>Hindi</td><td class="fh-table__center"><span class="fh-grade fh-grade--4">4</span></td><td>Growing vocabulary; needs regular reading practice.</td></tr>
+            <tr><td>Art &amp; design</td><td class="fh-table__center"><span class="fh-grade fh-grade--na">–</span></td><td>Assessed in Term 2.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="border:1px solid var(--fh-neutral-200); border-radius:4px; padding:10px 12px; min-height:64px; margin-bottom: var(--fh-space-2);">
+        <div style="font-size:0.72rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--fh-neutral-600); margin-bottom:4px;">Homeroom remark</div>
+        Aanya has settled beautifully into Grade 5 — a kind, curious classmate who takes real joy in learning.
+      </div>
+
+      <div class="fh-sheet__foot">
+        <div class="fh-sheet__sign">Class teacher</div>
+        <div class="fh-sheet__sign">Programme coordinator</div>
+        <div class="fh-sheet__sign">Parent / guardian</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== ID CARD (CR80) ============================== -->
+  <section class="doc-doc" data-doc="idcard">
+    <div class="fh-sheet fh-sheet--card" style="text-align:center;">
+      <img src="../../assets/logo/fountainhead-logo.png" alt="Fountainhead" style="height:18px; margin:0 auto 8px;">
+      <span class="fh-avatar fh-avatar--lg" style="margin:0 auto 6px; width:4.2rem; height:4.2rem; font-size:1.3rem;">AS</span>
+      <div style="font-family:var(--fh-font-heading); font-weight:700; font-size:1rem;">Aanya Shah</div>
+      <div style="font-size:0.72rem; color:var(--fh-neutral-600); margin-bottom:6px;">Grade 5 · G5-A · FWGS</div>
+      <div style="display:inline-block; padding:2px 10px; border-radius:999px; background:var(--fh-blue-50); color:var(--fh-blue-800); font-weight:700; font-size:0.72rem;">STU-0412 · 2025–26</div>
+      <div style="margin-top:8px; padding-top:6px; border-top:1px solid var(--fh-neutral-200); font-size:0.6rem; color:var(--fh-neutral-500);">If found, return to Fountainhead School · +91 260 2401234</div>
+    </div>
+  </section>
+
+  <!-- ============================== OFFER LETTER (A4, HRIS) ============================== -->
+  <section class="doc-doc" data-doc="offer">
+    <div class="fh-sheet">
+      <div class="fh-sheet__head">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <img src="../../assets/logo/fountainhead-logo.png" alt="Fountainhead" style="height:30px;">
+        </div>
+        <div style="text-align:right;">
+          <div class="fh-sheet__doc">Offer of employment</div>
+          <div style="font-size:0.72rem; color:var(--fh-neutral-600);">Ref HR/2026/0147 · 02 Jul 2026 · Private &amp; confidential</div>
+        </div>
+      </div>
+
+      <p style="margin:0 0 12px;">Dear <strong>Kavya Menon</strong>,</p>
+      <p style="margin:0 0 12px;">We are delighted to offer you the position of <strong>PYP Educator</strong> at
+        <strong>Fountainhead School — FWGS campus</strong> (FWGS PYP), reporting to the PYP Programme Coordinator,
+        with a proposed joining date of <strong>21 July 2026</strong>. This offer follows your panel interview of 30 June 2026.</p>
+
+      <div class="fh-table-wrap" style="border-radius:4px; margin: 0 0 12px;">
+        <table class="fh-table">
+          <thead><tr><th>Compensation (annual)</th><th class="fh-table__num">Amount (₹)</th></tr></thead>
+          <tbody>
+            <tr><td>Basic salary</td><td class="fh-table__num">5,52,000</td></tr>
+            <tr><td>Allowances (HRA, transport, professional development)</td><td class="fh-table__num">3,08,000</td></tr>
+            <tr><td>Annual benefit (PF employer contribution)</td><td class="fh-table__num">60,000</td></tr>
+            <tr><td style="font-weight:700;">Total fixed compensation</td><td class="fh-table__num" style="font-weight:700;">9,20,000</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p style="margin:0 0 8px; font-size:0.78rem; color:var(--fh-neutral-600);">
+        This offer is contingent on reference and document verification and is governed by the school's employment
+        policies (working hours, leave, code of conduct) shared during induction. Please indicate acceptance by
+        signing below and returning this letter by <strong>08 July 2026</strong>.</p>
+
+      <div class="fh-sheet__foot">
+        <div class="fh-sheet__sign">Head of HR · Fountainhead</div>
+        <div class="fh-sheet__sign">Candidate acceptance · date</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== CLASS SHEET (A4, v1.13 faces) ============================== -->
+  <section class="doc-doc" data-doc="classsheet">
+    <div class="fh-sheet">
+      <div class="fh-sheet__head">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <img src="../../assets/logo/fountainhead-logo.png" alt="Fountainhead" style="height:30px;">
+        </div>
+        <div style="text-align:right;">
+          <div class="fh-sheet__doc">Class sheet — G5-A</div>
+          <div style="font-size:0.72rem; color:var(--fh-neutral-600);">AY 2026–27 · 18 students · for substitutes &amp; invigilation</div>
+        </div>
+      </div>
+
+      <dl class="doc-kvrow">
+        <div><dt>Homeroom</dt><dd>S. Iyer (PYP)</dd></div>
+        <div><dt>Room</dt><dd>B-204</dd></div>
+        <div><dt>Bus routes</dt><dd>A ×6 · B ×5 · walkers ×7</dd></div>
+        <div><dt>Allergies on file</dt><dd>2 (see health register)</dd></div>
+      </dl>
+
+      <div class="fh-facegrid" style="grid-template-columns:repeat(5, 1fr); gap:8px;">
+        <div class="fh-facegrid__tile"><span class="fh-facegrid__photo">AS<img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' fill='%23D7E4F2'/><circle cx='32' cy='25' r='11' fill='%236B87A6'/><path d='M10 60c2-14 11-20 22-20s20 6 22 20z' fill='%236B87A6'/></svg>" alt=""></span><span class="fh-facegrid__name">Aanya Shah</span><span class="fh-facegrid__meta">STU-0412</span></div>
+        <div class="fh-facegrid__tile"><span class="fh-facegrid__photo">VN</span><span class="fh-facegrid__name">Ved Nanda</span><span class="fh-facegrid__meta">STU-0418</span></div>
+        <div class="fh-facegrid__tile"><span class="fh-facegrid__photo">RD<img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' fill='%23FBE9C9'/><circle cx='32' cy='25' r='11' fill='%23A98B4F'/><path d='M10 60c2-14 11-20 22-20s20 6 22 20z' fill='%23A98B4F'/></svg>" alt=""></span><span class="fh-facegrid__name">Reyansh Datta</span><span class="fh-facegrid__meta">STU-0421</span></div>
+        <div class="fh-facegrid__tile"><span class="fh-facegrid__photo">ZK</span><span class="fh-facegrid__name">Zara Khan</span><span class="fh-facegrid__meta">STU-0397</span></div>
+        <div class="fh-facegrid__tile"><span class="fh-facegrid__photo">IM</span><span class="fh-facegrid__name">Ishaan Mehta</span><span class="fh-facegrid__meta">STU-0402</span></div>
+        <div class="fh-facegrid__tile"><span class="fh-facegrid__photo">MP<img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' fill='%23D7E4F2'/><circle cx='32' cy='25' r='11' fill='%236B87A6'/><path d='M10 60c2-14 11-20 22-20s20 6 22 20z' fill='%236B87A6'/></svg>" alt=""></span><span class="fh-facegrid__name">Myra Patel</span><span class="fh-facegrid__meta">STU-0400</span></div>
+        <div class="fh-facegrid__tile"><span class="fh-facegrid__photo">AJ</span><span class="fh-facegrid__name">Advik Jain</span><span class="fh-facegrid__meta">STU-0409</span></div>
+        <div class="fh-facegrid__tile"><span class="fh-facegrid__photo">SR</span><span class="fh-facegrid__name">Sia Rao</span><span class="fh-facegrid__meta">no photo · consent</span></div>
+        <div class="fh-facegrid__tile"><span class="fh-facegrid__photo">KB</span><span class="fh-facegrid__name">Kabir Bose</span><span class="fh-facegrid__meta">STU-0415</span></div>
+        <div class="fh-facegrid__tile"><span class="fh-facegrid__photo">NA</span><span class="fh-facegrid__name">Nyra Agarwal</span><span class="fh-facegrid__meta">STU-0405</span></div>
+        <div class="fh-facegrid__tile"><span class="fh-facegrid__photo">VS<img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' fill='%23FBE9C9'/><circle cx='32' cy='25' r='11' fill='%23A98B4F'/><path d='M10 60c2-14 11-20 22-20s20 6 22 20z' fill='%23A98B4F'/></svg>" alt=""></span><span class="fh-facegrid__name">Vihaan Singh</span><span class="fh-facegrid__meta">STU-0399</span></div>
+        <div class="fh-facegrid__tile"><span class="fh-facegrid__photo">AD</span><span class="fh-facegrid__name">Anaya Desai</span><span class="fh-facegrid__meta">STU-0404</span></div>
+        <div class="fh-facegrid__tile"><span class="fh-facegrid__photo">RS</span><span class="fh-facegrid__name">Rudra Sharma</span><span class="fh-facegrid__meta">STU-0408</span></div>
+        <div class="fh-facegrid__tile"><span class="fh-facegrid__photo">TI</span><span class="fh-facegrid__name">Tara Iyer</span><span class="fh-facegrid__meta">STU-0413</span></div>
+        <div class="fh-facegrid__tile"><span class="fh-facegrid__photo">JW</span><span class="fh-facegrid__name">Jiya Wadhwa</span><span class="fh-facegrid__meta">STU-0419</span></div>
+      </div>
+
+      <div class="fh-sheet__foot">
+        <span style="font-size:0.72rem; color:var(--fh-neutral-500);">System-generated via Nucleus · photos per the consent register · handle as personal data</span>
+        <div class="fh-sheet__sign">Class teacher</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== PAYSLIP (A4, v1.12 money-for-people) ============================== -->
+  <section class="doc-doc" data-doc="payslip">
+    <div class="fh-sheet">
+      <div class="fh-sheet__head">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <img src="../../assets/logo/fountainhead-logo.png" alt="Fountainhead" style="height:30px;">
+        </div>
+        <div style="text-align:right;">
+          <div class="fh-sheet__doc">Payslip — July 2026</div>
+          <div style="font-size:0.72rem; color:var(--fh-neutral-600);">Generated 31 Jul 2026 · private &amp; confidential</div>
+        </div>
+      </div>
+
+      <dl class="doc-kvrow">
+        <div><dt>Employee</dt><dd>Meera Krishnan</dd></div>
+        <div><dt>Employee ID</dt><dd>EMP-0311</dd></div>
+        <div><dt>Designation</dt><dd>MYP Coordinator · FWGS MYP</dd></div>
+        <div><dt>Structure</dt><dd>Teaching band B · AY 2026–27</dd></div>
+        <div><dt>PAN</dt><dd>AB·······4F</dd></div>
+        <div><dt>Bank</dt><dd>HDFC ····6721</dd></div>
+        <div><dt>Days paid</dt><dd>31 / 31</dd></div>
+        <div><dt>PF UAN</dt><dd>10··········88</dd></div>
+      </dl>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+        <div class="fh-table-wrap" style="border-radius:4px;">
+          <table class="fh-table">
+            <thead><tr><th>Earnings</th><th class="fh-table__num">Amount (₹)</th></tr></thead>
+            <tbody class="fh-u-tabular">
+              <tr><td>Basic salary</td><td class="fh-table__num">46,000</td></tr>
+              <tr><td>House rent allowance</td><td class="fh-table__num">18,400</td></tr>
+              <tr><td>Transport allowance</td><td class="fh-table__num">3,000</td></tr>
+              <tr><td>Professional development</td><td class="fh-table__num">2,267</td></tr>
+              <tr><td style="font-weight:700;">Gross earnings</td><td class="fh-table__num" style="font-weight:700;">69,667</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="fh-table-wrap" style="border-radius:4px;">
+          <table class="fh-table">
+            <thead><tr><th>Deductions</th><th class="fh-table__num">Amount (₹)</th></tr></thead>
+            <tbody class="fh-u-tabular">
+              <tr><td>Provident fund (employee, 12%)</td><td class="fh-table__num">5,520</td></tr>
+              <tr><td>Professional tax (GJ)</td><td class="fh-table__num">200</td></tr>
+              <tr><td>Income tax (TDS)</td><td class="fh-table__num">4,100</td></tr>
+              <tr><td>&nbsp;</td><td class="fh-table__num">&nbsp;</td></tr>
+              <tr><td style="font-weight:700;">Total deductions</td><td class="fh-table__num" style="font-weight:700;">9,820</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:baseline; justify-content:space-between; gap:12px; border:2px solid var(--fh-blue-600); border-radius:4px; padding:10px 14px; margin-bottom:10px;">
+        <div>
+          <div style="font-size:0.72rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--fh-neutral-600);">Net pay — July 2026</div>
+          <div style="font-size:0.78rem; color:var(--fh-neutral-600);">Rupees fifty-nine thousand eight hundred and forty-seven only · credited 31 Jul to HDFC ····6721</div>
+        </div>
+        <div class="fh-u-tabular" style="font-family:var(--fh-font-heading); font-weight:800; font-size:1.5rem; white-space:nowrap;">₹ 59,847</div>
+      </div>
+
+      <dl class="doc-kvrow" style="margin-bottom:0;">
+        <div><dt>Gross YTD (Apr–Jul)</dt><dd class="fh-u-tabular">2,78,668</dd></div>
+        <div><dt>TDS YTD</dt><dd class="fh-u-tabular">16,400</dd></div>
+        <div><dt>PF YTD (employee)</dt><dd class="fh-u-tabular">22,080</dd></div>
+        <div><dt>Leave balance</dt><dd>CL 6 · SL 5 · EL 11.5</dd></div>
+      </dl>
+
+      <div class="fh-sheet__foot">
+        <span style="font-size:0.72rem; color:var(--fh-neutral-500);">System-generated via Nucleus payroll · valid without signature</span>
+        <div class="fh-sheet__sign">Payroll officer</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== STAFF HANDBOOK (assembled document) ============================== -->
+  <section class="doc-doc" data-doc="handbook">
+    <div class="fh-doc">
+
+      <!-- Page 1: cover -->
+      <div class="fh-sheet">
+        <div class="fh-sheet__head">
+          <img src="../../assets/logo/fountainhead-logo.png" alt="Fountainhead" style="height:26px;">
+          <div class="fh-sheet__doc">Staff handbook</div>
+        </div>
+        <div class="fh-doc__cover">
+          <div class="fh-doc__covertitle">Staff Handbook</div>
+          <div class="fh-doc__coversub">FSNC campus · Academic year 2026–27</div>
+          <div class="fh-doc__coverstamp">
+            Assembled 09 Jul 2026 from the current published version of each policy.<br>
+            This document is an <strong>output</strong> — no separately maintained handbook exists to drift (POL-12).
+          </div>
+        </div>
+        <div class="fh-sheet__runfoot">
+          <span>Fountainhead · FSNC · staff handbook</span>
+          <span class="fh-sheet__pageno"></span>
+        </div>
+      </div>
+
+      <!-- Page 2: contents -->
+      <div class="fh-sheet">
+        <div class="fh-sheet__head">
+          <img src="../../assets/logo/fountainhead-logo.png" alt="Fountainhead" style="height:26px;">
+          <div class="fh-sheet__doc">Contents</div>
+        </div>
+        <ul class="fh-doc__toc">
+          <li><span>1 · Code of Conduct <em style="color:var(--fh-neutral-500); font-style:normal;">— v3, signature-required</em></span><span class="fh-doc__tocleader"></span><span class="fh-doc__tocpage">3</span></li>
+          <li><span>2 · POSH — Prevention of Sexual Harassment <em style="color:var(--fh-neutral-500); font-style:normal;">— v2, signature-required</em></span><span class="fh-doc__tocleader"></span><span class="fh-doc__tocpage">5</span></li>
+          <li><span>3 · Leave Policy <em style="color:var(--fh-neutral-500); font-style:normal;">— v2</em></span><span class="fh-doc__tocleader"></span><span class="fh-doc__tocpage">8</span></li>
+          <li><span>4 · Attendance &amp; Regularization <em style="color:var(--fh-neutral-500); font-style:normal;">— v2</em></span><span class="fh-doc__tocleader"></span><span class="fh-doc__tocpage">11</span></li>
+          <li><span>5 · Pay &amp; Benefits — policy-side rules <em style="color:var(--fh-neutral-500); font-style:normal;">— v1</em></span><span class="fh-doc__tocleader"></span><span class="fh-doc__tocpage">14</span></li>
+        </ul>
+        <p style="font-size:0.72rem; color:var(--fh-neutral-500); margin-top:16px;">
+          Signatures attach to individual policies, never to this book — a signature on the code of
+          conduct itself is legally solid; a whole-handbook signature is mush (POL-13 §13).
+        </p>
+        <div class="fh-sheet__runfoot">
+          <span>Assembled 09 Jul 2026 · current versions</span>
+          <span class="fh-sheet__pageno"></span>
+        </div>
+      </div>
+
+      <!-- Page 3: a policy section, blanks filled with FSNC's resolved values -->
+      <div class="fh-sheet">
+        <div class="fh-doc__sectionhead">
+          <span class="fh-doc__sectionnum">§3</span>
+          <span class="fh-doc__sectiontitle">Leave Policy</span>
+          <span style="margin-left:auto; font-size:0.72rem; color:var(--fh-neutral-600);">v2 · effective 01 Apr 2026</span>
+        </div>
+        <p>
+          Staff receive <strong style="border-bottom:1px dotted var(--fh-neutral-400);">12</strong> casual/regular
+          leave days and <strong style="border-bottom:1px dotted var(--fh-neutral-400);">10</strong> earned leave
+          days per academic year. Leave is held per employment and never pooled across entities. A leave day
+          debits the ledger only when it falls on a working day for staff; holidays never debit.
+        </p>
+        <p>
+          Punch-in beyond the <strong style="border-bottom:1px dotted var(--fh-neutral-400);">10-minute</strong>
+          grace period is marked late; repeated lateness converts to leave under the tardiness-credit rule.
+        </p>
+        <div class="fh-table-wrap" style="border-radius:4px; margin-top:8px;">
+          <table class="fh-table">
+            <thead><tr><th>Type</th><th>Paid</th><th>Encashable</th><th class="fh-table__num">Entitlement</th></tr></thead>
+            <tbody>
+              <tr><td>Casual/Regular</td><td>Yes</td><td>No</td><td class="fh-table__num">12</td></tr>
+              <tr><td>Earned</td><td>Yes</td><td>Yes</td><td class="fh-table__num">10</td></tr>
+              <tr><td>Without pay</td><td>No</td><td>—</td><td class="fh-table__num">—</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="font-size:0.72rem; color:var(--fh-neutral-500); margin-top:12px;">
+          Dotted values are <strong>named blanks</strong> filled at assembly with FSNC’s resolved numbers —
+          the page staff read and the number the system computes with are one stored value (POL-5/6).
+        </p>
+        <div class="fh-sheet__runfoot">
+          <span>Leave Policy · v2 · FSNC resolved values · effective 01 Apr 2026</span>
+          <span class="fh-sheet__pageno"></span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <script>
+    var p = new URLSearchParams(location.search);
+    var sel = document.getElementById('docSel');
+    function openDoc(key) {
+      document.querySelectorAll('.doc-doc').forEach(function (s) { s.classList.toggle('is-open', s.getAttribute('data-doc') === key); });
+      sel.value = key;
+    }
+    openDoc(['receipt', 'report', 'idcard', 'offer', 'payslip', 'classsheet', 'handbook'].indexOf(p.get('doc')) >= 0 ? p.get('doc') : 'receipt');
+    sel.addEventListener('change', function () {
+      openDoc(sel.value);
+      var u = new URL(location.href); u.searchParams.set('doc', sel.value); history.replaceState(null, '', u);
+    });
+  </script>
+</body>
+</html>

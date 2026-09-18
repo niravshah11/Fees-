@@ -1,0 +1,226 @@
+/* ==========================================================================
+   BOLD & EXPRESSIVE — "Beacon"
+   Maximum Fountainhead identity: deep brand-blue chrome, white page, blue/red
+   bases with a yellow spark (45/45/10). Confident, energetic, AA-legible.
+   Loads AFTER fountainhead.css, so plain rules override component rules.
+   ========================================================================== */
+
+/* ----------------------------------------------------------------------
+   1. TOKEN RE-MAP — the highest-leverage lever.
+   Clean light page so the blue chrome carries the colour. Headings = Montserrat.
+   Re-mapping danger also recolours the inline Route A progress bar.
+   ---------------------------------------------------------------------- */
+:root {
+  --fh-color-bg:            #F4F6F9;   /* clean light canvas */
+  --fh-color-surface:       #FFFFFF;
+  --fh-color-surface-raised:#FFFFFF;
+  --fh-color-border:        #E2E8F0;
+  --fh-color-border-strong: #CBD5E1;
+
+  --fh-font-body: var(--fh-font-ui);   /* crisp Inter body, confident + legible */
+
+  /* Brand-true accents (kept saturated for small marks, controls, bars) */
+  --fh-color-primary:       #005BAA;
+  --fh-color-primary-hover:  #004C8F;
+  --fh-color-primary-active: #003E74;
+  --fh-color-danger:        #B8292F;   /* drives inline Route A bar */
+  --fh-color-focus:         #005BAA;
+  --fh-ring:                0 0 0 3px rgba(0, 91, 170, 0.32);
+
+  --fh-radius-lg: 10px;                /* crisp cards */
+}
+
+/* ----------------------------------------------------------------------
+   2. COLOURED SIDEBAR — deep brand-blue gradient rail, white content,
+   yellow active accent. The signature identity move.
+   ---------------------------------------------------------------------- */
+.fh-sidebar {
+  background: linear-gradient(180deg, #004C8F, #002747);
+  border-right: none;
+  box-shadow: 2px 0 12px rgba(0, 39, 71, 0.18);
+}
+.logo-on-light { display: none !important; }
+.logo-on-dark  { display: block !important; }
+.fh-sidebar__brand strong { color: #fff; }
+
+.fh-sidebar__section {
+  color: rgba(255, 255, 255, 0.55);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+.fh-sidebar__item {
+  color: rgba(255, 255, 255, 0.85);     /* sets icon (currentColor) too */
+  border-radius: 8px;
+  font-weight: 600;
+  transition: background 120ms ease, color 120ms ease;
+}
+.fh-sidebar__item:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+.fh-sidebar__item.is-active {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  border-left: 3px solid #F2C418;       /* yellow spark accent */
+  padding-left: calc(var(--fh-space-3) - 3px);
+}
+/* Trailing badges legible on the dark rail */
+.fh-sidebar__item .fh-badge--warning {
+  background: #F2C418; color: #2A2F37; border-color: transparent;
+}
+.fh-sidebar__item .fh-badge--danger {
+  background: #fff; color: #B8292F; border-color: transparent;
+}
+
+/* ----------------------------------------------------------------------
+   3. TOPBAR — white with a strong hairline + shadow bottom.
+   ---------------------------------------------------------------------- */
+.fh-navbar {
+  background: #fff;
+  border-bottom: 1px solid var(--fh-color-border);
+  box-shadow: 0 2px 8px rgba(0, 39, 71, 0.06);
+}
+
+/* ----------------------------------------------------------------------
+   4. HEADINGS — big, confident Montserrat.
+   ---------------------------------------------------------------------- */
+.fh-h3 {
+  font-family: var(--fh-font-heading);
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: #002747;
+}
+.fh-card__title {
+  font-family: var(--fh-font-heading);
+  font-weight: 800;
+  position: relative;
+  padding-left: 12px;
+}
+.fh-card__title::before {            /* small coloured tick accent */
+  content: "";
+  position: absolute; left: 0; top: 0.1em; bottom: 0.1em;
+  width: 4px; border-radius: 2px;
+  background: #005BAA;
+}
+
+/* ----------------------------------------------------------------------
+   5. KPI STATS — bold cards with a 4px brand-cycling top bar,
+   extrabold tabular values, uppercase bold labels.
+   ---------------------------------------------------------------------- */
+.fh-stat {
+  position: relative;
+  border: 1px solid var(--fh-color-border);
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(0, 39, 71, 0.05);
+  overflow: hidden;
+  transition: transform var(--fh-duration-base) var(--fh-ease-standard),
+              box-shadow var(--fh-duration-base) var(--fh-ease-standard);
+}
+.fh-stat::before {
+  content: "";
+  position: absolute; inset: 0 0 auto 0; height: 4px;
+}
+.doc-kpis .fh-stat:nth-child(1)::before { background: #005BAA; }  /* students   — brand blue */
+.doc-kpis .fh-stat:nth-child(2)::before { background: #1F8A4C; }  /* attendance — good (green) */
+.doc-kpis .fh-stat:nth-child(3)::before { background: #B8292F; }  /* fees pending — attention (red) */
+.doc-kpis .fh-stat:nth-child(4)::before { background: #F2C418; }  /* buses over capacity — warn (yellow) */
+
+/* Subtle premium hover lift, grafted from the Aurora direction */
+.fh-stat:hover { transform: translateY(-2px); box-shadow: 0 8px 20px -10px rgba(0, 39, 71, 0.28); }
+
+.fh-stat__label {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  font-size: var(--fh-text-xs);
+  color: var(--fh-color-text-muted);
+}
+.fh-stat__value {
+  font-family: var(--fh-font-heading);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: #002747;
+  font-size: var(--fh-text-3xl);   /* keeps multi-token values like "₹3.2 Cr" on one line */
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+/* ----------------------------------------------------------------------
+   6. CARDS — crisp, clear border + subtle strong shadow.
+   ---------------------------------------------------------------------- */
+.fh-card {
+  border: 1px solid var(--fh-color-border);
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 39, 71, 0.07), 0 8px 20px -12px rgba(0, 39, 71, 0.18);
+  transition: box-shadow var(--fh-duration-base) var(--fh-ease-standard);
+}
+.fh-card:hover {
+  box-shadow: 0 2px 6px rgba(0, 39, 71, 0.09), 0 14px 30px -14px rgba(0, 39, 71, 0.26);
+}
+
+/* ----------------------------------------------------------------------
+   7. TABLE — blue-tinted header, blue-800 uppercase th, blue hover, bold badges.
+   ---------------------------------------------------------------------- */
+.fh-table thead th {
+  background: #E6EFF6;
+  color: #003E74;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.fh-table--hover tbody tr:hover { background: #E6EFF6; }
+.fh-table__num { font-variant-numeric: tabular-nums; }
+
+/* Status badges — bold, strong-tint, AA-legible */
+.fh-badge--success { background: #D2E8DB; color: #146035; }
+.fh-badge--warning { background: #F8E28C; color: #6B5400; }
+.fh-badge--danger  { background: #F1D4D5; color: #8A1F23; }
+.fh-table .fh-badge { font-weight: 700; }
+
+/* ----------------------------------------------------------------------
+   8. ALERT — confident but calm amber (not a saturated-yellow block).
+   ---------------------------------------------------------------------- */
+.fh-alert--warning {
+  background: #FCF3D4;
+  border-color: #E0A800;
+  color: #6B5400;
+}
+
+/* ----------------------------------------------------------------------
+   9. PROGRESS — bold thick bars; brand blue default, green success, red A.
+   ---------------------------------------------------------------------- */
+.fh-progress { height: 10px; background: #E2E8F0; }
+.fh-progress__bar { background: #005BAA; }
+.fh-progress__bar--success { background: #1F8A4C; }
+
+/* ----------------------------------------------------------------------
+   10. BUTTONS + AVATAR — confident, weight 700.
+   ---------------------------------------------------------------------- */
+.fh-btn {
+  font-weight: 700;
+  border-radius: 7px;
+}
+.fh-btn--primary {
+  background: #005BAA;
+  border-color: #005BAA;
+  color: #fff;
+  box-shadow: 0 1px 2px rgba(0, 39, 71, 0.18);
+}
+.fh-btn--primary:hover { background: #004C8F; border-color: #004C8F; }
+.fh-btn--primary:active { background: #003E74; border-color: #003E74; }
+.fh-btn:not(.fh-btn--primary):not(.fh-btn--outline):not(.fh-btn--link) {
+  background: #fff;
+  border-color: var(--fh-color-border-strong);
+  color: #002747;
+}
+.fh-btn--outline {
+  border-width: 2px;
+  border-color: #005BAA;
+  color: #004C8F;
+}
+.fh-avatar {
+  background: #005BAA;
+  color: #fff;
+  font-weight: 800;
+}

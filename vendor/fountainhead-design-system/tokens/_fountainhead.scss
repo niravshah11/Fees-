@@ -1,0 +1,72 @@
+// ===========================================================================
+// Fountainhead Design System — SCSS tokens
+// Mirror of the CSS custom properties for teams building with Sass.
+// Use these for compile-time needs (maps, loops, and media queries — CSS
+// variables can't be used inside @media). For runtime theming, prefer the
+// CSS custom properties in css/tokens.css.
+// ===========================================================================
+
+// ---- Brand primitives -----------------------------------------------------
+$fh-blue-50:  #E6EFF6; $fh-blue-100: #CCDEEE; $fh-blue-200: #A8C7E2;
+$fh-blue-300: #80ADD4; $fh-blue-400: #5793C7; $fh-blue-500: #2E79B9;
+$fh-blue-600: #005BAA; $fh-blue-700: #004C8F; $fh-blue-800: #003E74; $fh-blue-900: #002747;
+
+$fh-red-50:  #F8EAEA; $fh-red-100: #F1D4D5; $fh-red-200: #E7B6B8;
+$fh-red-300: #DC9497; $fh-red-400: #D07276; $fh-red-500: #C55054;
+$fh-red-600: #B8292F; $fh-red-700: #9E2227; $fh-red-800: #7D1B1F; $fh-red-900: #5C1417;
+
+$fh-yellow-50:  #FBEBB0; $fh-yellow-100: #F8E28C; $fh-yellow-200: #F6D867;
+$fh-yellow-300: #F4CF42; $fh-yellow-400: #F2C418; $fh-yellow-500: #DAB015;
+$fh-yellow-600: #C29C13; $fh-yellow-700: #AA8810; $fh-yellow-800: #95760E; $fh-yellow-900: #83680C;
+
+$fh-green-50:  #E9F3ED; $fh-green-100: #D2E8DB; $fh-green-200: #B3D7C2;
+$fh-green-300: #8FC4A6; $fh-green-400: #6BB289; $fh-green-500: #479F6C;
+$fh-green-600: #1F8A4C; $fh-green-700: #1B7C44; $fh-green-800: #186E3D; $fh-green-900: #146035;
+
+$fh-neutral-0:   #FFFFFF; $fh-neutral-50:  #F6F7F9; $fh-neutral-100: #ECEEF1;
+$fh-neutral-200: #DCE0E5; $fh-neutral-300: #C5CBD3; $fh-neutral-400: #9BA4AF;
+$fh-neutral-500: #6E7884; $fh-neutral-600: #545C68; $fh-neutral-700: #3E454E;
+$fh-neutral-800: #2A2F37; $fh-neutral-900: #181C22; $fh-neutral-950: #0F1216;
+
+// Exact brand anchors (aliases)
+$fh-brand-blue:   $fh-blue-600;   // #005BAA
+$fh-brand-red:    $fh-red-600;    // #B8292F
+$fh-brand-yellow: $fh-yellow-400; // #F2C418
+
+// ---- Typography -----------------------------------------------------------
+$fh-font-heading: ("Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
+$fh-font-body:    ("Nunito", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
+$fh-font-ui:      ("Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif);
+$fh-font-mono:    (ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace);
+
+$fh-text-xs: 0.75rem; $fh-text-sm: 0.875rem; $fh-text-base: 1rem; $fh-text-lg: 1.125rem;
+$fh-text-xl: 1.3125rem; $fh-text-2xl: 1.5rem; $fh-text-3xl: 1.875rem; $fh-text-4xl: 2.25rem;
+$fh-text-5xl: 2.625rem; $fh-text-6xl: 3.375rem;
+
+// ---- Space (4px grid) -----------------------------------------------------
+$fh-space-1: 0.25rem; $fh-space-2: 0.5rem; $fh-space-3: 0.75rem; $fh-space-4: 1rem;
+$fh-space-5: 1.25rem; $fh-space-6: 1.5rem; $fh-space-8: 2rem; $fh-space-10: 2.5rem;
+$fh-space-12: 3rem; $fh-space-16: 4rem; $fh-space-20: 5rem; $fh-space-24: 6rem;
+
+// ---- Radius / elevation ---------------------------------------------------
+$fh-radius-xs: 4px; $fh-radius-sm: 6px; $fh-radius-md: 8px; $fh-radius-lg: 12px;
+$fh-radius-xl: 16px; $fh-radius-2xl: 24px; $fh-radius-full: 9999px;
+
+// ---- Breakpoints (usable in @media) ---------------------------------------
+$fh-bp-sm: 640px; $fh-bp-md: 768px; $fh-bp-lg: 1024px; $fh-bp-xl: 1280px;
+
+// Convenience map + mixin
+$fh-breakpoints: ("sm": $fh-bp-sm, "md": $fh-bp-md, "lg": $fh-bp-lg, "xl": $fh-bp-xl);
+
+@mixin fh-up($name) {
+  @media (min-width: map-get($fh-breakpoints, $name)) { @content; }
+}
+@mixin fh-down($name) {
+  @media (max-width: (map-get($fh-breakpoints, $name) - 1px)) { @content; }
+}
+
+// Brand colour ramps as maps (for programmatic use)
+$fh-blue:   (50: $fh-blue-50, 100: $fh-blue-100, 200: $fh-blue-200, 300: $fh-blue-300, 400: $fh-blue-400, 500: $fh-blue-500, 600: $fh-blue-600, 700: $fh-blue-700, 800: $fh-blue-800, 900: $fh-blue-900);
+$fh-red:    (50: $fh-red-50, 100: $fh-red-100, 200: $fh-red-200, 300: $fh-red-300, 400: $fh-red-400, 500: $fh-red-500, 600: $fh-red-600, 700: $fh-red-700, 800: $fh-red-800, 900: $fh-red-900);
+$fh-yellow: (50: $fh-yellow-50, 100: $fh-yellow-100, 200: $fh-yellow-200, 300: $fh-yellow-300, 400: $fh-yellow-400, 500: $fh-yellow-500, 600: $fh-yellow-600, 700: $fh-yellow-700, 800: $fh-yellow-800, 900: $fh-yellow-900);
+$fh-neutral:(0: $fh-neutral-0, 50: $fh-neutral-50, 100: $fh-neutral-100, 200: $fh-neutral-200, 300: $fh-neutral-300, 400: $fh-neutral-400, 500: $fh-neutral-500, 600: $fh-neutral-600, 700: $fh-neutral-700, 800: $fh-neutral-800, 900: $fh-neutral-900, 950: $fh-neutral-950);

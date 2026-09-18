@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-density="comfortable" data-profile="product">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nucleus — Dashboard (Fountainhead DS · product profile)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Nunito:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="../../css/fountainhead.css">
+  <style>
+    /* Recipe-only layout glue (doc- prefixed). The app shell + every component below
+       is pure design-system; this just arranges the two-column app frame and sizes
+       the inline SVG icons. The "Beacon" look comes from data-profile="product". */
+    .doc-appcol { display: flex; flex-direction: column; min-width: 0; }
+    .doc-main { padding: var(--fh-space-6); overflow: auto; }
+    .doc-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--fh-space-4); }
+    .doc-split { display: grid; grid-template-columns: 1.6fr 1fr; gap: var(--fh-space-4); margin-top: var(--fh-space-4); }
+    .doc-search { max-width: 320px; width: 100%; }
+    .ic { display: inline-flex; align-items: center; justify-content: center; }
+    .ic svg { width: 18px; height: 18px; display: block; }
+    .fh-sidebar__item .lbl { flex: 1; }
+    @media (max-width: 900px) {
+      .doc-kpis { grid-template-columns: 1fr 1fr; }
+      .doc-split { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="fh-appshell">
+
+    <!-- Sidebar -->
+    <aside class="fh-sidebar">
+      <div class="fh-sidebar__brand">
+        <img class="fh-logo--on-light" src="../../assets/logo/fountainhead-brandmark.png" alt="" style="height:1.6rem;">
+        <img class="fh-logo--on-dark" src="../../assets/logo/fountainhead-brandmark-white.png" alt="" style="height:1.6rem;">
+        <strong style="font-family:var(--fh-font-heading); font-size:var(--fh-text-lg);">Nucleus</strong>
+      </div>
+
+      <div class="fh-sidebar__section">Overview</div>
+      <a class="fh-sidebar__item is-active" href="#"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg></span><span class="lbl">Dashboard</span></a>
+
+      <div class="fh-sidebar__section">Academics</div>
+      <a class="fh-sidebar__item" href="#"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span class="lbl">Students</span></a>
+      <a class="fh-sidebar__item" href="#"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="m9 16 2 2 4-4"/></svg></span><span class="lbl">Attendance</span></a>
+
+      <div class="fh-sidebar__section">Operations</div>
+      <a class="fh-sidebar__item" href="#"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6v6"/><path d="M15 6v6"/><path d="M2 12h19.6"/><path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3"/><circle cx="7" cy="18" r="2"/><path d="M9 18h5"/><circle cx="16" cy="18" r="2"/></svg></span><span class="lbl">Transport</span> <span class="fh-badge fh-badge--warning">3</span></a>
+      <a class="fh-sidebar__item" href="#"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg></span><span class="lbl">Fees</span> <span class="fh-badge fh-badge--danger">12</span></a>
+
+      <div class="fh-sidebar__section">Admin</div>
+      <a class="fh-sidebar__item" href="#"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg></span><span class="lbl">Staff</span></a>
+      <a class="fh-sidebar__item" href="#"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg></span><span class="lbl">Settings</span></a>
+    </aside>
+
+    <!-- App column: topbar + main -->
+    <div class="doc-appcol">
+
+      <!-- Topbar -->
+      <header class="fh-navbar">
+        <span class="ic" style="color:var(--fh-color-text-subtle); margin-right:calc(-1 * var(--fh-space-2));"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span>
+        <input class="fh-input doc-search" type="search" placeholder="Search students, routes, invoices…">
+        <div class="fh-navbar__links" style="margin-left:auto; align-items:center; gap:var(--fh-space-3);">
+          <div class="fh-btn-group" role="group" aria-label="Density">
+            <button class="fh-btn fh-btn--sm" data-density-set="comfortable">Comfort</button>
+            <button class="fh-btn fh-btn--sm" data-density-set="compact">Compact</button>
+          </div>
+          <button class="fh-btn fh-btn--sm fh-btn--outline" id="themeToggle"><span class="ic" style="margin-right:var(--fh-space-1);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></span>Theme</button>
+          <span class="fh-avatar fh-avatar--sm" title="Vardan Kabra">VK</span>
+        </div>
+      </header>
+
+      <!-- Main -->
+      <main class="doc-main">
+        <nav class="fh-breadcrumb" aria-label="Breadcrumb" style="margin-bottom:var(--fh-space-2);">
+          <li><a href="#">Home</a></li><li>Dashboard</li>
+        </nav>
+
+        <div class="fh-cluster--between" style="display:flex; align-items:flex-end; margin-bottom:var(--fh-space-5);">
+          <div>
+            <h1 class="fh-h3" style="margin-bottom:var(--fh-space-1);">Dashboard</h1>
+            <p class="fh-u-text-muted" style="margin:0;">Academic year 2025–26 · Term 1</p>
+          </div>
+          <div class="fh-cluster">
+            <button class="fh-btn">Export</button>
+            <button class="fh-btn fh-btn--primary">+ New admission</button>
+          </div>
+        </div>
+
+        <!-- KPIs. The .fh-stat--* modifier colours the top accent bar (value stays ink). -->
+        <section class="doc-kpis">
+          <div class="fh-stat fh-stat--primary"><span class="fh-stat__label">Total students</span><span class="fh-stat__value">2,418</span><span class="fh-stat__delta fh-stat__delta--up">▲ 4.2% vs last term</span></div>
+          <div class="fh-stat fh-stat--success"><span class="fh-stat__label">Attendance today</span><span class="fh-stat__value">96%</span><span class="fh-stat__delta fh-stat__delta--up">▲ 1.1%</span></div>
+          <div class="fh-stat fh-stat--danger"><span class="fh-stat__label">Fees collected</span><span class="fh-stat__value">₹3.2 Cr</span><span class="fh-stat__delta fh-stat__delta--down">▼ 8% pending</span></div>
+          <div class="fh-stat fh-stat--warning"><span class="fh-stat__label">Buses on route</span><span class="fh-stat__value">42</span><span class="fh-stat__delta">3 over capacity</span></div>
+        </section>
+
+        <!-- Split: table + route load -->
+        <section class="doc-split">
+          <div class="fh-card">
+            <div class="fh-card__header fh-cluster--between" style="display:flex;">
+              <div class="fh-card__title">Recent fee transactions</div>
+              <a class="fh-btn fh-btn--link fh-btn--sm" href="#">View all</a>
+            </div>
+            <div class="fh-table-wrap" style="border:none;border-radius:0;">
+              <table class="fh-table fh-table--hover">
+                <thead><tr><th>Student</th><th>Class</th><th>Status</th><th class="fh-table__num">Amount (₹)</th></tr></thead>
+                <tbody>
+                  <tr><td>Aanya Shah</td><td>Grade 5</td><td><span class="fh-badge fh-badge--success">Paid</span></td><td class="fh-table__num">25,000</td></tr>
+                  <tr><td>Vivaan Patel</td><td>Grade 3</td><td><span class="fh-badge fh-badge--warning">Pending</span></td><td class="fh-table__num">12,500</td></tr>
+                  <tr><td>Diya Mehta</td><td>Nursery</td><td><span class="fh-badge fh-badge--danger">Overdue</span></td><td class="fh-table__num">25,000</td></tr>
+                  <tr><td>Kabir Rao</td><td>Grade 8</td><td><span class="fh-badge fh-badge--success">Paid</span></td><td class="fh-table__num">30,000</td></tr>
+                  <tr><td>Sara Khan</td><td>Grade 2</td><td><span class="fh-badge fh-badge--success">Paid</span></td><td class="fh-table__num">22,000</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="fh-card">
+            <div class="fh-card__header"><div class="fh-card__title">Route utilisation</div></div>
+            <div class="fh-card__body fh-stack fh-stack--4">
+              <div class="fh-alert fh-alert--warning" style="padding:var(--fh-space-3);"><span class="fh-alert__icon ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span><div class="fh-alert__body">3 routes over capacity</div></div>
+              <div><div class="fh-cluster--between" style="display:flex;font-size:var(--fh-text-sm);margin-bottom:var(--fh-space-1);"><span>Route A · Vapi</span><strong>104%</strong></div><div class="fh-progress"><div class="fh-progress__bar" style="width:100%;background:var(--fh-color-danger);"></div></div></div>
+              <div><div class="fh-cluster--between" style="display:flex;font-size:var(--fh-text-sm);margin-bottom:var(--fh-space-1);"><span>Route B · GIDC</span><strong>88%</strong></div><div class="fh-progress"><div class="fh-progress__bar" style="width:88%;"></div></div></div>
+              <div><div class="fh-cluster--between" style="display:flex;font-size:var(--fh-text-sm);margin-bottom:var(--fh-space-1);"><span>Route C · Gunjan</span><strong>61%</strong></div><div class="fh-progress"><div class="fh-progress__bar fh-progress__bar--success" style="width:61%;"></div></div></div>
+              <div><div class="fh-cluster--between" style="display:flex;font-size:var(--fh-text-sm);margin-bottom:var(--fh-space-1);"><span>Route D · Chala</span><strong>47%</strong></div><div class="fh-progress"><div class="fh-progress__bar fh-progress__bar--success" style="width:47%;"></div></div></div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    var html = document.documentElement;
+    var p = new URLSearchParams(location.search);
+    if (p.get('theme')) html.setAttribute('data-theme', p.get('theme'));
+    if (p.get('density')) html.setAttribute('data-density', p.get('density'));
+    document.getElementById('themeToggle').addEventListener('click', function () {
+      html.setAttribute('data-theme', html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+    document.querySelectorAll('[data-density-set]').forEach(function (b) {
+      b.addEventListener('click', function () { html.setAttribute('data-density', b.getAttribute('data-density-set')); });
+    });
+  </script>
+</body>
+</html>

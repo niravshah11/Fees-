@@ -1,35 +1,31 @@
 # Fountainhead Fees — production image.
 #
 # Portable: a platform that builds a Dockerfile (Railway / Render / Fly / Cloud Run) uses this
-# as-is, and so does a self-hosted VM. Same shape as the event-management app's Dockerfile.
+# as-is, and so does a self-hosted VM. Same shape as the event-management app's Dockerfile,
+# EXCEPT @fountainhead/design-system: that app fetches it as a private git dependency (needing a
+# build-time GitHub token); this app vendors the package's static files into vendor/ instead,
+# imported by relative path (see app/layout.tsx and tailwind.config.ts) rather than installed as
+# an npm dependency — an npm `file:` dependency installs as a symlink, which Next's webpack CSS
+# handling doesn't resolve reliably. Vendoring is a documented option in the package's own
+# INTEGRATION.md, and it also removes an entire class of build-time-secret failure — Railway's
+# Dockerfile builds turned out not to reliably forward a service variable into a Docker ARG on
+# this project, so a design that needs no secret at all to build is more robust than fighting that.
 #
 # Single stage on purpose: keep devDependencies so the SAME image runs `prisma migrate deploy`
 # (the Prisma CLI), the one-off `npm run seed` (tsx), and `next start`.
 FROM node:22-bookworm-slim
 
-# openssl: Prisma's query engine needs it at runtime. git: to fetch the private
-# @fountainhead/design-system dependency during `npm ci` (the slim image has neither).
+# openssl: Prisma's query engine needs it at runtime.
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends openssl ca-certificates git \
+  && apt-get install -y --no-install-recommends openssl ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
 # 1) Install dependencies (incl. devDeps — needed for `next build`, the Prisma CLI, and tsx).
-#    Copied separately from the source so this layer is cached across code changes.
+#    Copied separately from the source so this layer is cached across ordinary code changes.
 COPY package.json package-lock.json ./
-# @fountainhead/design-system is a private GitHub dependency. Rewrite GitHub remotes to HTTPS +
-# a build-time token, run `npm ci`, then delete the credential — all in ONE layer so the token
-# never lands in the image. GITHUB_TOKEN = a read-only, repo-scoped PAT set as a Railway variable.
-ARG GITHUB_TOKEN
-RUN set -eu; \
-  if [ -n "${GITHUB_TOKEN:-}" ]; then \
-    git config --global url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf "ssh://git@github.com/"; \
-    git config --global url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf "git@github.com:"; \
-    git config --global url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"; \
-  fi; \
-  npm ci; \
-  rm -f /root/.gitconfig
+RUN npm ci
 
 # 2) Copy the source and build. Every DB-reading page is force-dynamic, so the build never
 #    touches the database; the placeholder DATABASE_URL is scoped to THIS layer (never persisted

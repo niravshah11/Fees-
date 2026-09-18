@@ -1,5 +1,11 @@
 import type { Config } from 'tailwindcss';
-import fountainhead from '@fountainhead/design-system/tailwind-preset';
+// Relative path — see app/layout.tsx's comment on the CSS import for why this isn't the bare
+// '@fountainhead/design-system/tailwind-preset' specifier. TypeScript infers this plain JS
+// file's shape structurally (allowJs) rather than treating it as untyped, and that inferred
+// shape doesn't line up with Tailwind's own `DarkModeConfig` — cast it the same way an ambient
+// `declare module` for the bare specifier used to (implicitly) do.
+import fountainheadRaw from './vendor/fountainhead-design-system/tailwind/fountainhead-preset.js';
+const fountainhead = fountainheadRaw as unknown as Partial<Config>;
 
 export default {
   presets: [fountainhead],

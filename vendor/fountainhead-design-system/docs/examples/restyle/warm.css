@@ -1,0 +1,203 @@
+/* ==========================================================================
+   WARM & PLAYFUL — "Hearth"  ·  Fountainhead restyle direction
+   Friendly, rounded, cheerful school spirit; clear link to brand blue/yellow.
+   Strategy: re-map the semantic token layer at :root (whole page re-themes),
+   then add soft, rounded component polish. Loaded LAST, so plain rules win.
+   ========================================================================== */
+
+:root {
+  /* ---- Surfaces & lines (warm ivory / warm white) ---- */
+  --fh-color-bg:             #FBF7F1;
+  --fh-color-surface:        #FFFDFB;
+  --fh-color-surface-raised: #FFFDFB;
+  --fh-color-surface-sunken: #F6EEE2;   /* warm tint */
+  --fh-color-border:         #ECE4D9;
+  --fh-color-border-strong:  #E0D5C5;
+
+  /* ---- Text (warm near-black -> warm muted) ---- */
+  --fh-color-text:        #2C2620;
+  --fh-color-text-muted:  #6E6357;
+  --fh-color-text-subtle: #94887A;
+  --fh-color-text-link:   #0A63B0;
+
+  /* ---- Primary (friendly blue) + warm-blue subtle ---- */
+  --fh-color-primary:           #0A63B0;
+  --fh-color-primary-hover:     #08538F;
+  --fh-color-primary-active:    #06436F;
+  --fh-color-primary-fg:        #FFFFFF;
+  --fh-color-primary-subtle:    #E6EFF6;
+  --fh-color-primary-subtle-fg: #08538F;
+  --fh-color-primary-border:    #BBD6EC;
+  --fh-color-primary-text:      #0A63B0;
+
+  /* ---- Accent (cheerful brand yellow — ALWAYS dark text on yellow) ---- */
+  --fh-color-accent:           #F2C418;
+  --fh-color-accent-hover:     #E0B412;
+  --fh-color-accent-fg:        #2C2620;
+  --fh-color-accent-subtle:    #FBEBB0;
+  --fh-color-accent-subtle-fg: #6B5407;
+  --fh-color-accent-border:    #F0D873;
+  --fh-color-accent-text:      #6B5407;
+
+  /* ---- State: warm success / calm warning / readable danger ---- */
+  --fh-color-success:           #2E9E63;
+  --fh-color-success-fg:        #FFFFFF;
+  --fh-color-success-subtle:    #E8F6EE;
+  --fh-color-success-subtle-fg: #1C6B41;
+  --fh-color-success-text:      #1C6B41;
+
+  --fh-color-warning:           #F2C418;
+  --fh-color-warning-fg:        #2C2620;
+  --fh-color-warning-subtle:    #FDF3D6;
+  --fh-color-warning-subtle-fg: #6B5407;
+  --fh-color-warning-text:      #6B5407;
+
+  --fh-color-danger:           #C7393C;   /* also recolours inline Route A bar */
+  --fh-color-danger-hover:     #AC2E31;
+  --fh-color-danger-fg:        #FFFFFF;
+  --fh-color-danger-subtle:    #FBEBEC;
+  --fh-color-danger-subtle-fg: #97282B;
+  --fh-color-danger-text:      #97282B;
+
+  /* ---- Form controls + focus ---- */
+  --fh-color-field-bg:     #FFFDFB;
+  --fh-color-field-border: #E0D5C5;
+  --fh-color-focus:        #0A63B0;
+  --fh-ring:               0 0 0 4px rgba(10, 99, 176, 0.22);
+
+  /* ---- Type: keep round Nunito body, Montserrat headings, comfy rhythm ---- */
+  --fh-font-body:    "Nunito", system-ui, sans-serif;
+  --fh-font-heading: "Montserrat", system-ui, sans-serif;
+  --fh-leading-normal: 1.6;
+
+  /* ---- Radius: large & rounded; buttons go pill ---- */
+  --fh-radius-md:       14px;   /* inputs / controls */
+  --fh-radius-lg:       20px;   /* cards / table wrap */
+  --fh-control-radius:  14px;
+  --fh-card-pad:        var(--fh-space-6);
+
+  /* ---- Soft, warm, diffuse shadows ---- */
+  --fh-shadow-sm: 0 2px 10px rgba(120, 90, 40, 0.06), 0 10px 28px -10px rgba(120, 90, 40, 0.12);
+  --fh-shadow-md: 0 2px 12px rgba(120, 90, 40, 0.08), 0 14px 34px -12px rgba(120, 90, 40, 0.16);
+  --fh-shadow-lg: 0 4px 16px rgba(120, 90, 40, 0.10), 0 22px 48px -14px rgba(120, 90, 40, 0.20);
+}
+
+/* ============================ SIDEBAR — soft warm panel ============================ */
+.fh-sidebar {
+  background: #FDFAF4;
+  border-right: 1px solid var(--fh-color-border);
+  padding: var(--fh-space-5) var(--fh-space-4);
+  gap: var(--fh-space-1);
+}
+.fh-sidebar__brand strong { font-size: var(--fh-text-xl) !important; letter-spacing: -0.01em; }
+.fh-sidebar__section { color: var(--fh-color-text-subtle); margin-top: var(--fh-space-5); }
+/* Friendly rounded-full pills with comfy padding */
+.fh-sidebar__item {
+  border-radius: var(--fh-radius-full);
+  padding: var(--fh-space-3) var(--fh-space-4);
+  color: var(--fh-color-text-muted);
+}
+.fh-sidebar__item:hover { background: #F6EEE2; color: var(--fh-color-text); }
+.fh-sidebar__item.is-active {
+  background: var(--fh-color-primary-subtle);
+  color: var(--fh-color-primary-text);
+}
+.fh-sidebar__item.is-active .ic { color: var(--fh-color-primary); }
+
+/* ============================ TOPBAR — warm white, soft search ============================ */
+.fh-navbar {
+  background: var(--fh-color-surface);
+  border-bottom: 1px solid var(--fh-color-border);
+}
+.doc-search {
+  border-radius: var(--fh-radius-full);
+  background: #FDFAF4;
+  padding-left: var(--fh-space-5);
+}
+
+/* ============================ KPI STATS — soft pastel tints, cheerful ============================ */
+.fh-stat {
+  border: none;
+  border-radius: var(--fh-radius-lg);
+  box-shadow: var(--fh-shadow-sm);
+  padding: var(--fh-space-5) var(--fh-space-6);
+  transition: transform var(--fh-duration-base) var(--fh-ease-standard),
+              box-shadow var(--fh-duration-base) var(--fh-ease-standard);
+}
+.fh-stat:hover { transform: translateY(-3px); box-shadow: var(--fh-shadow-md); }
+.fh-stat:nth-child(1) { background: #EAF3FB; }   /* blue  */
+.fh-stat:nth-child(2) { background: #E8F6EE; }   /* green */
+.fh-stat:nth-child(3) { background: #FDF3D6; }   /* amber */
+.fh-stat:nth-child(4) { background: #FBEBEC; }   /* rose  */
+.fh-stat__label { font-weight: var(--fh-weight-bold); color: var(--fh-color-text-muted); }
+.fh-stat__value { font-size: var(--fh-text-4xl); letter-spacing: -0.02em; color: var(--fh-color-text); }
+
+/* ============================ CARD — rounded, soft, airy ============================ */
+.fh-card {
+  border: none;
+  border-radius: var(--fh-radius-lg);
+  box-shadow: var(--fh-shadow-sm);
+}
+.fh-card__header { border-bottom: 1px solid var(--fh-color-border); }
+.fh-card__title { font-size: var(--fh-text-lg); letter-spacing: -0.01em; }
+
+/* ============================ TABLE — soft warm header, comfy rows ============================ */
+.fh-table-wrap { border: none; border-radius: 0; }
+.fh-table thead th {
+  background: #FAF3E8;
+  color: var(--fh-color-text-muted);
+  letter-spacing: 0.03em;
+}
+.fh-table th, .fh-table td { padding-block: var(--fh-space-3); }
+.fh-table--hover tbody tr:hover { background: #F6EEE2; }
+
+/* ============================ BADGES — rounded-full, soft pastel ============================ */
+.fh-badge {
+  border-radius: var(--fh-radius-full);
+  padding: 0.25em 0.7em;
+  font-weight: var(--fh-weight-bold);
+}
+
+/* ============================ ALERT — calm rounded amber ============================ */
+.fh-alert {
+  border-radius: var(--fh-radius-md);
+  border-width: 1px;
+  border-left-width: 4px;
+}
+.fh-alert--warning {
+  background: var(--fh-color-warning-subtle);
+  border-color: var(--fh-color-accent);
+  color: var(--fh-color-warning-subtle-fg);
+}
+.fh-alert--warning .fh-alert__icon { color: #B8860B; }
+
+/* ============================ PROGRESS — thick rounded candy fills ============================ */
+.fh-progress {
+  height: 10px;
+  background: #F0E8DC;
+  border-radius: var(--fh-radius-full);
+}
+.fh-progress__bar { border-radius: var(--fh-radius-full); }
+.fh-progress__bar--success { background: var(--fh-color-success); }
+/* Route A (inline background:var(--fh-color-danger)) softens to a warm coral */
+
+/* ============================ BUTTONS — pill, soft shadow, gentle lift ============================ */
+.fh-btn {
+  border-radius: var(--fh-radius-full);
+  font-weight: var(--fh-weight-bold);
+  transition: background var(--fh-duration-fast) var(--fh-ease-standard),
+              border-color var(--fh-duration-fast) var(--fh-ease-standard),
+              transform var(--fh-duration-fast) var(--fh-ease-standard),
+              box-shadow var(--fh-duration-fast) var(--fh-ease-standard);
+}
+.fh-btn:hover { transform: translateY(-1px); }
+.fh-btn-group .fh-btn:first-child { border-start-start-radius: var(--fh-radius-full); border-end-start-radius: var(--fh-radius-full); }
+.fh-btn-group .fh-btn:last-child  { border-start-end-radius: var(--fh-radius-full); border-end-end-radius: var(--fh-radius-full); }
+.fh-btn--primary { box-shadow: 0 6px 16px -6px rgba(10, 99, 176, 0.55); }
+.fh-btn--primary:hover { box-shadow: 0 10px 22px -8px rgba(10, 99, 176, 0.6); }
+
+/* ============================ AVATAR — warm-friendly circle ============================ */
+.fh-avatar {
+  background: var(--fh-color-accent-subtle);
+  color: var(--fh-color-accent-subtle-fg);
+}

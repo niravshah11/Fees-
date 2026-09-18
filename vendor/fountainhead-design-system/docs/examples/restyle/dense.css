@@ -1,0 +1,245 @@
+/* ==========================================================================
+   Restyle direction: DENSE & UTILITARIAN PRO-ERP — "Console"
+   A serious, information-dense power tool. Cool slate, hairline borders,
+   minimal decoration, blue as the only functional accent. Loaded LAST,
+   after fountainhead.css, so these override the framework.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Tokens — cool slate palette + tightened density + crisp type
+   -------------------------------------------------------------------------- */
+:root {
+  /* Type: crisp UI font; headings stay Montserrat but smaller */
+  --fh-font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* Surfaces & lines — cool, professional, flat */
+  --fh-color-bg:            #F4F5F7;
+  --fh-color-surface:       #FFFFFF;
+  --fh-color-surface-raised:#FFFFFF;
+  --fh-color-surface-sunken:#EEF0F3;
+  --fh-color-border:        #E3E6EB;
+  --fh-color-border-strong: #CFD4DC;
+
+  /* Text — slate ramp */
+  --fh-color-text:        #1C2127;
+  --fh-color-text-muted:  #5C6470;
+  --fh-color-text-subtle: #828A96;
+  --fh-color-text-link:   #0B5CAB;
+
+  /* Primary — the single functional colour */
+  --fh-color-primary:        #0B5CAB;
+  --fh-color-primary-hover:  #094E92;
+  --fh-color-primary-active: #073F76;
+  --fh-color-primary-fg:     #FFFFFF;
+  --fh-color-primary-subtle: #EAF1FA;
+  --fh-color-primary-subtle-fg: #073F76;
+  --fh-color-primary-border: #BFD6EE;
+  --fh-color-primary-text:   #094E92;
+
+  /* States — muted, used as small text/badges only */
+  --fh-color-success:        #15803D;
+  --fh-color-success-text:   #15803D;
+  --fh-color-success-subtle: #E8F3EC;
+  --fh-color-success-subtle-fg: #14532D;
+  --fh-color-success-border: #C3E1CD;
+
+  --fh-color-warning:        var(--fh-yellow-400);
+  --fh-color-warning-fg:     #1C2127;
+  --fh-color-warning-text:   #8A5A00;
+  --fh-color-warning-subtle: #FBF2D9;
+  --fh-color-warning-subtle-fg: #6B4600;
+  --fh-color-warning-border: #ECD9A3;
+
+  --fh-color-danger:        #B42318;
+  --fh-color-danger-hover:  #951B12;
+  --fh-color-danger-text:   #B42318;
+  --fh-color-danger-subtle: #FBEAE8;
+  --fh-color-danger-subtle-fg: #7A1610;
+  --fh-color-danger-border: #EEC4BF;
+
+  /* Form controls + focus */
+  --fh-color-field-bg:     #FFFFFF;
+  --fh-color-field-border: #CFD4DC;
+  --fh-color-focus:        #0B5CAB;
+  --fh-ring:               0 0 0 3px rgba(11, 92, 171, 0.30);
+
+  /* Flat & crisp — minimal elevation */
+  --fh-shadow-xs: 0 1px 1px rgba(20, 27, 38, 0.04);
+  --fh-shadow-sm: 0 1px 2px rgba(20, 27, 38, 0.06);
+  --fh-shadow-md: 0 1px 3px rgba(20, 27, 38, 0.08);
+  --fh-shadow-lg: 0 2px 6px rgba(20, 27, 38, 0.10);
+
+  /* Small radii */
+  --fh-radius-sm: 4px;
+  --fh-radius-md: 6px;
+  --fh-radius-lg: 6px;
+  --fh-radius-xl: 8px;
+
+  /* DENSITY — tighten everything (compact even in comfortable) */
+  --fh-control-height:    2rem;     /* 32 */
+  --fh-control-height-sm: 1.75rem;  /* 28 */
+  --fh-control-pad-x:     var(--fh-space-3);
+  --fh-control-font:      var(--fh-text-sm);
+  --fh-control-radius:    5px;
+  --fh-table-cell-pad-y:  var(--fh-space-2);
+  --fh-table-cell-pad-x:  var(--fh-space-3);
+  --fh-card-pad:          var(--fh-space-4);
+  --fh-stack-gap:         var(--fh-space-3);
+}
+
+/* Tabular numerals where figures line up */
+.fh-stat__value, .fh-table__num, .doc-split strong { font-variant-numeric: tabular-nums; }
+
+/* --------------------------------------------------------------------------
+   2. App frame — tighter padding
+   -------------------------------------------------------------------------- */
+.doc-main { padding: var(--fh-space-4); }
+.doc-kpis { gap: var(--fh-space-3); }
+.doc-split { gap: var(--fh-space-3); margin-top: var(--fh-space-3); }
+
+/* --------------------------------------------------------------------------
+   3. Sidebar — compact slate
+   -------------------------------------------------------------------------- */
+.fh-sidebar {
+  background: var(--fh-color-surface);
+  border-right: 1px solid var(--fh-color-border);
+  padding: var(--fh-space-3);
+}
+.fh-sidebar__brand { padding: var(--fh-space-1) var(--fh-space-2) var(--fh-space-3); }
+.fh-sidebar__section {
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fh-color-text-subtle);
+  margin: var(--fh-space-3) var(--fh-space-2) var(--fh-space-1);
+}
+.fh-sidebar__item {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fh-color-text-muted);
+  padding: 6px var(--fh-space-2);
+  border-radius: 5px;
+  border-left: 2px solid transparent;
+}
+.fh-sidebar__item .ic svg { width: 16px; height: 16px; }
+.fh-sidebar__item:hover { background: var(--fh-color-surface-sunken); color: var(--fh-color-text); }
+.fh-sidebar__item.is-active {
+  background: var(--fh-color-primary-subtle);
+  color: var(--fh-color-primary-text);
+  border-left-color: var(--fh-color-primary);
+  font-weight: 600;
+}
+.fh-sidebar__item.is-active .ic { color: var(--fh-color-primary); }
+
+/* --------------------------------------------------------------------------
+   4. Topbar — compact, hairline
+   -------------------------------------------------------------------------- */
+.fh-navbar {
+  min-height: 3rem;
+  padding: var(--fh-space-2) var(--fh-space-4);
+  background: var(--fh-color-surface);
+  border-bottom: 1px solid var(--fh-color-border);
+  box-shadow: none;
+}
+.doc-search { height: 2rem; font-size: var(--fh-text-sm); }
+.fh-avatar--sm { background: var(--fh-color-primary); color: #fff; font-weight: 600; }
+
+/* --------------------------------------------------------------------------
+   5. KPI stats — compact, flat, hairline
+   -------------------------------------------------------------------------- */
+.fh-stat {
+  background: var(--fh-color-surface);
+  border: 1px solid var(--fh-color-border);
+  border-radius: 6px;
+  box-shadow: none;
+  padding: var(--fh-space-3) var(--fh-space-4);
+}
+.fh-stat__label {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fh-color-text-subtle);
+}
+.fh-stat__value {
+  font-size: var(--fh-text-3xl);
+  line-height: 1.1;
+  font-weight: 700;
+  margin-top: 2px;
+}
+.fh-stat__delta { font-size: var(--fh-text-xs); margin-top: 2px; }
+.fh-stat__delta--up   { color: var(--fh-color-success-text); }
+.fh-stat__delta--down { color: var(--fh-color-danger-text); }
+
+/* --------------------------------------------------------------------------
+   6. Cards — flat, hairline, tight
+   -------------------------------------------------------------------------- */
+.fh-card {
+  border: 1px solid var(--fh-color-border);
+  border-radius: 6px;
+  box-shadow: none;
+}
+.fh-card__header { padding: var(--fh-space-3) var(--fh-space-4); border-bottom: 1px solid var(--fh-color-border); }
+.fh-card__title { font-size: var(--fh-text-base); font-weight: 700; }
+.fh-card__body { padding: var(--fh-space-4); }
+
+/* --------------------------------------------------------------------------
+   7. Table — the star: dense rows, quiet chrome
+   -------------------------------------------------------------------------- */
+.fh-table thead th {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fh-color-text-subtle);
+  font-weight: 600;
+  background: var(--fh-color-surface);
+  border-bottom: 1px solid var(--fh-color-border-strong);
+  padding-top: var(--fh-space-2);
+  padding-bottom: var(--fh-space-2);
+}
+.fh-table tbody td { font-size: var(--fh-text-sm); border-bottom: 1px solid var(--fh-color-border); }
+.fh-table--hover tbody tr:hover { background: var(--fh-color-surface-sunken); }
+
+/* --------------------------------------------------------------------------
+   8. Badges — small, subtle, low-noise
+   -------------------------------------------------------------------------- */
+.fh-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 8px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+}
+.fh-badge--success { background: var(--fh-color-success-subtle); color: var(--fh-color-success-subtle-fg); border-color: var(--fh-color-success-border); }
+.fh-badge--warning { background: var(--fh-color-warning-subtle); color: var(--fh-color-warning-subtle-fg); border-color: var(--fh-color-warning-border); }
+.fh-badge--danger  { background: var(--fh-color-danger-subtle);  color: var(--fh-color-danger-subtle-fg);  border-color: var(--fh-color-danger-border); }
+
+/* --------------------------------------------------------------------------
+   9. Alert — low-key thin bar, not a block
+   -------------------------------------------------------------------------- */
+.fh-alert--warning {
+  background: var(--fh-color-warning-subtle);
+  border: 1px solid var(--fh-color-warning-border);
+  border-left: 3px solid var(--fh-color-warning);
+  border-radius: 4px;
+  color: var(--fh-color-warning-subtle-fg);
+  font-size: var(--fh-text-sm);
+}
+.fh-alert--warning .fh-alert__icon { color: #8A5A00; }
+.fh-alert--warning .fh-alert__icon svg { width: 16px; height: 16px; }
+
+/* --------------------------------------------------------------------------
+   10. Progress — thin, muted
+   -------------------------------------------------------------------------- */
+.fh-progress { height: 6px; border-radius: 3px; background: var(--fh-color-surface-sunken); }
+.fh-progress__bar { border-radius: 3px; background: var(--fh-color-primary); }
+.fh-progress__bar--success { background: var(--fh-color-success); }
+
+/* --------------------------------------------------------------------------
+   11. Buttons — compact, restrained
+   -------------------------------------------------------------------------- */
+.fh-btn { border-radius: 5px; font-size: var(--fh-text-sm); font-weight: 600; }
+.fh-btn--primary { background: var(--fh-color-primary); border-color: var(--fh-color-primary); }
+.fh-btn--primary:hover { background: var(--fh-color-primary-hover); border-color: var(--fh-color-primary-hover); }
+
+/* Headings: smaller, crisp */
+.fh-h3 { font-size: var(--fh-text-xl); font-weight: 700; letter-spacing: -0.01em; }

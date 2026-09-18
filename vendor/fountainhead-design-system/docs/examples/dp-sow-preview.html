@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-density="comfortable">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DP SOW Tracker — Fountainhead theme preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;1,700&family=Nunito:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="../../css/fountainhead.css">
+  <style>
+    .doc-main { padding: var(--fh-space-6); }
+    .doc-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--fh-space-4); }
+    .doc-split { display: grid; grid-template-columns: 1.3fr 1fr; gap: var(--fh-space-4); margin-top: var(--fh-space-4); }
+    @media (max-width: 900px){ .doc-kpis{grid-template-columns:1fr 1fr} .doc-split{grid-template-columns:1fr} }
+    .bar { height: 8px; border-radius: 999px; background: var(--fh-color-surface-sunken); overflow: hidden; }
+    .bar > span { display:block; height:100%; border-radius:999px; }
+    .heat { display:grid; grid-template-columns: 120px repeat(3,1fr); gap:4px; font-size:var(--fh-text-xs); }
+    .heat .cell { height:26px; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; }
+    .grouprow { display:flex; align-items:center; gap:var(--fh-space-3); }
+    .grouprow .lbl { width: 200px; font-size: var(--fh-text-sm); color: var(--fh-color-text-muted); }
+    .grouprow .bar { flex:1; }
+  </style>
+</head>
+<body>
+  <header class="fh-navbar">
+    <a class="fh-navbar__brand" href="#"><img class="logo-light" src="../../assets/logo/fountainhead-logo.png" alt="" style="height:1.7rem"><img class="logo-dark" src="../../assets/logo/fountainhead-logo-white.png" alt="" style="height:1.7rem"></a>
+    <span class="fh-u-text-subtle" style="font-size:var(--fh-text-xs); border-left:1px solid var(--fh-color-border); padding-left:var(--fh-space-4);">DP SOW Tracker</span>
+    <nav class="fh-navbar__links" style="margin-left:auto;">
+      <a class="fh-navlink is-active" href="#">Dashboard</a>
+      <a class="fh-navlink" href="#">Board</a>
+      <a class="fh-navlink" href="#">People</a>
+      <a class="fh-navlink" href="#">Help</a>
+    </nav>
+    <button class="fh-btn fh-btn--sm fh-btn--outline" id="themeToggle">🌓 Theme</button>
+  </header>
+
+  <main class="fh-container doc-main" style="max-width:1200px;">
+    <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:var(--fh-space-4); margin-bottom:var(--fh-space-5);">
+      <div>
+        <h1 class="fh-h3" style="margin-bottom:var(--fh-space-1);">Scheme of Work · Dashboard</h1>
+        <p class="fh-u-text-muted" style="margin:0;">DP1 + DP2 · 2025–26 · status is derived from dates, never hand-typed</p>
+      </div>
+      <button class="fh-btn fh-btn--primary fh-btn--sm">Import Master SOW</button>
+    </div>
+
+    <!-- KPI strip -->
+    <section class="doc-kpis">
+      <div class="fh-stat"><span class="fh-stat__label">On schedule</span><span class="fh-stat__value" style="color:var(--fh-color-success-text)">482</span><span class="fh-stat__delta fh-stat__delta--up">▲ 3% vs last week</span></div>
+      <div class="fh-stat"><span class="fh-stat__label">At risk</span><span class="fh-stat__value" style="color:var(--fh-color-warning-text)">74</span><span class="fh-stat__delta">due within 7 days</span></div>
+      <div class="fh-stat"><span class="fh-stat__label">Overdue</span><span class="fh-stat__value" style="color:var(--fh-color-danger-text)">361</span><span class="fh-stat__delta fh-stat__delta--down">▲ 12 since Mon</span></div>
+      <div class="fh-stat"><span class="fh-stat__label">Completed</span><span class="fh-stat__value">1,205</span><span class="fh-stat__delta">of 2,122 units</span></div>
+    </section>
+
+    <section class="doc-split">
+      <!-- Subjects behind schedule -->
+      <div class="fh-card">
+        <div class="fh-card__header"><div class="fh-card__title">Subjects behind schedule</div></div>
+        <div class="fh-card__body fh-stack fh-stack--3">
+          <div class="grouprow"><span class="lbl">Mathematics AA HL</span><span class="bar"><span style="width:82%; background:var(--fh-color-danger)"></span></span><strong style="font-size:var(--fh-text-sm)">28</strong></div>
+          <div class="grouprow"><span class="lbl">Physics HL</span><span class="bar"><span style="width:64%; background:var(--fh-color-danger)"></span></span><strong style="font-size:var(--fh-text-sm)">21</strong></div>
+          <div class="grouprow"><span class="lbl">English A Lit SL</span><span class="bar"><span style="width:48%; background:var(--fh-color-warning)"></span></span><strong style="font-size:var(--fh-text-sm)">16</strong></div>
+          <div class="grouprow"><span class="lbl">Economics SL</span><span class="bar"><span style="width:33%; background:var(--fh-color-warning)"></span></span><strong style="font-size:var(--fh-text-sm)">11</strong></div>
+          <div class="grouprow"><span class="lbl">Visual Arts HL</span><span class="bar"><span style="width:18%; background:var(--fh-color-primary)"></span></span><strong style="font-size:var(--fh-text-sm)">6</strong></div>
+        </div>
+      </div>
+
+      <!-- By IB group (legend + bars) -->
+      <div class="fh-card">
+        <div class="fh-card__header"><div class="fh-card__title">Units by IB group</div></div>
+        <div class="fh-card__body fh-stack fh-stack--2" style="font-size:var(--fh-text-sm)">
+          <div class="grouprow"><span class="lbl" style="width:150px">Language &amp; Literature</span><span class="bar"><span style="width:90%;background:#005BAA"></span></span></div>
+          <div class="grouprow"><span class="lbl" style="width:150px">Language Acquisition</span><span class="bar"><span style="width:72%;background:#B8292F"></span></span></div>
+          <div class="grouprow"><span class="lbl" style="width:150px">Individuals &amp; Societies</span><span class="bar"><span style="width:80%;background:#F2C418"></span></span></div>
+          <div class="grouprow"><span class="lbl" style="width:150px">Sciences</span><span class="bar"><span style="width:85%;background:#1F8A4C"></span></span></div>
+          <div class="grouprow"><span class="lbl" style="width:150px">Mathematics</span><span class="bar"><span style="width:60%;background:#5793C7"></span></span></div>
+          <div class="grouprow"><span class="lbl" style="width:150px">The Arts</span><span class="bar"><span style="width:45%;background:#D07276"></span></span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SOW Board snippet -->
+    <section class="fh-card" style="margin-top:var(--fh-space-4);">
+      <div class="fh-card__header" style="display:flex;align-items:center;justify-content:space-between;">
+        <div class="fh-card__title">SOW Board · Mathematics AA HL · DP1</div>
+        <div class="fh-cluster"><span class="fh-badge fh-badge--danger">3 overdue</span><span class="fh-badge fh-badge--warning">2 at risk</span></div>
+      </div>
+      <div class="fh-table-wrap" style="border:none;border-radius:0;">
+        <table class="fh-table fh-table--hover">
+          <thead><tr><th>Unit</th><th>Topic</th><th class="fh-table__num">Sessions</th><th>Start</th><th>Deadline</th><th>Lifecycle</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>U1</td><td>Number &amp; Algebra</td><td class="fh-table__num">14</td><td>15 Apr</td><td>30 May</td><td><span class="fh-badge">Done</span></td><td><span class="fh-badge fh-badge--success">Completed</span></td></tr>
+            <tr><td>U2</td><td>Functions</td><td class="fh-table__num">18</td><td>02 Jun</td><td>31 Jul</td><td><span class="fh-badge fh-badge--info">Active</span></td><td><span class="fh-badge fh-badge--warning">At risk</span></td></tr>
+            <tr><td>U3</td><td>Geometry &amp; Trig</td><td class="fh-table__num">20</td><td>04 Aug</td><td>30 Sep</td><td><span class="fh-badge fh-badge--info">Active</span></td><td><span class="fh-badge fh-badge--danger">Overdue</span></td></tr>
+            <tr><td>U4</td><td>Statistics &amp; Probability</td><td class="fh-table__num">16</td><td>01 Oct</td><td>20 Nov</td><td><span class="fh-badge">Upcoming</span></td><td><span class="fh-badge">Not started</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <style>.logo-dark{display:none}[data-theme="dark"] .logo-light{display:none}[data-theme="dark"] .logo-dark{display:inline}</style>
+  <script>
+    var html=document.documentElement, p=new URLSearchParams(location.search);
+    if(p.get('theme'))html.setAttribute('data-theme',p.get('theme'));
+    if(p.get('density'))html.setAttribute('data-density',p.get('density'));
+    document.getElementById('themeToggle').onclick=function(){html.setAttribute('data-theme',html.getAttribute('data-theme')==='dark'?'light':'dark')};
+  </script>
+</body>
+</html>
