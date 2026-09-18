@@ -6,6 +6,7 @@ import { canDraftForCampus, hasRole, type FeeRole } from '@/engine/rights';
 import { computeApprovalState, isActionable } from '@/engine/approval';
 import { projectFeeSchedule } from '@/engine/projection';
 import { FEE_APPROVAL_CHAIN } from '@/engine/fee';
+import { ProjectionChart, ProjectionLegend } from './_ProjectionChart';
 import {
   createProgrammeStage,
   createGradeBand,
@@ -168,41 +169,42 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
               {current.notes && <> — {current.notes}</>}
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="fh-table fh-table--striped">
-                <thead>
-                  <tr>
-                    <th>Grade band</th>
-                    <th>Base fee</th>
-                    <th>Increment %</th>
-                    <th>Tuition fee</th>
-                    <th>Term fee</th>
-                    <th>Admission fee</th>
-                    <th>Total</th>
-                    {current.status === 'DRAFT' && canDraft && <th />}
-                  </tr>
-                </thead>
-                <tbody>
-                  {current.feeLines.map((line) => (
-                    <tr key={line.id}>
-                      {current.status === 'DRAFT' && canDraft ? (
-                        <FeeLineEditRow schoolCode={school.code} line={line} />
-                      ) : (
-                        <>
-                          <td>{line.gradeBand.label}</td>
-                          <td>{inr.format(line.baseFee)}</td>
-                          <td>{(Number(line.incrementPct) * 100).toFixed(2)}%</td>
-                          <td className="font-medium">{inr.format(line.tuitionFee)}</td>
-                          <td>{inr.format(line.termFee)}</td>
-                          <td>{inr.format(line.admissionFee)}</td>
-                          <td className="font-medium">{inr.format(line.totalFee)}</td>
-                        </>
-                      )}
+            {current.status === 'DRAFT' && canDraft ? (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {current.feeLines.map((line) => (
+                  <FeeLineEditCard key={line.id} schoolCode={school.code} line={line} />
+                ))}
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="fh-table fh-table--striped">
+                  <thead>
+                    <tr>
+                      <th>Grade band</th>
+                      <th>Base fee</th>
+                      <th>Increment %</th>
+                      <th>Tuition fee</th>
+                      <th>Term fee</th>
+                      <th>Admission fee</th>
+                      <th>Total</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {current.feeLines.map((line) => (
+                      <tr key={line.id}>
+                        <td>{line.gradeBand.label}</td>
+                        <td>{inr.format(line.baseFee)}</td>
+                        <td>{(Number(line.incrementPct) * 100).toFixed(2)}%</td>
+                        <td className="font-medium">{inr.format(line.tuitionFee)}</td>
+                        <td>{inr.format(line.termFee)}</td>
+                        <td>{inr.format(line.admissionFee)}</td>
+                        <td className="font-medium">{inr.format(line.totalFee)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
             {current.status === 'DRAFT' && canDraft && (
               <div className="space-y-3 rounded-lg border border-border p-3">
@@ -265,7 +267,25 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
             year's own increment is 0%, but its stage still has a forward-looking policy rate).
             Preview only — not persisted; only the current year's proposal becomes a real FeeLine.
           </p>
-          <div className="mt-3 overflow-x-auto">
+
+          <div className="mt-4 rounded-lg border border-border p-4">
+            <ProjectionChart
+              lines={current.feeLines.map((line) => ({
+                label: line.gradeBand.label,
+                tuitionFee: line.tuitionFee,
+                incrementPct: Number(line.gradeBand.programmeStage.defaultIncrementPct),
+              }))}
+            />
+            <ProjectionLegend
+              lines={current.feeLines.map((line) => ({
+                label: line.gradeBand.label,
+                tuitionFee: line.tuitionFee,
+                incrementPct: Number(line.gradeBand.programmeStage.defaultIncrementPct),
+              }))}
+            />
+          </div>
+
+          <div className="mt-4 overflow-x-auto">
             <table className="fh-table fh-table--striped">
               <thead>
                 <tr>
@@ -323,7 +343,7 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
   );
 }
 
-function FeeLineEditRow({
+function FeeLineEditCard({
   schoolCode,
   line,
 }: {
@@ -331,13 +351,13 @@ function FeeLineEditRow({
   line: { id: string; gradeBand: { label: string }; baseFee: number; incrementPct: unknown; termFee: number; admissionFee: number; tuitionFee: number; totalFee: number };
 }) {
   return (
-    <>
-      <td className="align-top">{line.gradeBand.label}</td>
-      <td colSpan={7} className="align-top">
-        <form action={updateFeeLine.bind(null, schoolCode, line.id)} className="flex flex-wrap items-end gap-2">
+    <div className="rounded-lg border border-border p-4">
+      <div className="font-heading font-bold text-foreground">{line.gradeBand.label}</div>
+      <form action={updateFeeLine.bind(null, schoolCode, line.id)} className="mt-3 space-y-3">
+        <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="fh-label text-xs">Base fee</label>
-            <input name="baseFee" type="number" defaultValue={line.baseFee} className="fh-input w-28" required />
+            <input name="baseFee" type="number" defaultValue={line.baseFee} className="fh-input w-full" required />
           </div>
           <div>
             <label className="fh-label text-xs">Increment %</label>
@@ -346,29 +366,43 @@ function FeeLineEditRow({
               type="number"
               step="0.01"
               defaultValue={(Number(line.incrementPct) * 100).toFixed(2)}
-              className="fh-input w-24"
+              className="fh-input w-full"
               required
             />
           </div>
           <div>
             <label className="fh-label text-xs">Term fee</label>
-            <input name="termFee" type="number" defaultValue={line.termFee} className="fh-input w-24" required />
+            <input name="termFee" type="number" defaultValue={line.termFee} className="fh-input w-full" required />
           </div>
           <div>
             <label className="fh-label text-xs">Admission fee</label>
-            <input name="admissionFee" type="number" defaultValue={line.admissionFee} className="fh-input w-24" required />
+            <input name="admissionFee" type="number" defaultValue={line.admissionFee} className="fh-input w-full" required />
           </div>
-          <div className="text-sm text-muted">
-            Tuition {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(line.tuitionFee)}
-            {' · Total '}
-            {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(line.totalFee)}
-          </div>
-          <button type="submit" className="fh-btn fh-btn--secondary">Save</button>
-        </form>
-      </td>
-    </>
+        </div>
+        <div className="flex items-center justify-between rounded-md bg-surface-sunken px-3 py-2 text-sm">
+          <span className="text-muted">
+            Tuition {inr.format(line.tuitionFee)}
+          </span>
+          <span className="font-heading font-bold text-foreground">Total {inr.format(line.totalFee)}</span>
+        </div>
+        <button type="submit" className="fh-btn fh-btn--secondary w-full">Save</button>
+      </form>
+    </div>
   );
 }
+
+const CHECK_ICON = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 6 9 17l-5-5" />
+  </svg>
+);
+const CROSS_ICON = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M18 6 6 18M6 6l12 12" />
+  </svg>
+);
+
+type ApprovalRow = { id: string; role: string; label: string; order: number; status: string; decidedBy: string | null; decidedAt: Date | null; note: string | null };
 
 function ApprovalPanel({
   schoolCode,
@@ -376,45 +410,54 @@ function ApprovalPanel({
   canActByRole,
 }: {
   schoolCode: string;
-  approvals: Array<{ id: string; role: string; label: string; order: number; status: string; decidedBy: string | null; decidedAt: Date | null; note: string | null }>;
+  approvals: ApprovalRow[];
   canActByRole: Record<string, boolean>;
 }) {
-  const state = computeApprovalState(approvals as Array<{ order: number; status: 'PENDING' | 'APPROVED' | 'REJECTED' }>);
+  const typedApprovals = approvals as Array<{ order: number; status: 'PENDING' | 'APPROVED' | 'REJECTED' }>;
+  const state = computeApprovalState(typedApprovals);
+  const activeStep = approvals.find((a) => isActionable(typedApprovals, a.order) && canActByRole[a.role]);
 
   return (
-    <div className="space-y-3 rounded-lg border border-border p-3">
+    <div className="space-y-4 rounded-lg border border-border p-4">
       <div className="text-sm font-medium text-foreground">Approval chain</div>
-      <ol className="space-y-2">
+
+      <div className="fh-stepper overflow-x-auto pb-1">
         {approvals.map((a) => {
-          const actionable = isActionable(approvals as Array<{ order: number; status: 'PENDING' | 'APPROVED' | 'REJECTED' }>, a.order);
-          const canAct = actionable && canActByRole[a.role];
+          const actionable = isActionable(typedApprovals, a.order);
+          const stepClass = a.status === 'APPROVED' ? 'is-complete' : a.status === 'REJECTED' ? 'is-danger' : actionable ? 'is-active' : '';
           return (
-            <li key={a.id} className="flex flex-wrap items-center gap-2 text-sm">
-              <span className={`fh-badge ${a.status === 'APPROVED' ? 'fh-badge--success' : a.status === 'REJECTED' ? 'fh-badge--danger' : 'fh-badge--neutral'}`}>
-                {a.status}
+            <div key={a.id} className={`fh-stepper__step ${stepClass}`}>
+              <span className="fh-stepper__dot">
+                {a.status === 'APPROVED' ? CHECK_ICON : a.status === 'REJECTED' ? CROSS_ICON : a.order + 1}
               </span>
-              <span className="font-medium text-foreground">{a.label}</span>
+              <span className="fh-stepper__label">{a.label}</span>
               {a.decidedBy && (
-                <span className="text-muted">
-                  — {a.decidedBy}{a.decidedAt ? ` on ${new Date(a.decidedAt).toLocaleDateString('en-IN')}` : ''}
-                  {a.note ? `: "${a.note}"` : ''}
+                <span className="fh-stepper__meta">
+                  {a.decidedBy}
+                  {a.decidedAt ? ` · ${new Date(a.decidedAt).toLocaleDateString('en-IN')}` : ''}
+                  {a.note ? ` · "${a.note}"` : ''}
                 </span>
               )}
-              {canAct && (
-                <form action={decideApproval.bind(null, schoolCode, a.id, 'APPROVED')} className="ml-auto flex items-center gap-2">
-                  <input name="note" placeholder="Optional note" className="fh-input h-8 text-xs" />
-                  <button type="submit" className="fh-btn fh-btn--primary fh-btn--sm">Approve</button>
-                </form>
-              )}
-              {canAct && (
-                <form action={decideApproval.bind(null, schoolCode, a.id, 'REJECTED')}>
-                  <button type="submit" className="fh-btn fh-btn--danger fh-btn--sm">Reject</button>
-                </form>
-              )}
-            </li>
+            </div>
           );
         })}
-      </ol>
+      </div>
+
+      {activeStep && (
+        <div className="rounded-lg border border-border bg-primary-subtle p-3">
+          <div className="text-sm font-medium text-foreground">Your decision: {activeStep.label}</div>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <form action={decideApproval.bind(null, schoolCode, activeStep.id, 'APPROVED')} className="flex items-center gap-2">
+              <input name="note" placeholder="Optional note" className="fh-input h-8 text-xs" />
+              <button type="submit" className="fh-btn fh-btn--primary fh-btn--sm">Approve</button>
+            </form>
+            <form action={decideApproval.bind(null, schoolCode, activeStep.id, 'REJECTED')}>
+              <button type="submit" className="fh-btn fh-btn--danger fh-btn--sm">Reject</button>
+            </form>
+          </div>
+        </div>
+      )}
+
       {state.overall === 'REJECTED' && (
         <p className="fh-alert fh-alert--danger text-sm">This proposal was rejected — start a new draft to revise it.</p>
       )}

@@ -117,7 +117,7 @@ const SCHOOLS: SchoolSeed[] = [
   },
   {
     code: 'FWGS',
-    name: 'Fountainhead World Gujarat School',
+    name: 'Fountainhead Workhardt Global School',
     board: 'IB',
     domain: 'fwgs.in',
     order: 2,
@@ -139,7 +139,7 @@ const SCHOOLS: SchoolSeed[] = [
   },
   {
     code: 'FALH',
-    name: 'Fountainhead A.L.H.',
+    name: 'Fountainhead Avadh Learning Hub',
     board: 'IB',
     domain: 'falh.in',
     order: 3,

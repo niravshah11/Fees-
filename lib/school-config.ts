@@ -12,10 +12,10 @@ export interface SchoolConfigEntry {
 export const SCHOOL_CONFIG: SchoolConfigEntry[] = [
   { code: 'FSK', name: 'Fountainhead School, Kunkni', board: 'IB', domain: 'fsksurat.in' },
   { code: 'FSM', name: 'Fountainhead School, Malgama', board: 'IB', domain: 'fsmsurat.in' },
-  { code: 'FWGS', name: 'Fountainhead World Gujarat School', board: 'IB', domain: 'fwgs.in' },
+  { code: 'FWGS', name: 'Fountainhead Workhardt Global School', board: 'IB', domain: 'fwgs.in' },
   { code: 'FPV', name: 'Fountainhead Pre-School, Vesu', board: 'IB', domain: 'fpvesu.in' },
   { code: 'FPA', name: 'Fountainhead Pre-School, Adajan', board: 'IB', domain: 'fpadajan.in' },
-  { code: 'FALH', name: 'Fountainhead A.L.H.', board: 'IB', domain: 'falh.in' },
+  { code: 'FALH', name: 'Fountainhead Avadh Learning Hub', board: 'IB', domain: 'falh.in' },
 ];
 
 export const SCHOOL_CODES = SCHOOL_CONFIG.map((s) => s.code);
