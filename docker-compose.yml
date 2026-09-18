@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: fees-management-db
+    environment:
+      POSTGRES_USER: fees
+      POSTGRES_PASSWORD: fees
+      POSTGRES_DB: fees_management
+    ports:
+      # Host 5440 -> container 5432 (the event-management prototype holds 5439).
+      - "5440:5432"
+    volumes:
+      - fees-management-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fees -d fees_management"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  fees-management-pgdata:

@@ -1,0 +1,176 @@
+// Fountainhead Group Fee Management — persistence.
+// Postgres locally via `docker compose up -d` (serves on 5440, see docker-compose.yml);
+// DATABASE_URL is set in .env. Same conventions as the event-management prototype:
+//
+// Status/role fields are String (not Prisma enums) + validated by the TS union types in
+// engine/*.ts — the engines are the source of truth for those unions, and re-typing them as
+// native enums buys nothing the tests don't already cover.
+//
+// DateTime columns are timezone-naive TIMESTAMP(3) (Prisma's default). Prisma Client's own writes
+// (@default(now()), @updatedAt) are always a true UTC instant regardless of the Postgres
+// session's TimeZone setting, so that's safe. Any FUTURE migration that seeds createdAt/updatedAt
+// via raw SQL must use `(now() AT TIME ZONE 'UTC')`, not bare CURRENT_TIMESTAMP — see the
+// event-management app's 20260819120000_fix_raw_seed_timestamp_skew for the full story.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// One of the six Fountainhead schools this app covers. Seeded once from lib/school-config.ts;
+/// editable only by a rights admin (there's no per-school "edit school" UI in v1 — code/name/board
+/// changes are rare enough to do via the seed/a migration).
+model School {
+  id             String           @id @default(cuid())
+  code           String           @unique // FSK | FSM | FWGS | FPV | FPA | FALH
+  name           String
+  board          String // e.g. "IB"
+  domain         String // school's staff email domain, for rights-grant defaults only
+  order          Int              @default(0)
+  programmeStages ProgrammeStage[]
+  gradeBands     GradeBand[]
+  feeVersions    FeeVersion[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+}
+
+/// A YoY-increment grouping within a school (e.g. FSK's "EYP to MYP" vs "DP"; FSM's "EYP & PYP"
+/// vs "MYP & DP") — schools group their grade bands into these differently, which is the whole
+/// "programme-wise" half of the flexible-increment requirement. `defaultIncrementPct` only
+/// pre-fills a new FeeLine for a grade band in this stage; it is fully overridable per line.
+model ProgrammeStage {
+  id                  String      @id @default(cuid())
+  school              School      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  schoolId            String
+  label               String // e.g. "EYP to MYP", "DP"
+  defaultIncrementPct Decimal     @db.Decimal(6, 4) // e.g. 0.0600
+  order               Int         @default(0)
+  gradeBands          GradeBand[]
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  @@index([schoolId])
+}
+
+/// A grade/programme band within a school (e.g. "Jr. & Sr. KG", "Grade 1 to 6"). Belongs to
+/// exactly one ProgrammeStage, which determines its default YoY increment.
+model GradeBand {
+  id               String         @id @default(cuid())
+  school           School         @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  schoolId         String
+  programmeStage   ProgrammeStage @relation(fields: [programmeStageId], references: [id], onDelete: Cascade)
+  programmeStageId String
+  label            String // e.g. "Jr. & Sr. KG"
+  order            Int            @default(0)
+  feeLines         FeeLine[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@index([schoolId])
+  @@index([programmeStageId])
+}
+
+/// One fee proposal for one school for one academic year. Grain: school x academicYear x attempt
+/// — a school can have several FeeVersion rows for the same year across revision cycles, but only
+/// one may be APPROVED at a time (enforced in app/schools/[code]/actions.ts's approve action,
+/// which flips any prior APPROVED row for the same school+year to SUPERSEDED — Postgres has no
+/// partial-unique-index support in Prisma's schema DSL, so this is an app-level invariant).
+model FeeVersion {
+  id           String         @id @default(cuid())
+  school       School         @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  schoolId     String
+  academicYear String // e.g. "2027-28"
+  // DRAFT | PENDING_APPROVAL | APPROVED | REJECTED | SUPERSEDED (engine/fee.ts)
+  status       String         @default("DRAFT")
+  createdBy    String? // email, provenance only
+  submittedAt  DateTime?
+  notes        String?
+  feeLines     FeeLine[]
+  approvals    FeeApproval[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([schoolId])
+  @@index([academicYear])
+  @@index([status])
+}
+
+/// One grade band's proposed fee within a FeeVersion. `incrementPct` is editable per row — this
+/// IS the "flexible YoY increment, programme-wise" requirement: two grade bands in the same
+/// ProgrammeStage can still carry different percentages if finance wants to override the default.
+model FeeLine {
+  id            String     @id @default(cuid())
+  feeVersion    FeeVersion @relation(fields: [feeVersionId], references: [id], onDelete: Cascade)
+  feeVersionId  String
+  gradeBand     GradeBand  @relation(fields: [gradeBandId], references: [id], onDelete: Cascade)
+  gradeBandId   String
+  baseFee       Int // prior approved year's tuition fee (or a manually entered anchor for a school's first year)
+  incrementPct  Decimal    @db.Decimal(6, 4)
+  tuitionFee    Int // computed: computeIncrementedFee(baseFee, incrementPct) — stored for audit
+  termFee       Int        @default(0) // informational/editable; see engine/fee.ts's header
+  admissionFee  Int        @default(0)
+  totalFee      Int // computed: computeTotalFee(tuitionFee, termFee, admissionFee)
+  notes         String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@index([feeVersionId])
+  @@index([gradeBandId])
+}
+
+/// One step in a fee version's Fees Group Coordinator -> Head of Operations -> Director -> Board
+/// of Trustees approval chain (engine/approval.ts). Same shape as the event-management app's
+/// TripApproval — this row IS the audit trail.
+model FeeApproval {
+  id           String     @id @default(cuid())
+  feeVersion   FeeVersion @relation(fields: [feeVersionId], references: [id], onDelete: Cascade)
+  feeVersionId String
+  role         String // FEES_GROUP_COORDINATOR | HEAD_OF_OPERATIONS | DIRECTOR | BOARD_TRUSTEE
+  label        String // display label, e.g. "Board of Trustees"
+  order        Int // position in the chain (0-based)
+  // PENDING | APPROVED | REJECTED
+  status       String     @default("PENDING")
+  decidedBy    String?
+  decidedAt    DateTime?
+  note         String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([feeVersionId])
+}
+
+model AppUser {
+  id        String         @id @default(cuid())
+  email     String         @unique
+  name      String
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  rights    AppUserRight[]
+}
+
+/// Who holds which fee-workflow role where. Unlike the event-management app's flat AppUserRight
+/// (existence = permission), fee approval genuinely needs distinct capability tiers, so this row
+/// carries a `role` alongside `campus`. `role: SCHOOL_FINANCE` is meaningfully campus-scoped
+/// (drafts/edits/submits one school's proposal); the four approval-chain roles (Fees Group
+/// Coordinator, Head of Operations, Director, Board of Trustees) act on their chain step for
+/// every school, so their rows are always campus: null in practice, though the field stays
+/// nullable-string for symmetry with the event-management app's pattern.
+/// No DB-level unique constraint on (userId, role, campus), deliberately — same trap as the
+/// event-management app's AppUserRight doc comment: Postgres never treats two NULLs as equal, so
+/// a composite unique can't dedupe campus-wide grants. Dedup is an app-level check on add.
+model AppUserRight {
+  id        String   @id @default(cuid())
+  user      AppUser  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  role      String // SCHOOL_FINANCE | FEES_GROUP_COORDINATOR | HEAD_OF_OPERATIONS | DIRECTOR | BOARD_TRUSTEE (engine/rights.ts)
+  campus    String? // School.code, or null = every school
+  grantedBy String? // rights-admin's email — provenance only
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([campus])
+}

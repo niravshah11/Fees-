@@ -1,0 +1,423 @@
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { prisma } from '@/lib/db';
+import { getCurrentRights } from '@/lib/auth/rights';
+import { canDraftForCampus, hasRole, type FeeRole } from '@/engine/rights';
+import { computeApprovalState, isActionable } from '@/engine/approval';
+import { projectFeeSchedule } from '@/engine/projection';
+import { FEE_APPROVAL_CHAIN } from '@/engine/fee';
+import {
+  createProgrammeStage,
+  createGradeBand,
+  createDraftVersion,
+  updateFeeLine,
+  bulkApplyIncrement,
+  submitForReview,
+  decideApproval,
+} from './actions';
+
+export const dynamic = 'force-dynamic';
+
+const inr = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
+
+const STATUS_BADGE: Record<string, string> = {
+  DRAFT: 'fh-badge--neutral',
+  PENDING_APPROVAL: 'fh-badge--warning',
+  APPROVED: 'fh-badge--success',
+  REJECTED: 'fh-badge--danger',
+  SUPERSEDED: 'fh-badge--neutral',
+};
+
+function nextAcademicYear(year: string): string {
+  const match = year.match(/^(\d{4})-(\d{2})$/);
+  if (!match) return '';
+  const startYear = Number(match[1]) + 1;
+  return `${startYear}-${String((startYear + 1) % 100).padStart(2, '0')}`;
+}
+
+export default async function SchoolWorkspace({ params }: { params: Promise<{ code: string }> }) {
+  const { code } = await params;
+
+  const school = await prisma.school.findUnique({
+    where: { code },
+    include: {
+      programmeStages: { orderBy: { order: 'asc' }, include: { gradeBands: { orderBy: { order: 'asc' } } } },
+      feeVersions: {
+        orderBy: [{ academicYear: 'desc' }, { createdAt: 'desc' }],
+        include: {
+          feeLines: {
+            include: { gradeBand: { include: { programmeStage: true } } },
+            orderBy: { gradeBand: { order: 'asc' } },
+          },
+          approvals: { orderBy: { order: 'asc' } },
+        },
+      },
+    },
+  });
+  if (!school) notFound();
+
+  const grants = await getCurrentRights();
+  const canDraft = canDraftForCampus(grants, school.code);
+  const roleForRole = Object.fromEntries(
+    FEE_APPROVAL_CHAIN.map((step) => [step.role, hasRole(grants, step.role as FeeRole)]),
+  ) as Record<string, boolean>;
+
+  const [current, ...history] = school.feeVersions;
+  const approvedForCurrentYear = current?.status === 'APPROVED';
+  const hasOpenDraftOrReview = current && (current.status === 'DRAFT' || current.status === 'PENDING_APPROVAL');
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <Link href="/" className="text-sm text-primary hover:underline">← Schools</Link>
+        <div className="mt-1 flex items-center gap-3">
+          <h1 className="font-heading text-2xl font-bold text-foreground">{school.code}</h1>
+          <span className="fh-badge">{school.board}</span>
+        </div>
+        <p className="text-muted">{school.name}</p>
+      </div>
+
+      {/* Grade bands & programme stages */}
+      <section className="fh-card">
+        <h2 className="font-heading text-lg font-bold text-foreground">Grade bands &amp; programme stages</h2>
+        <p className="mt-1 text-sm text-muted">
+          Each grade band belongs to a programme stage, which sets the default YoY increment a new
+          proposal pre-fills for it — fully overridable per grade band.
+        </p>
+
+        <div className="mt-4 space-y-4">
+          {school.programmeStages.map((stage) => (
+            <div key={stage.id} className="rounded-lg border border-border p-3">
+              <div className="flex items-center justify-between">
+                <div className="font-medium text-foreground">{stage.label}</div>
+                <span className="text-sm text-muted">default {(Number(stage.defaultIncrementPct) * 100).toFixed(1)}%</span>
+              </div>
+              <ul className="mt-2 flex flex-wrap gap-2">
+                {stage.gradeBands.map((band) => (
+                  <li key={band.id} className="fh-badge fh-badge--neutral">{band.label}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+          {school.programmeStages.length === 0 && (
+            <p className="text-sm text-muted">No programme stages yet.</p>
+          )}
+        </div>
+
+        {canDraft && (
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <form action={createProgrammeStage.bind(null, school.code)} className="fh-field flex flex-wrap items-end gap-2">
+              <div>
+                <label className="fh-label text-xs">New stage label</label>
+                <input name="label" placeholder="e.g. MYP" className="fh-input" required />
+              </div>
+              <div>
+                <label className="fh-label text-xs">Default increment %</label>
+                <input name="defaultIncrementPct" type="number" step="0.1" placeholder="6" className="fh-input w-24" required />
+              </div>
+              <button type="submit" className="fh-btn fh-btn--secondary">Add stage</button>
+            </form>
+
+            <form action={createGradeBand.bind(null, school.code)} className="fh-field flex flex-wrap items-end gap-2">
+              <div>
+                <label className="fh-label text-xs">New grade band label</label>
+                <input name="label" placeholder="e.g. Grade 7 & 8" className="fh-input" required />
+              </div>
+              <div>
+                <label className="fh-label text-xs">Stage</label>
+                <select name="programmeStageId" className="fh-input" required>
+                  {school.programmeStages.map((stage) => (
+                    <option key={stage.id} value={stage.id}>{stage.label}</option>
+                  ))}
+                </select>
+              </div>
+              <button type="submit" className="fh-btn fh-btn--secondary">Add band</button>
+            </form>
+          </div>
+        )}
+      </section>
+
+      {/* Current proposal */}
+      <section className="fh-card">
+        <div className="flex items-center justify-between">
+          <h2 className="font-heading text-lg font-bold text-foreground">Current proposal</h2>
+          {current && (
+            <span className={`fh-badge ${STATUS_BADGE[current.status] ?? ''}`}>{current.status.replace('_', ' ')}</span>
+          )}
+        </div>
+
+        {!current && (
+          <div className="mt-3 space-y-3">
+            <p className="text-sm text-muted">No fee proposal exists yet for {school.code}.</p>
+            {canDraft && (
+              <form action={createDraftVersion.bind(null, school.code)} className="flex items-end gap-2">
+                <div>
+                  <label className="fh-label text-xs">Academic year</label>
+                  <input name="academicYear" placeholder="2027-28" className="fh-input" required />
+                </div>
+                <button type="submit" className="fh-btn fh-btn--primary">Start draft</button>
+              </form>
+            )}
+          </div>
+        )}
+
+        {current && (
+          <div className="mt-3 space-y-4">
+            <div className="text-sm text-muted">
+              Academic year <span className="font-medium text-foreground">{current.academicYear}</span>
+              {current.notes && <> — {current.notes}</>}
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="fh-table fh-table--striped">
+                <thead>
+                  <tr>
+                    <th>Grade band</th>
+                    <th>Base fee</th>
+                    <th>Increment %</th>
+                    <th>Tuition fee</th>
+                    <th>Term fee</th>
+                    <th>Admission fee</th>
+                    <th>Total</th>
+                    {current.status === 'DRAFT' && canDraft && <th />}
+                  </tr>
+                </thead>
+                <tbody>
+                  {current.feeLines.map((line) => (
+                    <tr key={line.id}>
+                      {current.status === 'DRAFT' && canDraft ? (
+                        <FeeLineEditRow schoolCode={school.code} line={line} />
+                      ) : (
+                        <>
+                          <td>{line.gradeBand.label}</td>
+                          <td>{inr.format(line.baseFee)}</td>
+                          <td>{(Number(line.incrementPct) * 100).toFixed(2)}%</td>
+                          <td className="font-medium">{inr.format(line.tuitionFee)}</td>
+                          <td>{inr.format(line.termFee)}</td>
+                          <td>{inr.format(line.admissionFee)}</td>
+                          <td className="font-medium">{inr.format(line.totalFee)}</td>
+                        </>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {current.status === 'DRAFT' && canDraft && (
+              <div className="space-y-3 rounded-lg border border-border p-3">
+                <div className="text-sm font-medium text-foreground">Bulk apply an increment % to a stage</div>
+                <form action={bulkApplyIncrement.bind(null, school.code, current.id)} className="flex flex-wrap items-end gap-2">
+                  <div>
+                    <label className="fh-label text-xs">Stage</label>
+                    <select name="programmeStageId" className="fh-input" required>
+                      {school.programmeStages.map((stage) => (
+                        <option key={stage.id} value={stage.id}>{stage.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="fh-label text-xs">Increment %</label>
+                    <input name="incrementPct" type="number" step="0.1" placeholder="6" className="fh-input w-24" required />
+                  </div>
+                  <button type="submit" className="fh-btn fh-btn--secondary">Apply to stage</button>
+                </form>
+
+                <form action={submitForReview.bind(null, school.code, current.id)}>
+                  <button type="submit" className="fh-btn fh-btn--primary">Submit for Group Review</button>
+                </form>
+              </div>
+            )}
+
+            {current.approvals.length > 0 && (
+              <ApprovalPanel
+                schoolCode={school.code}
+                approvals={current.approvals}
+                canActByRole={roleForRole}
+              />
+            )}
+
+            {approvedForCurrentYear && !hasOpenDraftOrReview && canDraft && (
+              <form action={createDraftVersion.bind(null, school.code)} className="flex items-end gap-2 border-t border-border pt-4">
+                <div>
+                  <label className="fh-label text-xs">Start next year's proposal</label>
+                  <input
+                    name="academicYear"
+                    defaultValue={nextAcademicYear(current.academicYear)}
+                    className="fh-input"
+                    required
+                  />
+                </div>
+                <button type="submit" className="fh-btn fh-btn--primary">Start draft</button>
+              </form>
+            )}
+          </div>
+        )}
+      </section>
+
+      {/* Projection preview */}
+      {current && current.feeLines.length > 0 && (
+        <section className="fh-card">
+          <h2 className="font-heading text-lg font-bold text-foreground">5-year projection preview</h2>
+          <p className="mt-1 text-sm text-muted">
+            Each grade band's current tuition fee compounded forward at its programme stage's
+            default increment % (not necessarily the % used to reach the current fee — an anchor
+            year's own increment is 0%, but its stage still has a forward-looking policy rate).
+            Preview only — not persisted; only the current year's proposal becomes a real FeeLine.
+          </p>
+          <div className="mt-3 overflow-x-auto">
+            <table className="fh-table fh-table--striped">
+              <thead>
+                <tr>
+                  <th>Grade band</th>
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <th key={n}>+{n}yr</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {current.feeLines.map((line) => {
+                  const schedule = projectFeeSchedule(line.tuitionFee, Number(line.gradeBand.programmeStage.defaultIncrementPct), 5);
+                  return (
+                    <tr key={line.id}>
+                      <td>{line.gradeBand.label}</td>
+                      {schedule.map((y) => (
+                        <td key={y.yearOffset}>{inr.format(Math.round(y.fee))}</td>
+                      ))}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      {/* History */}
+      {history.length > 0 && (
+        <section className="fh-card">
+          <h2 className="font-heading text-lg font-bold text-foreground">History</h2>
+          <div className="mt-3 overflow-x-auto">
+            <table className="fh-table fh-table--striped">
+              <thead>
+                <tr>
+                  <th>Academic year</th>
+                  <th>Status</th>
+                  <th>Submitted</th>
+                </tr>
+              </thead>
+              <tbody>
+                {history.map((v) => (
+                  <tr key={v.id}>
+                    <td>{v.academicYear}</td>
+                    <td><span className={`fh-badge ${STATUS_BADGE[v.status] ?? ''}`}>{v.status.replace('_', ' ')}</span></td>
+                    <td>{v.submittedAt ? new Date(v.submittedAt).toLocaleDateString('en-IN') : '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+    </div>
+  );
+}
+
+function FeeLineEditRow({
+  schoolCode,
+  line,
+}: {
+  schoolCode: string;
+  line: { id: string; gradeBand: { label: string }; baseFee: number; incrementPct: unknown; termFee: number; admissionFee: number; tuitionFee: number; totalFee: number };
+}) {
+  return (
+    <>
+      <td className="align-top">{line.gradeBand.label}</td>
+      <td colSpan={7} className="align-top">
+        <form action={updateFeeLine.bind(null, schoolCode, line.id)} className="flex flex-wrap items-end gap-2">
+          <div>
+            <label className="fh-label text-xs">Base fee</label>
+            <input name="baseFee" type="number" defaultValue={line.baseFee} className="fh-input w-28" required />
+          </div>
+          <div>
+            <label className="fh-label text-xs">Increment %</label>
+            <input
+              name="incrementPct"
+              type="number"
+              step="0.01"
+              defaultValue={(Number(line.incrementPct) * 100).toFixed(2)}
+              className="fh-input w-24"
+              required
+            />
+          </div>
+          <div>
+            <label className="fh-label text-xs">Term fee</label>
+            <input name="termFee" type="number" defaultValue={line.termFee} className="fh-input w-24" required />
+          </div>
+          <div>
+            <label className="fh-label text-xs">Admission fee</label>
+            <input name="admissionFee" type="number" defaultValue={line.admissionFee} className="fh-input w-24" required />
+          </div>
+          <div className="text-sm text-muted">
+            Tuition {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(line.tuitionFee)}
+            {' · Total '}
+            {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(line.totalFee)}
+          </div>
+          <button type="submit" className="fh-btn fh-btn--secondary">Save</button>
+        </form>
+      </td>
+    </>
+  );
+}
+
+function ApprovalPanel({
+  schoolCode,
+  approvals,
+  canActByRole,
+}: {
+  schoolCode: string;
+  approvals: Array<{ id: string; role: string; label: string; order: number; status: string; decidedBy: string | null; decidedAt: Date | null; note: string | null }>;
+  canActByRole: Record<string, boolean>;
+}) {
+  const state = computeApprovalState(approvals as Array<{ order: number; status: 'PENDING' | 'APPROVED' | 'REJECTED' }>);
+
+  return (
+    <div className="space-y-3 rounded-lg border border-border p-3">
+      <div className="text-sm font-medium text-foreground">Approval chain</div>
+      <ol className="space-y-2">
+        {approvals.map((a) => {
+          const actionable = isActionable(approvals as Array<{ order: number; status: 'PENDING' | 'APPROVED' | 'REJECTED' }>, a.order);
+          const canAct = actionable && canActByRole[a.role];
+          return (
+            <li key={a.id} className="flex flex-wrap items-center gap-2 text-sm">
+              <span className={`fh-badge ${a.status === 'APPROVED' ? 'fh-badge--success' : a.status === 'REJECTED' ? 'fh-badge--danger' : 'fh-badge--neutral'}`}>
+                {a.status}
+              </span>
+              <span className="font-medium text-foreground">{a.label}</span>
+              {a.decidedBy && (
+                <span className="text-muted">
+                  — {a.decidedBy}{a.decidedAt ? ` on ${new Date(a.decidedAt).toLocaleDateString('en-IN')}` : ''}
+                  {a.note ? `: "${a.note}"` : ''}
+                </span>
+              )}
+              {canAct && (
+                <form action={decideApproval.bind(null, schoolCode, a.id, 'APPROVED')} className="ml-auto flex items-center gap-2">
+                  <input name="note" placeholder="Optional note" className="fh-input h-8 text-xs" />
+                  <button type="submit" className="fh-btn fh-btn--primary fh-btn--sm">Approve</button>
+                </form>
+              )}
+              {canAct && (
+                <form action={decideApproval.bind(null, schoolCode, a.id, 'REJECTED')}>
+                  <button type="submit" className="fh-btn fh-btn--danger fh-btn--sm">Reject</button>
+                </form>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+      {state.overall === 'REJECTED' && (
+        <p className="fh-alert fh-alert--danger text-sm">This proposal was rejected — start a new draft to revise it.</p>
+      )}
+    </div>
+  );
+}
