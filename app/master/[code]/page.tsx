@@ -3,11 +3,12 @@ import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { getCurrentRights } from '@/lib/auth/rights';
 import { canDraftForCampus } from '@/engine/rights';
+import { STANDARD_GRADES } from '@/lib/grades';
 import {
   createProgrammeStage,
   updateProgrammeStage,
   deleteProgrammeStage,
-  createGradeBand,
+  createGradeBands,
   updateGradeBand,
   deleteGradeBand,
 } from './actions';
@@ -30,6 +31,8 @@ export default async function MasterSchool({ params }: { params: Promise<{ code:
 
   const grants = await getCurrentRights();
   const canEdit = canDraftForCampus(grants, school.code);
+  const usedGrades = new Set(school.programmeStages.flatMap((s) => s.gradeBands.map((b) => b.label)));
+  const availableGrades = STANDARD_GRADES.filter((g) => !usedGrades.has(g));
 
   return (
     <div className="space-y-6">
@@ -40,6 +43,10 @@ export default async function MasterSchool({ params }: { params: Promise<{ code:
           <span className="fh-badge">{school.board}</span>
         </div>
         <p className="text-muted">{school.name}</p>
+        <p className="mt-1 text-sm text-muted">
+          Just structure here — which grades belong to which programme. YoY increment % is set
+          fresh each year in that school's Fee Builder, not stored as a default.
+        </p>
         {!canEdit && (
           <p className="fh-alert fh-alert--warning mt-3 text-sm">
             You don't hold Finance Officer rights for {school.code} — this page is read-only for you.
@@ -52,31 +59,17 @@ export default async function MasterSchool({ params }: { params: Promise<{ code:
           <section key={stage.id} className="fh-card">
             {canEdit ? (
               <form action={updateProgrammeStage.bind(null, school.code, stage.id)} className="flex flex-wrap items-end gap-2">
-                <div>
-                  <label className="fh-label text-xs">Stage label</label>
+                <div className="flex-1">
+                  <label className="fh-label text-xs">Programme / stage label</label>
                   <input name="label" defaultValue={stage.label} className="fh-input" required />
                 </div>
-                <div>
-                  <label className="fh-label text-xs">Default increment %</label>
-                  <input
-                    name="defaultIncrementPct"
-                    type="number"
-                    step="0.1"
-                    defaultValue={(Number(stage.defaultIncrementPct) * 100).toFixed(1)}
-                    className="fh-input w-28"
-                    required
-                  />
-                </div>
                 <button type="submit" className="fh-btn fh-btn--secondary">Save</button>
-                <form action={deleteProgrammeStage.bind(null, school.code, stage.id)} className="ml-auto">
+                <form action={deleteProgrammeStage.bind(null, school.code, stage.id)}>
                   <button type="submit" className="text-xs text-red-600 hover:underline">Remove stage</button>
                 </form>
               </form>
             ) : (
-              <div className="flex items-center justify-between">
-                <div className="font-heading font-bold text-foreground">{stage.label}</div>
-                <span className="text-sm text-muted">default {(Number(stage.defaultIncrementPct) * 100).toFixed(1)}%</span>
-              </div>
+              <div className="font-heading font-bold text-foreground">{stage.label}</div>
             )}
 
             <div className="mt-4 space-y-2 border-t border-border pt-4">
@@ -111,11 +104,17 @@ export default async function MasterSchool({ params }: { params: Promise<{ code:
               ))}
               {stage.gradeBands.length === 0 && <p className="text-sm text-muted">No grade bands under this stage yet.</p>}
 
-              {canEdit && (
-                <form action={createGradeBand.bind(null, school.code)} className="flex flex-wrap items-end gap-2 pt-2">
-                  <input name="label" placeholder="e.g. Grade 7 & 8" className="fh-input" required />
-                  <input type="hidden" name="programmeStageId" value={stage.id} />
-                  <button type="submit" className="fh-btn fh-btn--secondary fh-btn--sm">Add band to {stage.label}</button>
+              {canEdit && availableGrades.length > 0 && (
+                <form action={createGradeBands.bind(null, school.code, stage.id)} className="flex flex-wrap items-end gap-2 pt-2">
+                  <div>
+                    <label className="fh-label text-xs">Add grades to {stage.label} (ctrl/cmd-click for several)</label>
+                    <select name="grades" multiple size={Math.min(6, availableGrades.length)} className="fh-input">
+                      {availableGrades.map((g) => (
+                        <option key={g} value={g}>{g}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <button type="submit" className="fh-btn fh-btn--secondary fh-btn--sm">Add selected grades</button>
                 </form>
               )}
             </div>
@@ -131,13 +130,9 @@ export default async function MasterSchool({ params }: { params: Promise<{ code:
         <section className="fh-card">
           <h2 className="font-heading text-lg font-bold text-foreground">Add a new programme stage</h2>
           <form action={createProgrammeStage.bind(null, school.code)} className="mt-3 flex flex-wrap items-end gap-2">
-            <div>
-              <label className="fh-label text-xs">Stage label</label>
-              <input name="label" placeholder="e.g. MYP" className="fh-input" required />
-            </div>
-            <div>
-              <label className="fh-label text-xs">Default increment %</label>
-              <input name="defaultIncrementPct" type="number" step="0.1" placeholder="6" className="fh-input w-28" required />
+            <div className="flex-1">
+              <label className="fh-label text-xs">Programme / stage label</label>
+              <input name="label" placeholder="e.g. MYP — Middle Years Programme" className="fh-input" required />
             </div>
             <button type="submit" className="fh-btn fh-btn--primary">Add stage</button>
           </form>

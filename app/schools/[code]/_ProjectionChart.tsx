@@ -14,9 +14,11 @@ export interface ProjectionSeriesInput {
   incrementPct: number;
 }
 
-/** A small multi-series line chart — "now" plus `years` projected points per grade band, each
- *  compounding at its own programme stage's increment %. Static SVG: no client JS needed. */
-export function ProjectionChart({ lines, years = 5 }: { lines: ProjectionSeriesInput[]; years?: number }) {
+/** A small multi-series line chart — the current academic year plus `years` projected points per
+ *  grade band, each compounding at its own current increment %. Static SVG: no client JS needed.
+ *  `yearLabels` supplies the x-axis text (length years+1, current year first); falls back to
+ *  "Now"/"+Nyr" if omitted. */
+export function ProjectionChart({ lines, years = 5, yearLabels }: { lines: ProjectionSeriesInput[]; years?: number; yearLabels?: string[] }) {
   const series = lines.map((line, i) => {
     const schedule = projectFeeSchedule(line.tuitionFee, line.incrementPct, years);
     return { label: line.label, color: PALETTE[i % PALETTE.length], points: [line.tuitionFee, ...schedule.map((y) => y.fee)] };
@@ -53,7 +55,7 @@ export function ProjectionChart({ lines, years = 5 }: { lines: ProjectionSeriesI
         ))}
         {Array.from({ length: n }).map((_, i) => (
           <text key={i} x={xFor(i)} y={height - 4} fontSize={10} textAnchor="middle">
-            {i === 0 ? 'Now' : `+${i}yr`}
+            {yearLabels?.[i] ?? (i === 0 ? 'Now' : `+${i}yr`)}
           </text>
         ))}
       </g>

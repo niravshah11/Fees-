@@ -45,7 +45,7 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
         orderBy: [{ academicYear: 'desc' }, { createdAt: 'desc' }],
         include: {
           feeLines: {
-            include: { gradeBand: { include: { programmeStage: true } } },
+            include: { gradeBand: true },
             orderBy: { gradeBand: { order: 'asc' } },
           },
           approvals: { orderBy: { order: 'asc' } },
@@ -83,18 +83,14 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
           <Link href={`/master/${school.code}`} className="fh-btn fh-btn--secondary fh-btn--sm">Manage in Master data</Link>
         </div>
         <p className="mt-1 text-sm text-muted">
-          Each grade band belongs to a programme stage, which sets the default YoY increment a new
-          proposal pre-fills for it — fully overridable per grade band. Add, edit, or remove
-          stages and bands at <Link href={`/master/${school.code}`} className="text-primary hover:underline">Master data</Link>.
+          Each grade band belongs to a programme stage. Add, edit, or remove stages and bands at{' '}
+          <Link href={`/master/${school.code}`} className="text-primary hover:underline">Master data</Link>.
         </p>
 
         <div className="mt-4 space-y-4">
           {school.programmeStages.map((stage) => (
             <div key={stage.id} className="rounded-lg border border-border p-3">
-              <div className="flex items-center justify-between">
-                <div className="font-medium text-foreground">{stage.label}</div>
-                <span className="text-sm text-muted">default {(Number(stage.defaultIncrementPct) * 100).toFixed(1)}%</span>
-              </div>
+              <div className="font-medium text-foreground">{stage.label}</div>
               <ul className="mt-2 flex flex-wrap gap-2">
                 {stage.gradeBands.map((band) => (
                   <li key={band.id} className="fh-badge fh-badge--neutral">{band.label}</li>
@@ -230,60 +226,65 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
       </section>
 
       {/* Projection preview */}
-      {current && current.feeLines.length > 0 && (
-        <section className="fh-card">
-          <h2 className="font-heading text-lg font-bold text-foreground">5-year projection preview</h2>
-          <p className="mt-1 text-sm text-muted">
-            Each grade band's current tuition fee compounded forward at its programme stage's
-            default increment % (not necessarily the % used to reach the current fee — an anchor
-            year's own increment is 0%, but its stage still has a forward-looking policy rate).
-            Preview only — not persisted; only the current year's proposal becomes a real FeeLine.
-          </p>
+      {current && current.feeLines.length > 0 && (() => {
+        const projectionYears: string[] = [current.academicYear];
+        for (let i = 0; i < 5; i++) projectionYears.push(nextAcademicYear(projectionYears[projectionYears.length - 1]));
 
-          <div className="mt-4 rounded-lg border border-border p-4">
-            <ProjectionChart
-              lines={current.feeLines.map((line) => ({
-                label: line.gradeBand.label,
-                tuitionFee: line.tuitionFee,
-                incrementPct: Number(line.gradeBand.programmeStage.defaultIncrementPct),
-              }))}
-            />
-            <ProjectionLegend
-              lines={current.feeLines.map((line) => ({
-                label: line.gradeBand.label,
-                tuitionFee: line.tuitionFee,
-                incrementPct: Number(line.gradeBand.programmeStage.defaultIncrementPct),
-              }))}
-            />
-          </div>
+        return (
+          <section className="fh-card">
+            <h2 className="font-heading text-lg font-bold text-foreground">5-year projection preview</h2>
+            <p className="mt-1 text-sm text-muted">
+              Each grade band's current tuition fee compounded forward at its own current
+              increment %. Preview only — not persisted; only the current year's proposal becomes
+              a real FeeLine.
+            </p>
 
-          <div className="mt-4 overflow-x-auto">
-            <table className="fh-table fh-table--striped">
-              <thead>
-                <tr>
-                  <th>Grade band</th>
-                  {[1, 2, 3, 4, 5].map((n) => (
-                    <th key={n}>+{n}yr</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {current.feeLines.map((line) => {
-                  const schedule = projectFeeSchedule(line.tuitionFee, Number(line.gradeBand.programmeStage.defaultIncrementPct), 5);
-                  return (
-                    <tr key={line.id}>
-                      <td>{line.gradeBand.label}</td>
-                      {schedule.map((y) => (
-                        <td key={y.yearOffset}>{inr.format(Math.round(y.fee))}</td>
-                      ))}
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      )}
+            <div className="mt-4 rounded-lg border border-border p-4">
+              <ProjectionChart
+                yearLabels={projectionYears}
+                lines={current.feeLines.map((line) => ({
+                  label: line.gradeBand.label,
+                  tuitionFee: line.tuitionFee,
+                  incrementPct: Number(line.incrementPct),
+                }))}
+              />
+              <ProjectionLegend
+                lines={current.feeLines.map((line) => ({
+                  label: line.gradeBand.label,
+                  tuitionFee: line.tuitionFee,
+                  incrementPct: Number(line.incrementPct),
+                }))}
+              />
+            </div>
+
+            <div className="mt-4 overflow-x-auto">
+              <table className="fh-table fh-table--striped">
+                <thead>
+                  <tr>
+                    <th>Grade band</th>
+                    {projectionYears.slice(1).map((year) => (
+                      <th key={year}>{year}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {current.feeLines.map((line) => {
+                    const schedule = projectFeeSchedule(line.tuitionFee, Number(line.incrementPct), 5);
+                    return (
+                      <tr key={line.id}>
+                        <td>{line.gradeBand.label}</td>
+                        {schedule.map((y) => (
+                          <td key={y.yearOffset}>{inr.format(Math.round(y.fee))}</td>
+                        ))}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        );
+      })()}
 
       {/* History */}
       {history.length > 0 && (

@@ -38,20 +38,22 @@ model School {
   updatedAt      DateTime         @updatedAt
 }
 
-/// A YoY-increment grouping within a school (e.g. FSK's "EYP to MYP" vs "DP"; FSM's "EYP & PYP"
-/// vs "MYP & DP") — schools group their grade bands into these differently, which is the whole
-/// "programme-wise" half of the flexible-increment requirement. `defaultIncrementPct` only
-/// pre-fills a new FeeLine for a grade band in this stage; it is fully overridable per line.
+/// A programme grouping within a school (e.g. FSK's EYP/PYP/MYP/DP) — pure structure (which
+/// grade bands belong to which programme), managed at /master. Deliberately carries NO rate:
+/// the YoY increment % is a fresh decision every year, made per grade band when a Finance
+/// Officer builds that year's draft (FeeLine.incrementPct, or the draft editor's "bulk apply"),
+/// not a stored default here — confirmed with the user (school fee structures and increment
+/// policy both vary too much year to year and campus to campus to bake a rate into the master
+/// structure).
 model ProgrammeStage {
-  id                  String      @id @default(cuid())
-  school              School      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  schoolId            String
-  label               String // e.g. "EYP to MYP", "DP"
-  defaultIncrementPct Decimal     @db.Decimal(6, 4) // e.g. 0.0600
-  order               Int         @default(0)
-  gradeBands          GradeBand[]
-  createdAt           DateTime    @default(now())
-  updatedAt           DateTime    @updatedAt
+  id         String      @id @default(cuid())
+  school     School      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  schoolId   String
+  label      String // e.g. "EYP — Early Years Programme"
+  order      Int         @default(0)
+  gradeBands GradeBand[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
 
   @@index([schoolId])
 }

@@ -17,7 +17,8 @@ async function requireSchool(code: string) {
 
 /** Starts a new DRAFT FeeVersion for the given academic year, one FeeLine per current grade
  *  band, pre-filled from the school's latest APPROVED version (baseFee = that version's tuition
- *  fee) and each band's programme stage default increment — fully editable afterwards. */
+ *  fee) with a 0% increment — the Finance Officer sets the real % for this year via per-line
+ *  edits or "bulk apply" once the draft exists. */
 export async function createDraftVersion(schoolCode: string, formData: FormData): Promise<void> {
   const school = await requireSchool(schoolCode);
   await assertCanDraftForCampus(school.code);
@@ -28,7 +29,6 @@ export async function createDraftVersion(schoolCode: string, formData: FormData)
 
   const gradeBands = await prisma.gradeBand.findMany({
     where: { schoolId: school.id },
-    include: { programmeStage: true },
     orderBy: { order: 'asc' },
   });
   if (gradeBands.length === 0) return;
@@ -51,7 +51,9 @@ export async function createDraftVersion(schoolCode: string, formData: FormData)
   for (const band of gradeBands) {
     const priorLine = lastApproved?.feeLines.find((l) => l.gradeBandId === band.id);
     const baseFee = priorLine?.tuitionFee ?? 0;
-    const incrementPct = Number(band.programmeStage.defaultIncrementPct);
+    // No stored default to inherit — the increment is a fresh decision every year, set here via
+    // per-line edits or "bulk apply" once the draft exists (see engine/fee.ts's header).
+    const incrementPct = 0;
     const tuitionFee = computeIncrementedFee(baseFee, incrementPct);
     const termFee = priorLine?.termFee ?? 0;
     const totalFee = computeTotalFee(tuitionFee, termFee, 0);

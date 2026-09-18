@@ -19,12 +19,11 @@ export async function createProgrammeStage(schoolCode: string, formData: FormDat
   await assertCanDraftForCampus(school.code);
 
   const label = String(formData.get('label') ?? '').trim();
-  const pct = Number(formData.get('defaultIncrementPct'));
-  if (!label || Number.isNaN(pct)) return;
+  if (!label) return;
 
   const count = await prisma.programmeStage.count({ where: { schoolId: school.id } });
   await prisma.programmeStage.create({
-    data: { schoolId: school.id, label, defaultIncrementPct: pct / 100, order: count },
+    data: { schoolId: school.id, label, order: count },
   });
   revalidatePath(`/master/${schoolCode}`);
 }
@@ -37,10 +36,9 @@ export async function updateProgrammeStage(schoolCode: string, stageId: string, 
   if (!stage || stage.schoolId !== school.id) throw new Error('Programme stage not found for this school.');
 
   const label = String(formData.get('label') ?? '').trim();
-  const pct = Number(formData.get('defaultIncrementPct'));
-  if (!label || Number.isNaN(pct)) return;
+  if (!label) return;
 
-  await prisma.programmeStage.update({ where: { id: stageId }, data: { label, defaultIncrementPct: pct / 100 } });
+  await prisma.programmeStage.update({ where: { id: stageId }, data: { label } });
   revalidatePath(`/master/${schoolCode}`);
 }
 
@@ -60,18 +58,27 @@ export async function deleteProgrammeStage(schoolCode: string, stageId: string):
   revalidatePath(`/master/${schoolCode}`);
 }
 
-export async function createGradeBand(schoolCode: string, formData: FormData): Promise<void> {
+/** Adds one grade band per grade selected in the multi-select picker (STANDARD_GRADES) — e.g.
+ *  selecting Grade 7, Grade 8, Grade 9 creates three separate grade bands under the stage, not
+ *  one combined "Grade 7 to 9" band. Skips any grade that's already a band for this school. */
+export async function createGradeBands(schoolCode: string, stageId: string, formData: FormData): Promise<void> {
   const school = await requireSchool(schoolCode);
   await assertCanDraftForCampus(school.code);
 
-  const label = String(formData.get('label') ?? '').trim();
-  const programmeStageId = String(formData.get('programmeStageId') ?? '');
-  if (!label || !programmeStageId) return;
+  const stage = await prisma.programmeStage.findUnique({ where: { id: stageId } });
+  if (!stage || stage.schoolId !== school.id) throw new Error('Programme stage not found for this school.');
 
-  const count = await prisma.gradeBand.count({ where: { schoolId: school.id } });
-  await prisma.gradeBand.create({
-    data: { schoolId: school.id, programmeStageId, label, order: count },
-  });
+  const grades = formData.getAll('grades').map(String).filter(Boolean);
+  if (grades.length === 0) return;
+
+  const existing = await prisma.gradeBand.findMany({ where: { schoolId: school.id }, select: { label: true } });
+  const existingLabels = new Set(existing.map((b) => b.label));
+
+  let order = await prisma.gradeBand.count({ where: { schoolId: school.id } });
+  for (const label of grades) {
+    if (existingLabels.has(label)) continue;
+    await prisma.gradeBand.create({ data: { schoolId: school.id, programmeStageId: stageId, label, order: order++ } });
+  }
   revalidatePath(`/master/${schoolCode}`);
 }
 

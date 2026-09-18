@@ -26,7 +26,6 @@ interface GradeBandSeed {
 
 interface StageSeed {
   label: string;
-  defaultIncrementPct: number;
   gradeBands: GradeBandSeed[];
 }
 
@@ -38,8 +37,7 @@ interface SchoolSeed {
   order: number;
   stages: StageSeed[];
   academicYear: string;
-  /** the increment % actually applied to build this seed's FeeVersion (may differ from a
-   *  stage's forward-looking defaultIncrementPct — see FSK's note below) */
+  /** the increment % actually applied to build this seed's FeeVersion's FeeLines */
   appliedIncrementPct: number;
   versionStatus: 'DRAFT' | 'PENDING_APPROVAL' | 'APPROVED';
   versionNotes: string;
@@ -61,16 +59,13 @@ const SCHOOLS: SchoolSeed[] = [
       'by a few rupees from the exact filed amount due to legacy per-row rounding in the ' +
       'original FRC filing. Term fees are the exact filed amounts.',
     stages: [
-      // Forward-looking policy (10 Years Fees Kunkni!E1:F2): 6% for EYP-to-MYP from 2027-28
-      // onward, split one stage per IB programme (confirmed with the user) rather than one
-      // "EYP to MYP" stage covering three grade bands at a shared rate — each programme sets
-      // its own YoY % independently at finalisation time, even though today they start equal.
-      // The 2026-27 seed above still uses the historical 5% — these defaults only pre-fill the
-      // NEXT draft a Finance Officer creates.
-      { label: 'EYP — Early Years Programme', defaultIncrementPct: 0.06, gradeBands: [{ label: 'Jr. & Sr. KG', baseFee: 138190, termFee: 20157 }] },
-      { label: 'PYP — Primary Years Programme', defaultIncrementPct: 0.06, gradeBands: [{ label: 'Grade 1 to 6', baseFee: 163640, termFee: 23870 }] },
-      { label: 'MYP — Middle Years Programme', defaultIncrementPct: 0.06, gradeBands: [{ label: 'Grade 7 to 10', baseFee: 202720, termFee: 29570 }] },
-      { label: 'DP — Diploma Programme', defaultIncrementPct: 0.05, gradeBands: [{ label: 'Grade 11 & 12', baseFee: 381470, termFee: 55644 }] },
+      // Split one stage per IB programme (confirmed with the user) rather than one "EYP to
+      // MYP" stage covering three grade bands — each programme sets its own YoY % independently
+      // at finalisation time, decided fresh in the Fee Builder each year (no stored default).
+      { label: 'EYP — Early Years Programme', gradeBands: [{ label: 'Jr. & Sr. KG', baseFee: 138190, termFee: 20157 }] },
+      { label: 'PYP — Primary Years Programme', gradeBands: [{ label: 'Grade 1 to 6', baseFee: 163640, termFee: 23870 }] },
+      { label: 'MYP — Middle Years Programme', gradeBands: [{ label: 'Grade 7 to 10', baseFee: 202720, termFee: 29570 }] },
+      { label: 'DP — Diploma Programme', gradeBands: [{ label: 'Grade 11 & 12', baseFee: 381470, termFee: 55644 }] },
     ],
   },
   {
@@ -90,7 +85,6 @@ const SCHOOLS: SchoolSeed[] = [
     stages: [
       {
         label: 'EYP & PYP',
-        defaultIncrementPct: 0.09,
         gradeBands: [
           { label: 'Jr. & Sr. KG', baseFee: 378000 },
           { label: 'Grade 1 to 3', baseFee: 432000 },
@@ -99,7 +93,6 @@ const SCHOOLS: SchoolSeed[] = [
       },
       {
         label: 'MYP & DP',
-        defaultIncrementPct: 0.08,
         gradeBands: [
           { label: 'Grade 7 & 8', baseFee: 486000 },
           { label: 'Grade 9 & 10', baseFee: 540000 },
@@ -124,10 +117,10 @@ const SCHOOLS: SchoolSeed[] = [
       'Year 5 in the source table: EYP 165000->241577, PYP 264000->386522, MYP 319000->467048, ' +
       'DP 418000->611994 — each ratio is 1.10). Still a draft — not yet submitted for review.',
     stages: [
-      { label: 'EYP — Early Years Programme', defaultIncrementPct: 0.1, gradeBands: [{ label: 'Early Years', baseFee: 165000 }] },
-      { label: 'PYP — Primary Years Programme', defaultIncrementPct: 0.1, gradeBands: [{ label: 'Primary Years', baseFee: 264000 }] },
-      { label: 'MYP — Middle Years Programme', defaultIncrementPct: 0.1, gradeBands: [{ label: 'Middle Years', baseFee: 319000 }] },
-      { label: 'DP — Diploma Programme', defaultIncrementPct: 0.1, gradeBands: [{ label: 'Diploma Programme', baseFee: 418000 }] },
+      { label: 'EYP — Early Years Programme', gradeBands: [{ label: 'Early Years', baseFee: 165000 }] },
+      { label: 'PYP — Primary Years Programme', gradeBands: [{ label: 'Primary Years', baseFee: 264000 }] },
+      { label: 'MYP — Middle Years Programme', gradeBands: [{ label: 'Middle Years', baseFee: 319000 }] },
+      { label: 'DP — Diploma Programme', gradeBands: [{ label: 'Diploma Programme', baseFee: 418000 }] },
     ],
   },
   {
@@ -143,14 +136,13 @@ const SCHOOLS: SchoolSeed[] = [
     stages: [
       {
         label: 'EYP to MYP',
-        defaultIncrementPct: 0.06,
         gradeBands: [
           { label: 'Jr. & Sr. KG', baseFee: 125000 },
           { label: 'Grade 1 to 6', baseFee: 148000 },
           { label: 'Grade 7 to 10', baseFee: 185000 },
         ],
       },
-      { label: 'DP', defaultIncrementPct: 0.05, gradeBands: [{ label: 'Grade 11 & 12', baseFee: 360000 }] },
+      { label: 'DP', gradeBands: [{ label: 'Grade 11 & 12', baseFee: 360000 }] },
     ],
   },
   {
@@ -166,7 +158,6 @@ const SCHOOLS: SchoolSeed[] = [
     stages: [
       {
         label: 'Early Years',
-        defaultIncrementPct: 0.08,
         gradeBands: [
           { label: 'Playgroup', baseFee: 95000 },
           { label: 'Nursery', baseFee: 105000 },
@@ -188,7 +179,6 @@ const SCHOOLS: SchoolSeed[] = [
     stages: [
       {
         label: 'Early Years',
-        defaultIncrementPct: 0.08,
         gradeBands: [
           { label: 'Playgroup', baseFee: 90000 },
           { label: 'Nursery', baseFee: 100000 },
@@ -233,7 +223,6 @@ async function main() {
         data: {
           schoolId: school.id,
           label: stage.label,
-          defaultIncrementPct: stage.defaultIncrementPct,
           order: stageOrder++,
         },
       });
