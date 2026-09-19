@@ -47,13 +47,13 @@ describe('computeGradeBandTotal', () => {
     expect(computeGradeBandTotal(lines)).toBe(173963);
   });
 
-  it('uses the isTotal head\'s own amount instead of summing (FSK/FSM 3-slab structure)', () => {
+  it('ignores the isTotal head\'s own stored amount and sums every OTHER head instead (FSK/FSM 3-slab structure)', () => {
     const lines = [
-      { amount: 200000, feeHead: { isTotal: true } }, // Total Fees to be charged from Parents
-      { amount: 153806, feeHead: { isTotal: false } }, // Tuition Fee
-      { amount: 20157, feeHead: { isTotal: false } }, // Beyond Mandate
+      { amount: 200000, feeHead: { isTotal: true } }, // Total Fees to be charged from Parents — stale/unused
+      { amount: 153806, feeHead: { isTotal: false } }, // Tuition Fee (FRC-mandated)
+      { amount: 20157, feeHead: { isTotal: false } }, // Beyond Mandate (optional service)
     ];
-    expect(computeGradeBandTotal(lines)).toBe(200000);
+    expect(computeGradeBandTotal(lines)).toBe(173963); // 153806 + 20157, NOT the stored 200000
   });
 });
 

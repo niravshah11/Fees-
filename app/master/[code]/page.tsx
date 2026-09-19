@@ -137,10 +137,11 @@ export default async function MasterSchool({ params }: { params: Promise<{ code:
       <p className="text-sm text-muted">
         The fee categories this school charges — every school starts with its own set (e.g.
         "Tuition Fee", "Beyond Mandate"), and you can add more here as the need arises. Each head
-        gets its own base fee and YoY increment %, set independently in the Fee Builder. Mark at
-        most one head "Total" if it already represents the grand total a parent pays (e.g. "Total
-        Fees to be charged from Parents") — the app then shows that head's amount as the grade
-        band's total instead of adding every head together.
+        gets its own base fee and YoY increment %, set independently in the Fee Builder — except
+        one you mark "Total" (e.g. "Total Fees to be charged from Parents"), if a parent's real
+        total is the sum of the others (say, an FRC-mandated Tuition Fee plus an optional Beyond
+        Mandate service). That head is calculated automatically as the sum of every other head,
+        not entered on its own — at most one per school.
       </p>
 
       <section className="fh-card">

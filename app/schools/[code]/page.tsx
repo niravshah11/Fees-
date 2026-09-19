@@ -99,6 +99,7 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
   const approvedForCurrentYear = current?.status === 'APPROVED';
   const hasOpenDraftOrReview = current && (current.status === 'DRAFT' || current.status === 'PENDING_APPROVAL');
   const currentGroups = current ? groupByGradeBand(current.feeLines) : [];
+  const totalHead = school.feeHeads.find((h) => h.isTotal);
 
   return (
     <div className="space-y-6">
@@ -197,17 +198,23 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
               <div className="space-y-3">
                 {currentGroups.map(({ gradeBand, lines }) => {
                   const total = computeGradeBandTotal(lines);
+                  const editableLines = lines.filter((l) => !l.feeHead.isTotal);
                   return (
                     <div key={gradeBand.id} className="rounded-lg border border-border bg-surface-sunken p-3">
                       <div className="flex items-center justify-between">
                         <div className="font-heading font-bold text-foreground">{gradeBand.label}</div>
                         <div className="text-sm">
-                          <span className="text-muted">Total </span>
+                          <span className="text-muted">{totalHead ? `${totalHead.label} ` : 'Total '}</span>
                           <span className="font-heading font-bold text-foreground">{inr.format(total)}</span>
                         </div>
                       </div>
+                      {totalHead && (
+                        <p className="mt-1 text-xs text-muted">
+                          {totalHead.label} is calculated automatically as the sum of the heads below — it isn't entered separately.
+                        </p>
+                      )}
                       <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                        {lines.map((line) => (
+                        {editableLines.map((line) => (
                           <FeeLineEditCard
                             key={line.id}
                             schoolCode={school.code}
@@ -229,7 +236,7 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
                       {school.feeHeads.map((head) => (
                         <th key={head.id}>{head.label}</th>
                       ))}
-                      <th>Total</th>
+                      {!totalHead && <th>Total</th>}
                     </tr>
                   </thead>
                   <tbody>
@@ -239,10 +246,11 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
                         <tr key={gradeBand.id}>
                           <td>{gradeBand.label}</td>
                           {school.feeHeads.map((head) => {
+                            if (head.isTotal) return <td key={head.id} className="font-medium">{inr.format(total)}</td>;
                             const line = lines.find((l) => l.feeHeadId === head.id);
                             return <td key={head.id}>{line ? inr.format(line.amount) : '—'}</td>;
                           })}
-                          <td className="font-medium">{inr.format(total)}</td>
+                          {!totalHead && <td className="font-medium">{inr.format(total)}</td>}
                         </tr>
                       );
                     })}
@@ -266,7 +274,7 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
                   <div>
                     <label className="fh-label text-xs">Fee head</label>
                     <select name="feeHeadId" className="fh-input" required>
-                      {school.feeHeads.map((head) => (
+                      {school.feeHeads.filter((head) => !head.isTotal).map((head) => (
                         <option key={head.id} value={head.id}>{head.label}</option>
                       ))}
                     </select>
@@ -294,12 +302,8 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
         for (let i = 0; i < 5; i++) projectionYears.push(nextAcademicYear(projectionYears[projectionYears.length - 1]));
 
         const series = currentGroups.map(({ gradeBand, lines }) => {
-          const totalLine = lines.find((l) => l.feeHead.isTotal);
-          if (totalLine) {
-            const schedule = projectFeeSchedule(totalLine.amount, Number(totalLine.incrementPct), 5);
-            return { label: gradeBand.label, points: [totalLine.amount, ...schedule.map((y) => y.fee)] };
-          }
-          const perHeadSchedules = lines.map((line) => {
+          const contributingLines = lines.filter((l) => !l.feeHead.isTotal);
+          const perHeadSchedules = contributingLines.map((line) => {
             const schedule = projectFeeSchedule(line.amount, Number(line.incrementPct), 5);
             return [line.amount, ...schedule.map((y) => y.fee)];
           });
@@ -311,9 +315,9 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
           <section className="fh-card">
             <h2 className="font-heading text-lg font-bold text-foreground">5-year projection preview</h2>
             <p className="mt-1 text-sm text-muted">
-              Each grade band's current total — its "Total Fees" head where one exists, otherwise
-              summed across every fee head — compounded forward at its own current increment %.
-              Preview only — not persisted; only the current year's proposal becomes real FeeLines.
+              Each grade band's current total — the sum of every fee head{totalHead ? ` except ${totalHead.label}, which is calculated from the others` : ''}
+              {' '}— compounded forward at each head's own current increment %. Preview only — not
+              persisted; only the current year's proposal becomes real FeeLines.
             </p>
 
             <div className="mt-4 overflow-x-auto">

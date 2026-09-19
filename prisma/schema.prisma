@@ -88,11 +88,12 @@ model FeeHead {
   schoolId  String
   label     String // e.g. "Tuition Fee", "Beyond Mandatory Fee"
   order     Int       @default(0)
-  /// True for a head whose own amount already IS the grade band's grand total (e.g. FSK/FSM's
-  /// "Total Fees to be charged from Parents") — at most one per school, confirmed with the user.
-  /// When present, display code uses this head's amount as the total instead of summing every
-  /// head (Total Fees, Tuition Fee, and Beyond Mandate are each independently entered — the app
-  /// does not enforce Total = Tuition + Beyond Mandate).
+  /// True for a head whose amount represents what a parent who opts into every optional service
+  /// actually pays (e.g. FSK/FSM's "Total Fees to be charged from Parents" = a mandatory,
+  /// FRC-approved Tuition Fee plus an optional Beyond Mandate service) — at most one per school,
+  /// confirmed with the user. Its own FeeLine.baseFee/incrementPct/amount are unused: display code
+  /// (engine/fee.ts's computeGradeBandTotal) always CALCULATES this head's total as the sum of
+  /// every other head instead, so it is not independently entered in the Fee Builder.
   isTotal   Boolean   @default(false)
   feeLines  FeeLine[]
   createdAt DateTime  @default(now())
