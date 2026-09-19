@@ -33,6 +33,14 @@ function nextAcademicYear(year: string): string {
   return `${startYear}-${String((startYear + 1) % 100).padStart(2, '0')}`;
 }
 
+/** `fromYear` plus the next `count - 1` academic years, in order — the dropdown of choices for
+ *  starting a new proposal, so nobody has to type/format the year by hand. */
+function academicYearOptions(fromYear: string, count: number): string[] {
+  const years = [fromYear];
+  for (let i = 1; i < count; i++) years.push(nextAcademicYear(years[years.length - 1]));
+  return years;
+}
+
 interface FeeLineRow {
   id: string;
   gradeBandId: string;
@@ -108,12 +116,11 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
           <form action={createDraftVersion.bind(null, school.code)} className="flex items-end gap-2">
             <div>
               <label className="fh-label text-xs">Start next year's proposal</label>
-              <input
-                name="academicYear"
-                defaultValue={nextAcademicYear(current.academicYear)}
-                className="fh-input"
-                required
-              />
+              <select name="academicYear" className="fh-input" required defaultValue={nextAcademicYear(current.academicYear)}>
+                {academicYearOptions(nextAcademicYear(current.academicYear), 10).map((year) => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
+              </select>
             </div>
             <button type="submit" className="fh-btn fh-btn--primary">Start draft</button>
           </form>
