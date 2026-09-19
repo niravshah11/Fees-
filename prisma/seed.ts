@@ -13,11 +13,12 @@
 //
 // Every school charges Tuition Fee, seeded with real base figures where the user supplied them.
 // FeeHead is otherwise campus-specific and extensible via Master Data (confirmed with the user)
-// — FSK and FSM also charge a "Beyond Mandate" fee (an optional service; seeded at 0, no source
-// figures for it) and a "Total Fees to be charged from Parents" head, flagged isTotal: true, so
-// display code (engine/fee.ts's computeGradeBandTotal) always CALCULATES its amount as Tuition
-// Fee + Beyond Mandate — what a parent who opts into the optional service actually pays — rather
-// than seeding it with its own figures.
+// — FSK and FSM also charge a "Beyond Mandate" fee and a "Total Fees to be charged from Parents"
+// head. Total is flagged isTotal: independently entered on its own base/increment, same as any
+// other head — FSK's real figures put it well above Tuition Fee alone (2024-25 actuals include
+// Term Fees), so it is NOT derivable from Tuition Fee. Beyond Mandate is flagged isRemainder:
+// engine/fee.ts's computeRemainderHeadAmount always CALCULATES it as Total minus every other head
+// (confirmed with the user against real FSK figures: Total minus the FRC-approved Tuition Fee).
 
 import { PrismaClient } from '@prisma/client';
 import { computeIncrementedFee } from '../engine/fee';
@@ -25,13 +26,20 @@ import { buildApprovalChain } from '../engine/approval';
 
 const prisma = new PrismaClient();
 
-/** The one fee head, when present, whose amount is CALCULATED as the sum of every other head —
+/** The one fee head, when present, that's independently entered as this school's grand total —
  *  flagged isTotal: true on creation (see engine-level header comment above). */
 const TOTAL_HEAD_LABEL = 'Total Fees to be charged from Parents';
+/** The one fee head, when present, whose amount is CALCULATED as Total minus every other head —
+ *  flagged isRemainder: true on creation. */
+const REMAINDER_HEAD_LABEL = 'Beyond Mandate';
 
 interface GradeBandSeed {
   label: string;
   baseFee: number;
+  /** FSK's real "Total Fees to be charged from Parents" figure for this seed's academic year
+   *  (2024-25 actuals including Term Fees, carried to 2026-27) — independently entered, not
+   *  derived from `baseFee`. Omitted for schools/bands with no real Total Fees figure yet. */
+  totalFee?: number;
 }
 
 interface StageSeed {
@@ -72,17 +80,17 @@ const SCHOOLS: SchoolSeed[] = [
       'FRC-approved 2026-27 Tuition Fee (Tuition Fees Working 2024-25, 2025-26 and 2026-27.xlsx). ' +
       'Figures are the app-computed 5% increment off the 2025-26 base and may differ by a few ' +
       'rupees from the exact filed amount due to legacy per-row rounding in the original FRC ' +
-      'filing. "Beyond Mandate" (an optional service) is seeded at 0 — no source figures yet; ' +
-      'fill it in via the Fee Builder. "Total Fees to be charged from Parents" is calculated ' +
-      'automatically as Tuition Fee + Beyond Mandate, so it starts equal to the Tuition Fee.',
+      'filing. "Total Fees to be charged from Parents" is a real, independently-tracked figure ' +
+      '(2024-25 actuals including Term Fees, carried to 2026-27) — not derived from Tuition Fee. ' +
+      '"Beyond Mandate" is calculated as Total Fees minus Tuition Fee.',
     stages: [
       // Split one stage per IB programme (confirmed with the user) rather than one "EYP to
       // MYP" stage covering three grade bands — each programme sets its own YoY % independently
       // at finalisation time, decided fresh in the Fee Builder each year (no stored default).
-      { label: 'EYP — Early Years Programme', gradeBands: [{ label: 'Jr. & Sr. KG', baseFee: 138190 }] },
-      { label: 'PYP — Primary Years Programme', gradeBands: [{ label: 'Grade 1 to 6', baseFee: 163640 }] },
-      { label: 'MYP — Middle Years Programme', gradeBands: [{ label: 'Grade 7 to 10', baseFee: 202720 }] },
-      { label: 'DP — Diploma Programme', gradeBands: [{ label: 'Grade 11 & 12', baseFee: 381470 }] },
+      { label: 'EYP — Early Years Programme', gradeBands: [{ label: 'Jr. & Sr. KG', baseFee: 138190, totalFee: 184789 }] },
+      { label: 'PYP — Primary Years Programme', gradeBands: [{ label: 'Grade 1 to 6', baseFee: 163640, totalFee: 218826 }] },
+      { label: 'MYP — Middle Years Programme', gradeBands: [{ label: 'Grade 7 to 10', baseFee: 202720, totalFee: 271079 }] },
+      { label: 'DP — Diploma Programme', gradeBands: [{ label: 'Grade 11 & 12', baseFee: 381470, totalFee: 460256 }] },
     ],
   },
   {
@@ -99,9 +107,9 @@ const SCHOOLS: SchoolSeed[] = [
       'Base fee per the Parent Undertaking for 2027-28 (Provisional fee 2027-28.xlsx, ' +
       '"10 Years Fees Malgama"). Lump-sum tuition figure, no separate term fee. Fees Group ' +
       'Coordinator and Head of Operations have reviewed; awaiting Director and Board of ' +
-      'Trustees sign-off. "Beyond Mandate" (an optional service) and "Total Fees to be charged ' +
-      'from Parents" (calculated as Tuition Fee + Beyond Mandate) added per the same 3-slab ' +
-      'structure as FSK.',
+      'Trustees sign-off. "Total Fees to be charged from Parents" and "Beyond Mandate" (calculated ' +
+      'as Total minus Tuition Fee) added per the same structure as FSK — no real Total Fees figure ' +
+      'for FSM yet, so Total seeds at 0 until the finance team fills it in via the Fee Builder.',
     stages: [
       {
         label: 'EYP & PYP',
@@ -232,15 +240,26 @@ async function main() {
 
     const feeHeads = await Promise.all(
       s.feeHeads.map((label, order) =>
-        prisma.feeHead.create({ data: { schoolId: school.id, label, order, isTotal: label === TOTAL_HEAD_LABEL } }),
+        prisma.feeHead.create({
+          data: {
+            schoolId: school.id,
+            label,
+            order,
+            isTotal: label === TOTAL_HEAD_LABEL,
+            isRemainder: label === REMAINDER_HEAD_LABEL,
+          },
+        }),
       ),
     );
-    // Tuition Fee carries the real source-workbook base figures. A "Total Fees..." head's own
-    // stored baseFee/incrementPct/amount are never read for display (computeGradeBandTotal always
-    // recalculates it from the other heads) — seeded the same as Tuition Fee purely so the row
-    // isn't left at a confusing 0 if anything ever inspects it directly. Every other head seeds
-    // at 0, ready to be filled in via the Fee Builder.
+    // Tuition Fee carries the real source-workbook base figures; the isTotal head (if present)
+    // carries its own real base (GradeBandSeed.totalFee) where the user supplied one, else 0.
+    // Every other non-remainder head seeds at 0, ready to be filled in via the Fee Builder. The
+    // isRemainder head's own baseFee/amount are computed AFTER every other head's line exists for
+    // this grade band (see below) — never read for display, but kept accurate for anything that
+    // inspects the raw row directly.
     const realDataHead = feeHeads.find((h) => h.label === 'Tuition Fee') ?? feeHeads[0];
+    const totalHead = feeHeads.find((h) => h.isTotal);
+    const remainderHead = feeHeads.find((h) => h.isRemainder);
 
     const feeVersion = await prisma.feeVersion.create({
       data: {
@@ -274,13 +293,24 @@ async function main() {
           },
         });
 
-        // One FeeLine per (grade band x fee head). Tuition Fee (and a "Total Fees..." head, if
-        // present) get real baseFee data; any other head (e.g. "Beyond Mandate") seeds at 0.
+        // One FeeLine per (grade band x fee head). Tuition Fee gets the real source-workbook
+        // base; the isTotal head (if present) gets its own real, independently-tracked base
+        // (GradeBandSeed.totalFee) at 0% — a fresh increment is set later via the Fee Builder,
+        // same as any other head. Any other non-remainder head seeds at 0. The isRemainder head
+        // is skipped here and computed afterward as Total minus every other head's amount.
+        const amountByHeadId = new Map<string, number>();
         for (const head of feeHeads) {
-          const usesRealData = head.id === realDataHead.id || head.isTotal;
-          const baseFee = usesRealData ? band.baseFee : 0;
-          const incrementPct = usesRealData ? s.appliedIncrementPct : 0;
+          if (head.isRemainder) continue;
+          let baseFee = 0;
+          let incrementPct = 0;
+          if (head.id === realDataHead.id) {
+            baseFee = band.baseFee;
+            incrementPct = s.appliedIncrementPct;
+          } else if (head.isTotal && band.totalFee !== undefined) {
+            baseFee = band.totalFee;
+          }
           const amount = computeIncrementedFee(baseFee, incrementPct);
+          amountByHeadId.set(head.id, amount);
 
           await prisma.feeLine.create({
             data: {
@@ -290,6 +320,25 @@ async function main() {
               baseFee,
               incrementPct,
               amount,
+            },
+          });
+        }
+
+        if (remainderHead) {
+          const totalAmount = totalHead ? amountByHeadId.get(totalHead.id) ?? 0 : 0;
+          const othersSum = [...amountByHeadId.entries()]
+            .filter(([id]) => id !== totalHead?.id)
+            .reduce((sum, [, amt]) => sum + amt, 0);
+          const remainderAmount = totalAmount - othersSum;
+
+          await prisma.feeLine.create({
+            data: {
+              feeVersionId: feeVersion.id,
+              gradeBandId: gradeBand.id,
+              feeHeadId: remainderHead.id,
+              baseFee: remainderAmount,
+              incrementPct: 0,
+              amount: remainderAmount,
             },
           });
         }

@@ -137,7 +137,7 @@ export default async function MasterSchool({ params }: { params: Promise<{ code:
     content: (
       <div className="space-y-2">
         {canEdit ? (
-          <form action={updateFeeHead.bind(null, school.code, head.id)} className="flex flex-wrap items-end gap-2">
+          <form action={updateFeeHead.bind(null, school.code, head.id)} className="flex flex-wrap items-end gap-3">
             <div className="flex-1">
               <label className="fh-label text-xs">Label</label>
               <input name="label" defaultValue={head.label} className="fh-input w-full" required />
@@ -145,6 +145,10 @@ export default async function MasterSchool({ params }: { params: Promise<{ code:
             <label className="flex items-center gap-1.5 text-sm text-muted">
               <input type="checkbox" name="isTotal" defaultChecked={head.isTotal} />
               Total
+            </label>
+            <label className="flex items-center gap-1.5 text-sm text-muted">
+              <input type="checkbox" name="isRemainder" defaultChecked={head.isRemainder} />
+              Remainder
             </label>
             <button type="submit" className="fh-btn fh-btn--outline fh-btn--sm">Save</button>
           </form>
@@ -154,19 +158,25 @@ export default async function MasterSchool({ params }: { params: Promise<{ code:
         {head.isTotal && (
           <p className="text-xs text-muted">
             <span className="fh-badge fh-badge--success">Total</span>{' '}
-            — calculated automatically as the sum of this school's other fee heads, not entered
-            on its own in the Fee Builder.
+            — this school's grand total. Entered independently, same as any other head.
+          </p>
+        )}
+        {head.isRemainder && (
+          <p className="text-xs text-muted">
+            <span className="fh-badge fh-badge--success">Remainder</span>{' '}
+            — calculated automatically as Total minus every other head, not entered on its own in
+            the Fee Builder.
           </p>
         )}
         {canEdit && (
-          <form action={deleteFeeHead.bind(null, school.code, head.id)}>
+          <form action={deleteFeeHead.bind(null, school.code, head.id)} className="border-t border-border pt-3">
             <button
               type="submit"
-              className="text-xs text-red-600 hover:underline disabled:cursor-not-allowed disabled:text-muted disabled:no-underline"
+              className="fh-btn fh-btn--danger fh-btn--sm"
               disabled={head._count.feeLines > 0}
-              title={head._count.feeLines > 0 ? `Has ${head._count.feeLines} fee line(s) recorded — cannot remove` : undefined}
+              title={head._count.feeLines > 0 ? `Has ${head._count.feeLines} fee line(s) recorded — cannot delete` : undefined}
             >
-              Remove this fee head
+              Delete this fee head
             </button>
           </form>
         )}
@@ -179,11 +189,12 @@ export default async function MasterSchool({ params }: { params: Promise<{ code:
       <p className="text-sm text-muted">
         The fee categories this school charges — every school starts with its own set (e.g.
         "Tuition Fee", "Beyond Mandate"), and you can add more here as the need arises. Each head
-        gets its own base fee and YoY increment %, set independently in the Fee Builder — except
-        one you mark "Total" (e.g. "Total Fees to be charged from Parents"), if a parent's real
-        total is the sum of the others (say, an FRC-mandated Tuition Fee plus an optional Beyond
-        Mandate service). That head is calculated automatically as the sum of every other head,
-        not entered on its own — at most one per school.
+        gets its own base fee and YoY increment %, set independently in the Fee Builder. Mark at
+        most one head "Total" if it's the grand total a parent pays (e.g. "Total Fees to be
+        charged from Parents") — it's still entered independently, on its own base/increment, not
+        derived from the others. If some other head is the gap between Total and the rest (e.g.
+        FSK's "Beyond Mandate" = Total minus the FRC-approved Tuition Fee), mark that one
+        "Remainder" instead — it's calculated automatically and can't be entered on its own.
       </p>
 
       {feeHeadTabs.length > 0 ? (
@@ -205,6 +216,10 @@ export default async function MasterSchool({ params }: { params: Promise<{ code:
             <label className="flex items-center gap-1.5 text-sm text-muted">
               <input type="checkbox" name="isTotal" />
               Total
+            </label>
+            <label className="flex items-center gap-1.5 text-sm text-muted">
+              <input type="checkbox" name="isRemainder" />
+              Remainder
             </label>
             <button type="submit" className="fh-btn fh-btn--primary">Add fee head</button>
           </form>

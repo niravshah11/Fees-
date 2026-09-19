@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/db';
+import { computeIncrementedFee } from '@/engine/fee';
 
 // Master-data mutations for a school's Programme Stages, Grade Bands, and Fee Heads. Open to
 // every signed-in colleague, same as drafting a fee proposal — there is no dedicated "editor"
@@ -106,16 +107,38 @@ export async function deleteGradeBand(schoolCode: string, bandId: string): Promi
 export async function createFeeHead(schoolCode: string, formData: FormData): Promise<void> {
   const school = await requireSchool(schoolCode);
   const label = String(formData.get('label') ?? '').trim();
+  // A head can't be both — Total is independently entered, Remainder is always calculated from it.
   const isTotal = formData.get('isTotal') === 'on';
+  const isRemainder = !isTotal && formData.get('isRemainder') === 'on';
   if (!label) return;
 
   const count = await prisma.feeHead.count({ where: { schoolId: school.id } });
   await prisma.$transaction(async (tx) => {
-    // At most one "is the total" head per school (see schema.prisma's FeeHead.isTotal comment).
+    // At most one of each per school (see schema.prisma's FeeHead doc comments).
     if (isTotal) await tx.feeHead.updateMany({ where: { schoolId: school.id }, data: { isTotal: false } });
-    await tx.feeHead.create({ data: { schoolId: school.id, label, order: count, isTotal } });
+    if (isRemainder) await tx.feeHead.updateMany({ where: { schoolId: school.id }, data: { isRemainder: false } });
+    const head = await tx.feeHead.create({ data: { schoolId: school.id, label, order: count, isTotal, isRemainder } });
+
+    // Backfill this new head into any DRAFT proposal already in progress, so it shows up in the
+    // Fee Builder right away instead of silently missing until the next draft starts fresh
+    // (confirmed with the user: Master Data's fee heads and a school's current draft must never
+    // drift out of sync). Not backfilled into PENDING_APPROVAL/APPROVED versions — those are
+    // already submitted or final, so their structure shouldn't shift retroactively.
+    const draftVersions = await tx.feeVersion.findMany({ where: { schoolId: school.id, status: 'DRAFT' } });
+    if (draftVersions.length > 0) {
+      const gradeBands = await tx.gradeBand.findMany({ where: { schoolId: school.id } });
+      const amount = computeIncrementedFee(0, 0);
+      for (const version of draftVersions) {
+        for (const band of gradeBands) {
+          await tx.feeLine.create({
+            data: { feeVersionId: version.id, gradeBandId: band.id, feeHeadId: head.id, baseFee: 0, incrementPct: 0, amount },
+          });
+        }
+      }
+    }
   });
   revalidatePath(`/master/${schoolCode}`);
+  revalidatePath(`/schools/${schoolCode}`);
 }
 
 export async function updateFeeHead(schoolCode: string, headId: string, formData: FormData): Promise<void> {
@@ -125,13 +148,16 @@ export async function updateFeeHead(schoolCode: string, headId: string, formData
 
   const label = String(formData.get('label') ?? '').trim();
   const isTotal = formData.get('isTotal') === 'on';
+  const isRemainder = !isTotal && formData.get('isRemainder') === 'on';
   if (!label) return;
 
   await prisma.$transaction(async (tx) => {
     if (isTotal) await tx.feeHead.updateMany({ where: { schoolId: school.id, id: { not: headId } }, data: { isTotal: false } });
-    await tx.feeHead.update({ where: { id: headId }, data: { label, isTotal } });
+    if (isRemainder) await tx.feeHead.updateMany({ where: { schoolId: school.id, id: { not: headId } }, data: { isRemainder: false } });
+    await tx.feeHead.update({ where: { id: headId }, data: { label, isTotal, isRemainder } });
   });
   revalidatePath(`/master/${schoolCode}`);
+  revalidatePath(`/schools/${schoolCode}`);
 }
 
 /** Refuses to delete a fee head that already has fee-line history — deleting it would

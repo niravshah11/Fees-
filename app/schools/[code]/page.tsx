@@ -5,7 +5,7 @@ import { getCurrentRights } from '@/lib/auth/rights';
 import { hasRoleForCampus, type FeeRole } from '@/engine/rights';
 import { computeApprovalState, isActionable } from '@/engine/approval';
 import { projectFeeSchedule } from '@/engine/projection';
-import { FEE_APPROVAL_CHAIN, computeGradeBandTotal } from '@/engine/fee';
+import { FEE_APPROVAL_CHAIN, computeGradeBandTotal, computeRemainderHeadAmount } from '@/engine/fee';
 import { nextAcademicYear, academicYearOptions } from '@/lib/academic-year';
 import { FeeLineEditCard } from './_FeeLineEditCard';
 import {
@@ -32,7 +32,7 @@ interface FeeLineRow {
   gradeBandId: string;
   gradeBand: { id: string; label: string; order: number };
   feeHeadId: string;
-  feeHead: { id: string; label: string; isTotal: boolean };
+  feeHead: { id: string; label: string; isTotal: boolean; isRemainder: boolean };
   baseFee: number;
   incrementPct: unknown;
   amount: number;
@@ -86,6 +86,7 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
   const hasOpenDraftOrReview = current && (current.status === 'DRAFT' || current.status === 'PENDING_APPROVAL');
   const currentGroups = current ? groupByGradeBand(current.feeLines) : [];
   const totalHead = school.feeHeads.find((h) => h.isTotal);
+  const remainderHead = school.feeHeads.find((h) => h.isRemainder);
 
   return (
     <div className="space-y-6">
@@ -189,7 +190,8 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
               <div className="space-y-3">
                 {currentGroups.map(({ gradeBand, lines }) => {
                   const total = computeGradeBandTotal(lines);
-                  const editableLines = lines.filter((l) => !l.feeHead.isTotal);
+                  const remainderAmount = computeRemainderHeadAmount(lines);
+                  const editableLines = lines.filter((l) => !l.feeHead.isRemainder);
                   return (
                     <div key={gradeBand.id} className="rounded-lg border border-border bg-surface-sunken p-3">
                       <div className="flex items-center justify-between">
@@ -199,11 +201,6 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
                           <span className="font-heading text-base font-bold text-[var(--fh-color-primary-text)]">{inr.format(total)}</span>
                         </div>
                       </div>
-                      {totalHead && (
-                        <p className="mt-1 text-xs text-muted">
-                          {totalHead.label} is calculated automatically as the sum of the heads below — it isn't entered separately.
-                        </p>
-                      )}
                       <div className="mt-3 grid gap-3 sm:grid-cols-2">
                         {editableLines.map((line) => (
                           <FeeLineEditCard
@@ -213,6 +210,21 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
                             line={{ id: line.id, baseFee: line.baseFee, incrementPct: Number(line.incrementPct) }}
                           />
                         ))}
+                        {remainderHead && remainderAmount !== null && (
+                          <div className="rounded-lg border border-border p-3">
+                            <div className="text-sm font-medium text-foreground">{remainderHead.label}</div>
+                            <div className="mt-2 rounded-md bg-surface-sunken px-3 py-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium text-foreground">Amount</span>
+                                <span className="font-heading font-bold text-foreground">{inr.format(remainderAmount)}</span>
+                              </div>
+                            </div>
+                            <p className="mt-2 text-xs text-muted">
+                              {remainderHead.label} = {totalHead?.label ?? 'Total'} minus every other head — calculated
+                              automatically, not entered on its own.
+                            </p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
@@ -233,13 +245,17 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
                   <tbody>
                     {currentGroups.map(({ gradeBand, lines }) => {
                       const total = computeGradeBandTotal(lines);
+                      const remainderAmount = computeRemainderHeadAmount(lines);
                       return (
                         <tr key={gradeBand.id}>
                           <td>{gradeBand.label}</td>
                           {school.feeHeads.map((head) => {
-                            if (head.isTotal) return <td key={head.id} className="font-medium">{inr.format(total)}</td>;
+                            if (head.isRemainder) {
+                              return <td key={head.id}>{remainderAmount !== null ? inr.format(remainderAmount) : '—'}</td>;
+                            }
                             const line = lines.find((l) => l.feeHeadId === head.id);
-                            return <td key={head.id}>{line ? inr.format(line.amount) : '—'}</td>;
+                            const className = head.isTotal ? 'font-medium' : undefined;
+                            return <td key={head.id} className={className}>{line ? inr.format(line.amount) : '—'}</td>;
                           })}
                           {!totalHead && <td className="font-medium">{inr.format(total)}</td>}
                         </tr>
@@ -265,7 +281,7 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
                   <div>
                     <label className="fh-label text-xs">Fee head</label>
                     <select name="feeHeadId" className="fh-input" required>
-                      {school.feeHeads.filter((head) => !head.isTotal).map((head) => (
+                      {school.feeHeads.filter((head) => !head.isRemainder).map((head) => (
                         <option key={head.id} value={head.id}>{head.label}</option>
                       ))}
                     </select>
@@ -293,8 +309,12 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
         for (let i = 0; i < 5; i++) projectionYears.push(nextAcademicYear(projectionYears[projectionYears.length - 1]));
 
         const series = currentGroups.map(({ gradeBand, lines }) => {
-          const contributingLines = lines.filter((l) => !l.feeHead.isTotal);
-          const perHeadSchedules = contributingLines.map((line) => {
+          const totalLine = lines.find((l) => l.feeHead.isTotal);
+          if (totalLine) {
+            const schedule = projectFeeSchedule(totalLine.amount, Number(totalLine.incrementPct), 5);
+            return { label: gradeBand.label, points: [totalLine.amount, ...schedule.map((y) => y.fee)] };
+          }
+          const perHeadSchedules = lines.map((line) => {
             const schedule = projectFeeSchedule(line.amount, Number(line.incrementPct), 5);
             return [line.amount, ...schedule.map((y) => y.fee)];
           });
@@ -306,9 +326,10 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
           <section className="fh-card">
             <h2 className="fh-card__title text-foreground">5-year projection preview</h2>
             <p className="mt-1 text-sm text-muted">
-              Each grade band's current total — the sum of every fee head{totalHead ? ` except ${totalHead.label}, which is calculated from the others` : ''}
-              {' '}— compounded forward at each head's own current increment %. Preview only — not
-              persisted; only the current year's proposal becomes real FeeLines.
+              Each grade band's current total — its "{totalHead?.label ?? 'Total'}" head where one
+              exists, otherwise summed across every fee head — compounded forward at its own
+              current increment %. Preview only — not persisted; only the current year's proposal
+              becomes real FeeLines.
             </p>
 
             <div className="mt-4 overflow-x-auto">

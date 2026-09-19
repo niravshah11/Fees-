@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { computeIncrementedFee, computeTotalFee, computeGradeBandTotal, FEE_APPROVAL_CHAIN } from './fee';
+import { computeIncrementedFee, computeTotalFee, computeGradeBandTotal, computeRemainderHeadAmount, FEE_APPROVAL_CHAIN } from './fee';
 
 describe('computeIncrementedFee — worked examples (10 Years Fees Kunkni.xlsx)', () => {
   it('FSK Jr. & Sr. KG, EYP-to-MYP stage: 2026-27 FRC 145100 -> 2027-28 at 6%', () => {
@@ -47,13 +47,42 @@ describe('computeGradeBandTotal', () => {
     expect(computeGradeBandTotal(lines)).toBe(173963);
   });
 
-  it('ignores the isTotal head\'s own stored amount and sums every OTHER head instead (FSK/FSM 3-slab structure)', () => {
+  it('uses the isTotal head\'s own amount instead of summing (FSK 3-slab structure)', () => {
     const lines = [
-      { amount: 200000, feeHead: { isTotal: true } }, // Total Fees to be charged from Parents — stale/unused
+      { amount: 203268, feeHead: { isTotal: true } }, // Total Fees to be charged from Parents
       { amount: 153806, feeHead: { isTotal: false } }, // Tuition Fee (FRC-mandated)
-      { amount: 20157, feeHead: { isTotal: false } }, // Beyond Mandate (optional service)
+      { amount: 49462, feeHead: { isTotal: false } }, // Beyond Mandate (derived)
     ];
-    expect(computeGradeBandTotal(lines)).toBe(173963); // 153806 + 20157, NOT the stored 200000
+    expect(computeGradeBandTotal(lines)).toBe(203268); // the Total head's own amount, not a sum
+  });
+});
+
+describe('computeRemainderHeadAmount', () => {
+  it('is the isTotal head\'s amount minus every other head (FSK Jr. & Sr. KG, 2027-28 worked example)', () => {
+    // Real FSK figures, confirmed with the user: Total Fees 203268, FRC Tuition Fee 153806 ->
+    // Beyond Mandate = 203268 - 153806 = 49462.
+    const lines = [
+      { amount: 203268, feeHead: { isTotal: true, isRemainder: false } },
+      { amount: 153806, feeHead: { isTotal: false, isRemainder: false } },
+      { amount: 0, feeHead: { isTotal: false, isRemainder: true } }, // stored amount is unused
+    ];
+    expect(computeRemainderHeadAmount(lines)).toBe(49462);
+  });
+
+  it('returns null when there is no isTotal head to derive from', () => {
+    const lines = [
+      { amount: 153806, feeHead: { isTotal: false, isRemainder: false } },
+      { amount: 0, feeHead: { isTotal: false, isRemainder: true } },
+    ];
+    expect(computeRemainderHeadAmount(lines)).toBeNull();
+  });
+
+  it('returns null when there is no isRemainder head at all', () => {
+    const lines = [
+      { amount: 203268, feeHead: { isTotal: true, isRemainder: false } },
+      { amount: 153806, feeHead: { isTotal: false, isRemainder: false } },
+    ];
+    expect(computeRemainderHeadAmount(lines)).toBeNull();
   });
 });
 

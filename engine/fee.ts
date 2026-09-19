@@ -5,11 +5,14 @@
 // `Tuition Fees Working 2024-25, 2025-26 and 2026-27.xlsx`. A grade band's headline fee is the SUM
 // of its FeeLine.amount across every FeeHead a school has (Tuition Fee, Beyond Mandate, etc.) —
 // each head is its own base/increment/amount, independently editable per grade band per year (no
-// shared or carried-over rate). If one head is flagged isTotal (e.g. FSK/FSM's "Total Fees to be
-// charged from Parents"), that head represents what a parent who opts into every optional service
-// actually pays — its amount is CALCULATED as the sum of every other head (e.g. FRC-mandated
-// Tuition Fee + optional Beyond Mandate), not independently entered — see computeGradeBandTotal
-// and FeeHead's doc comment in schema.prisma.
+// shared or carried-over rate). If one head is flagged isTotal (e.g. FSK's "Total Fees to be
+// charged from Parents"), that head's OWN amount is the total instead of the sum — it's still
+// independently entered, on its own base/increment, not derived from the others. If a school also
+// has a head flagged isRemainder (e.g. "Beyond Mandate"), THAT head is the derived one: the
+// isTotal head's amount minus every other head's — real FSK figures confirmed this exact direction
+// with the user (Total minus FRC-approved Tuition Fee = Beyond Mandate; not Tuition + Beyond
+// Mandate = Total, which was tried first and was wrong). See computeGradeBandTotal,
+// computeRemainderHeadAmount, and FeeHead's doc comment in schema.prisma.
 
 export const FEE_VERSION_STATUSES = [
   'DRAFT',
@@ -59,14 +62,25 @@ export function computeTotalFee(...amounts: number[]): number {
   return amounts.reduce((sum, a) => sum + a, 0);
 }
 
-/** A grade band's headline total: the sum of every fee head EXCEPT one flagged isTotal, if a
- *  school has one (e.g. FSK/FSM's "Total Fees to be charged from Parents" = Tuition Fee + Beyond
- *  Mandate) — that head's own stored amount is ignored, since it's calculated here rather than
- *  independently entered (confirmed with the user: a parent who opts into every optional service
- *  pays the sum of the mandatory head(s) plus every optional one). With no isTotal head, sums
- *  every line, same as computeTotalFee. */
+/** A grade band's headline total, isTotal-aware: if one of its FeeLines is for a head flagged
+ *  isTotal, that line's own amount is the total (independently entered, same as any other head).
+ *  Otherwise falls back to summing every line, same as computeTotalFee. */
 export function computeGradeBandTotal(lines: { amount: number; feeHead: { isTotal: boolean } }[]): number {
-  const hasTotalHead = lines.some((l) => l.feeHead.isTotal);
-  const contributing = hasTotalHead ? lines.filter((l) => !l.feeHead.isTotal) : lines;
-  return computeTotalFee(...contributing.map((l) => l.amount));
+  const totalLine = lines.find((l) => l.feeHead.isTotal);
+  return totalLine ? totalLine.amount : computeTotalFee(...lines.map((l) => l.amount));
+}
+
+/** The isRemainder head's amount (e.g. FSK's "Beyond Mandate"): the isTotal head's amount minus
+ *  every other non-total, non-remainder head's amount — never independently entered, always
+ *  calculated. Returns null if the school has no isTotal head to derive from, or no isRemainder
+ *  head at all (nothing to compute). */
+export function computeRemainderHeadAmount(
+  lines: { amount: number; feeHead: { isTotal: boolean; isRemainder: boolean } }[],
+): number | null {
+  const totalLine = lines.find((l) => l.feeHead.isTotal);
+  if (!totalLine) return null;
+  if (!lines.some((l) => l.feeHead.isRemainder)) return null;
+
+  const others = lines.filter((l) => !l.feeHead.isTotal && !l.feeHead.isRemainder);
+  return totalLine.amount - computeTotalFee(...others.map((l) => l.amount));
 }

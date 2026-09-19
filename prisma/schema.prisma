@@ -88,15 +88,21 @@ model FeeHead {
   schoolId  String
   label     String // e.g. "Tuition Fee", "Beyond Mandatory Fee"
   order     Int       @default(0)
-  /// True for a head whose amount represents what a parent who opts into every optional service
-  /// actually pays (e.g. FSK/FSM's "Total Fees to be charged from Parents" = a mandatory,
-  /// FRC-approved Tuition Fee plus an optional Beyond Mandate service) — at most one per school,
-  /// confirmed with the user. Its own FeeLine.baseFee/incrementPct/amount are unused: display code
-  /// (engine/fee.ts's computeGradeBandTotal) always CALCULATES this head's total as the sum of
-  /// every other head instead, so it is not independently entered in the Fee Builder.
-  isTotal   Boolean   @default(false)
-  feeLines  FeeLine[]
-  createdAt DateTime  @default(now())
+  /// True for a head whose own amount already IS the grade band's grand total (e.g. FSK's "Total
+  /// Fees to be charged from Parents") — independently entered with its own base fee/increment %,
+  /// same as any other head; at most one per school. When present, display code
+  /// (engine/fee.ts's computeGradeBandTotal) uses this head's own amount as the total instead of
+  /// summing every head.
+  isTotal     Boolean   @default(false)
+  /// True for a head whose amount is CALCULATED, never independently entered — the isTotal head's
+  /// amount minus every other (non-total, non-remainder) head's amount. Real FSK figures confirmed
+  /// this with the user: "Beyond Mandate" = "Total Fees to be charged from Parents" minus the
+  /// FRC-approved "Tuition Fee", where Total and Tuition each have their own independent base/
+  /// increment (Total is NOT Tuition + Beyond Mandate — that direction was tried and was wrong).
+  /// At most one per school; a head can't be both isTotal and isRemainder.
+  isRemainder Boolean   @default(false)
+  feeLines    FeeLine[]
+  createdAt   DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
   @@index([schoolId])
