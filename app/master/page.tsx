@@ -1,12 +1,21 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/db';
+import { tileToneClass } from '@/lib/tile-tone';
 
 export const dynamic = 'force-dynamic';
 
 export default async function MasterIndex() {
   const schools = await prisma.school.findMany({
     orderBy: { order: 'asc' },
-    include: { programmeStages: { include: { gradeBands: true } } },
+    include: {
+      programmeStages: { include: { gradeBands: true } },
+      feeVersions: {
+        where: { status: { not: 'SUPERSEDED' } },
+        orderBy: [{ academicYear: 'desc' }, { createdAt: 'desc' }],
+        take: 1,
+        select: { status: true },
+      },
+    },
   });
 
   return (
@@ -23,7 +32,7 @@ export default async function MasterIndex() {
         {schools.map((school) => {
           const bandCount = school.programmeStages.reduce((n, s) => n + s.gradeBands.length, 0);
           return (
-            <Link key={school.id} href={`/master/${school.code}`} className="fh-card fh-card--interactive block">
+            <Link key={school.id} href={`/master/${school.code}`} className={`fh-card fh-card--interactive block ${tileToneClass(school.feeVersions[0]?.status)}`}>
               <div className="flex items-start justify-between">
                 <div>
                   <div className="fh-card__title text-foreground">{school.code}</div>

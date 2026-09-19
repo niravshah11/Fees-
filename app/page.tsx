@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { prisma } from '@/lib/db';
 import { computeGradeBandTotal } from '@/engine/fee';
 import { nextAcademicYear, academicYearOptions } from '@/lib/academic-year';
+import { tileToneClass } from '@/lib/tile-tone';
 import { startNextYearForAllSchools } from './actions';
 
 export const dynamic = 'force-dynamic';
@@ -16,19 +17,6 @@ const STATUS_BADGE: Record<string, string> = {
   REJECTED: 'fh-badge--danger',
   SUPERSEDED: 'fh-badge--neutral',
 };
-
-// A school tile's whole background is tinted by its latest version's status (confirmed with the
-// user): green once approved, yellow while in review, and this third shade — a light brand blue,
-// matching the "Draft / not started" stat card's own tone — for everything else (drafting, no
-// proposal yet, or rejected).
-// `!` forces these to win over .fh-card's own `background` (same specificity, but the vendored
-// design-system CSS loads after Tailwind's utilities in the bundle, so a plain utility class
-// would otherwise lose — verified by inspecting the computed background without `!`).
-const TILE_TONE: Record<string, string> = {
-  APPROVED: '!bg-success-subtle',
-  PENDING_APPROVAL: '!bg-warning-subtle',
-};
-const TILE_TONE_DEFAULT = '!bg-primary-subtle';
 
 function StatCard({
   label,
@@ -155,10 +143,8 @@ export default async function Dashboard() {
               }, new Map<string, typeof approved.feeLines>()).values()].map(computeGradeBandTotal)
             : [];
           const tuitionRange = bandTotals.length > 0 ? [Math.min(...bandTotals), Math.max(...bandTotals)] : null;
-          const tileTone = TILE_TONE[latest?.status ?? ''] ?? TILE_TONE_DEFAULT;
-
           return (
-            <Link key={school.id} href={`/schools/${school.code}`} className={`fh-card fh-card--interactive block ${tileTone}`}>
+            <Link key={school.id} href={`/schools/${school.code}`} className={`fh-card fh-card--interactive block ${tileToneClass(latest?.status)}`}>
               <div className="flex items-start justify-between">
                 <div>
                   <div className="fh-card__title text-foreground">{school.code}</div>

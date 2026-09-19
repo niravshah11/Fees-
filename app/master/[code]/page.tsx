@@ -132,6 +132,48 @@ export default async function MasterSchool({ params }: { params: Promise<{ code:
     </div>
   );
 
+  const feeHeadTabs = school.feeHeads.map((head) => ({
+    label: head.label,
+    content: (
+      <div className="space-y-2">
+        {canEdit ? (
+          <form action={updateFeeHead.bind(null, school.code, head.id)} className="flex flex-wrap items-end gap-2">
+            <div className="flex-1">
+              <label className="fh-label text-xs">Label</label>
+              <input name="label" defaultValue={head.label} className="fh-input w-full" required />
+            </div>
+            <label className="flex items-center gap-1.5 text-sm text-muted">
+              <input type="checkbox" name="isTotal" defaultChecked={head.isTotal} />
+              Total
+            </label>
+            <button type="submit" className="fh-btn fh-btn--outline fh-btn--sm">Save</button>
+          </form>
+        ) : (
+          <span className="fh-badge fh-badge--neutral">{head.label}</span>
+        )}
+        {head.isTotal && (
+          <p className="text-xs text-muted">
+            <span className="fh-badge fh-badge--success">Total</span>{' '}
+            — calculated automatically as the sum of this school's other fee heads, not entered
+            on its own in the Fee Builder.
+          </p>
+        )}
+        {canEdit && (
+          <form action={deleteFeeHead.bind(null, school.code, head.id)}>
+            <button
+              type="submit"
+              className="text-xs text-red-600 hover:underline disabled:cursor-not-allowed disabled:text-muted disabled:no-underline"
+              disabled={head._count.feeLines > 0}
+              title={head._count.feeLines > 0 ? `Has ${head._count.feeLines} fee line(s) recorded — cannot remove` : undefined}
+            >
+              Remove this fee head
+            </button>
+          </form>
+        )}
+      </div>
+    ),
+  }));
+
   const feeHeadsContent = (
     <div className="space-y-4">
       <p className="text-sm text-muted">
@@ -144,42 +186,18 @@ export default async function MasterSchool({ params }: { params: Promise<{ code:
         not entered on its own — at most one per school.
       </p>
 
-      <section className="fh-card">
-        <div className="space-y-2">
-          {school.feeHeads.map((head) => (
-            <div key={head.id} className="flex flex-wrap items-end gap-2 rounded-md bg-surface-sunken p-2">
-              {canEdit ? (
-                <form action={updateFeeHead.bind(null, school.code, head.id)} className="flex flex-1 flex-wrap items-end gap-2">
-                  <input name="label" defaultValue={head.label} className="fh-input flex-1" required />
-                  <label className="flex items-center gap-1.5 text-sm text-muted">
-                    <input type="checkbox" name="isTotal" defaultChecked={head.isTotal} />
-                    Total
-                  </label>
-                  <button type="submit" className="fh-btn fh-btn--outline fh-btn--sm">Save</button>
-                </form>
-              ) : (
-                <span className="fh-badge fh-badge--neutral">{head.label}</span>
-              )}
-              {head.isTotal && <span className="fh-badge fh-badge--success">Total</span>}
-              {canEdit && (
-                <form action={deleteFeeHead.bind(null, school.code, head.id)} className="ml-auto">
-                  <button
-                    type="submit"
-                    className="text-xs text-red-600 hover:underline disabled:cursor-not-allowed disabled:text-muted disabled:no-underline"
-                    disabled={head._count.feeLines > 0}
-                    title={head._count.feeLines > 0 ? `Has ${head._count.feeLines} fee line(s) recorded — cannot remove` : undefined}
-                  >
-                    Remove
-                  </button>
-                </form>
-              )}
-            </div>
-          ))}
-          {school.feeHeads.length === 0 && <p className="text-sm text-muted">No fee heads yet — add one below.</p>}
-        </div>
+      {feeHeadTabs.length > 0 ? (
+        <section className="fh-card">
+          <Tabs tabs={feeHeadTabs} />
+        </section>
+      ) : (
+        <div className="fh-card text-sm text-muted">No fee heads yet — add one below.</div>
+      )}
 
-        {canEdit && (
-          <form action={createFeeHead.bind(null, school.code)} className="mt-4 flex flex-wrap items-end gap-2 border-t border-border pt-4">
+      {canEdit && (
+        <section className="fh-card">
+          <h2 className="fh-card__title text-foreground">Add a new fee head</h2>
+          <form action={createFeeHead.bind(null, school.code)} className="mt-3 flex flex-wrap items-end gap-2">
             <div className="flex-1">
               <label className="fh-label text-xs">New fee head</label>
               <input name="label" placeholder="e.g. Beyond Mandate" className="fh-input" required />
@@ -190,8 +208,8 @@ export default async function MasterSchool({ params }: { params: Promise<{ code:
             </label>
             <button type="submit" className="fh-btn fh-btn--primary">Add fee head</button>
           </form>
-        )}
-      </section>
+        </section>
+      )}
     </div>
   );
 

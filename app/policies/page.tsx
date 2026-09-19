@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/db';
+import { tileToneClass } from '@/lib/tile-tone';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,11 +26,15 @@ export default async function PoliciesIndex() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {schools.map((school) => {
           const current = school.feePolicies[0];
+          // Reuses the same green/blue tones as the Dashboard's fee-status tiles (confirmed with
+          // the user) — "APPROVED" here just means "has a current policy on file", the closest
+          // analog since a policy has no approval workflow of its own.
+          const toneClass = tileToneClass(current ? 'APPROVED' : undefined);
           return (
-            <Link key={school.id} href={`/policies/${school.code}`} className="fh-card block transition-shadow hover:shadow-fh-md">
+            <Link key={school.id} href={`/policies/${school.code}`} className={`fh-card fh-card--interactive block ${toneClass}`}>
               <div className="flex items-start justify-between">
                 <div>
-                  <div className="font-heading text-lg font-bold text-foreground">{school.code}</div>
+                  <div className="fh-card__title text-foreground">{school.code}</div>
                   <div className="text-sm text-muted">{school.name}</div>
                 </div>
                 <span className="fh-badge">{school.board}</span>

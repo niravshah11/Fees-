@@ -23,7 +23,11 @@ export function Tabs({ tabs }: { tabs: { label: string; content: ReactNode }[] }
           </button>
         ))}
       </div>
-      <div className="pt-4">{tabs[active].content}</div>
+      {/* Keyed by index so React remounts on switch instead of patching in place — tab contents
+          with the same shape (e.g. one edit form per fee head) would otherwise keep stale
+          uncontrolled input values (defaultValue/defaultChecked only apply on first mount). Keyed
+          by index rather than label since two tabs' labels aren't guaranteed unique. */}
+      <div className="pt-4" key={active}>{tabs[active].content}</div>
     </div>
   );
 }
