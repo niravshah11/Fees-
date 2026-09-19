@@ -28,6 +28,10 @@ const WHATS_NEW: { title: string; detail: string }[] = [
     title: 'Fee policies',
     detail: 'Each campus keeps its own fee-policy PDF at /policies — upload a new one for the year and older versions stay on file as history, never overwritten.',
   },
+  {
+    title: 'Reports',
+    detail: 'At /reports: Fee Lines (every grade band × fee head figure across every campus and year) and Approval Chain (every decision, who and when) — filter and download as CSV, Excel, or PDF.',
+  },
 ];
 
 export default function Help() {

@@ -14,7 +14,6 @@ import { ProjectionTable, type BandProjection } from './_ProjectionTable';
 import {
   createDraftVersion,
   updateAcademicYear,
-  bulkApplyIncrement,
   submitForReview,
   resetToDraft,
   decideApproval,
@@ -102,7 +101,6 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
   // propagate into a function declared afterward.
   const schoolCode = school.code;
   const schoolFeeHeads = school.feeHeads;
-  const schoolProgrammeStages = school.programmeStages;
 
   /** Everything that used to be keyed to a single "current" FeeVersion, now built once per
    *  version — each academic year a school has ever had a proposal for gets its own tab
@@ -261,40 +259,6 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
               </div>
             )}
 
-            {showEditableEditor && (
-              <div className="space-y-3 rounded-lg border border-border p-3">
-                <div className="text-sm font-medium text-foreground">Bulk apply an increment % to a stage</div>
-                <form action={bulkApplyIncrement.bind(null, schoolCode, version.id)} className="flex flex-wrap items-end gap-2">
-                  <div>
-                    <label className="fh-label text-xs">Stage</label>
-                    <select name="programmeStageId" className="fh-input" required>
-                      {schoolProgrammeStages.map((stage) => (
-                        <option key={stage.id} value={stage.id}>{stage.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="fh-label text-xs">Fee head</label>
-                    <select name="feeHeadId" className="fh-input" required>
-                      {schoolFeeHeads.filter((head) => !head.isRemainder).map((head) => (
-                        <option key={head.id} value={head.id}>{head.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="fh-label text-xs">Increment %</label>
-                    <input name="incrementPct" type="number" step="0.1" placeholder="6" className="fh-input w-24" required />
-                  </div>
-                  <button type="submit" className="fh-btn fh-btn--outline">Apply to stage</button>
-                </form>
-
-                {version.status === 'DRAFT' && canDraft && (
-                  <form action={submitForReview.bind(null, schoolCode, version.id)}>
-                    <button type="submit" className="fh-btn fh-btn--primary">Submit for Group Review</button>
-                  </form>
-                )}
-              </div>
-            )}
           </div>
         </section>
 
@@ -313,7 +277,18 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
           // Every independently-entered head (isTotal or plain) compounds forward at its own
           // increment %; the isRemainder head never gets its own compounding — at each projected
           // year it's recomputed as that year's Total minus every other head, same as
-          // computeRemainderHeadAmount does for the current year.
+          // computeRemainderHeadAmount does for the current year. Beyond Mandate's own effective
+          // YoY % is NOT "Total's % minus Tuition's %" (confirmed with the user this naive
+          // subtraction is wrong) — it's whatever rate actually took its amount from last year's
+          // to this year's, which varies year to year since it's a difference of two differently-
+          // compounding amounts. `withPct` derives that real rate from each amount vs. the one
+          // before it (the current, un-projected amount for the first projected year).
+          const withPct = (amounts: number[], base: number): { amount: number; pct?: number }[] =>
+            amounts.map((amount, i) => {
+              const prev = i === 0 ? base : amounts[i - 1];
+              return { amount, pct: prev !== 0 ? (amount / prev - 1) * 100 : undefined };
+            });
+
           const perBandHeadPoints = new Map<string, Map<string, number[]>>();
           for (const { gradeBand, lines } of groups) {
             const headPoints = new Map<string, number[]>();
@@ -337,25 +312,29 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
             const headPoints = perBandHeadPoints.get(gradeBand.id)!;
             // The visible row: the isTotal head's own projected points where one exists, else
             // summed across every non-remainder head each year — same fallback as computeGradeBandTotal.
-            // Its increment % only has a single, meaningful value when there IS an isTotal head
-            // (its own %) — the summed-fallback case mixes several heads' rates, so no % is shown there.
             const totalLine = totalHead ? lines.find((l) => l.feeHeadId === totalHead.id) : undefined;
-            const totalPoints = totalHead
+            const totalAmounts = totalHead
               ? headPoints.get(totalHead.id) ?? Array(5).fill(0)
               : Array.from({ length: 5 }, (_, i) =>
                   lines.filter((l) => !l.feeHead.isRemainder).reduce((sum, l) => sum + (headPoints.get(l.feeHeadId)?.[i] ?? 0), 0),
                 );
+            // % is only meaningful when there's ONE amount behind the row to compare year over
+            // year — the isTotal head's own line, or (for Tuition Fee etc.) that head's own line,
+            // or (for Beyond Mandate) the CURRENT remainder amount. The summed-fallback "Total"
+            // (no isTotal head at all) mixes several heads' amounts, so it gets no %.
+            const totalBase = totalLine ? totalLine.amount : undefined;
+            const totalPoints = totalBase !== undefined ? withPct(totalAmounts, totalBase) : totalAmounts.map((amount) => ({ amount }));
+
             // The expandable sub-rows: every other head (Tuition Fee, Beyond Mandate, ...) — the
-            // isTotal head is left out since it's already the visible row above. The remainder
-            // head has no increment % of its own (it's always derived), so its rows show no percentage.
+            // isTotal head is left out since it's already the visible row above.
             const subRows = schoolFeeHeads
               .filter((head) => !head.isTotal)
-              .map((head) => ({
-                label: head.label,
-                points: headPoints.get(head.id) ?? Array(5).fill(0),
-                incrementPct: head.isRemainder ? undefined : Number(lines.find((l) => l.feeHeadId === head.id)?.incrementPct ?? 0),
-              }));
-            return { id: gradeBand.id, label: gradeBand.label, totalPoints, totalIncrementPct: totalLine ? Number(totalLine.incrementPct) : undefined, subRows };
+              .map((head) => {
+                const amounts = headPoints.get(head.id) ?? Array(5).fill(0);
+                const base = head.isRemainder ? computeRemainderHeadAmount(lines) : lines.find((l) => l.feeHeadId === head.id)?.amount;
+                return { label: head.label, points: base !== null && base !== undefined ? withPct(amounts, base) : amounts.map((amount) => ({ amount })) };
+              });
+            return { id: gradeBand.id, label: gradeBand.label, totalPoints, subRows };
           });
 
           return (
@@ -381,6 +360,17 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
         {version.approvals.length > 0 && (
           <section className="fh-card">
             <ApprovalPanel schoolCode={schoolCode} approvals={version.approvals} canActByRole={roleForRole} />
+          </section>
+        )}
+
+        {/* Submit sits at the very bottom — after the figures, the projection, and (if any) the
+            approval history — so submitting is the last, deliberate step once everything above
+            has been reviewed (confirmed with the user: not right after the fee table). */}
+        {showEditableEditor && version.status === 'DRAFT' && canDraft && (
+          <section className="fh-card">
+            <form action={submitForReview.bind(null, schoolCode, version.id)}>
+              <button type="submit" className="fh-btn fh-btn--primary">Submit for Group Review</button>
+            </form>
           </section>
         )}
       </div>
@@ -540,13 +530,14 @@ function ApprovalPanel({
       {activeStep && (
         <div className="rounded-lg border border-border bg-primary-subtle p-3">
           <div className="text-sm font-medium text-foreground">Your decision: {activeStep.label}</div>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            <form action={decideApproval.bind(null, schoolCode, activeStep.id, 'APPROVED')} className="flex items-center gap-2">
-              <input name="note" placeholder="Optional note" className="fh-input h-8 text-xs" />
-              <button type="submit" className="fh-btn fh-btn--primary fh-btn--sm">Approve</button>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <form action={decideApproval.bind(null, schoolCode, activeStep.id, 'APPROVED')} className="space-y-2">
+              <textarea name="note" placeholder="Optional note" rows={3} className="fh-input w-full" />
+              <button type="submit" className="fh-btn fh-btn--primary fh-btn--sm w-full">Approve</button>
             </form>
-            <form action={decideApproval.bind(null, schoolCode, activeStep.id, 'REJECTED')}>
-              <button type="submit" className="fh-btn fh-btn--danger fh-btn--sm">Reject</button>
+            <form action={decideApproval.bind(null, schoolCode, activeStep.id, 'REJECTED')} className="space-y-2">
+              <textarea name="note" placeholder="Optional note" rows={3} className="fh-input w-full" />
+              <button type="submit" className="fh-btn fh-btn--danger fh-btn--sm w-full">Reject</button>
             </form>
           </div>
         </div>

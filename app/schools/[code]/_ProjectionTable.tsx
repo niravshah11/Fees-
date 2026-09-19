@@ -6,28 +6,33 @@ const inr = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR',
 
 /** "6" not "6.00", "8.5" not "8.50" — trims the trailing zeros a fixed-decimal format would add. */
 function formatPct(pct: number): string {
-  return `${Number((pct * 100).toFixed(2))}%`;
+  return `${Number(pct.toFixed(2))}%`;
 }
 
-/** A cell's amount, with its increment % alongside it (e.g. "₹1,53,806 (6%)") when one applies —
- *  confirmed with the user: a reviewer (Director, Board of Trustees) shouldn't have to leave this
- *  table to see what rate produced a given year's figure. Omitted where there isn't one flat rate
- *  behind the number — the isRemainder head (always derived, never its own %) and the "Total"
- *  row's summed-across-heads fallback when the school has no isTotal head. */
-function formatCell(amount: number, incrementPct: number | undefined): string {
-  return incrementPct === undefined ? inr.format(Math.round(amount)) : `${inr.format(Math.round(amount))} (${formatPct(incrementPct)})`;
+export interface ProjectionPoint {
+  amount: number;
+  /** This year's actual YoY % change vs. the year before — always the real rate, never a naive
+   *  subtraction of two other heads' rates (confirmed with the user: Beyond Mandate's own %
+   *  cannot be "Total's % minus Tuition's %" — it's a different quantity every year since it's
+   *  the difference of two differently-compounding amounts). Undefined only when there's no
+   *  single prior amount to compare against (the "no isTotal head" summed-fallback row). */
+  pct?: number;
+}
+
+/** A cell's amount, with its % alongside it (e.g. "₹1,53,806 (6%)") when one applies — confirmed
+ *  with the user: a reviewer (Director, Board of Trustees) shouldn't have to leave this table to
+ *  see what rate produced a given year's figure. */
+function formatCell(point: ProjectionPoint): string {
+  return point.pct === undefined ? inr.format(Math.round(point.amount)) : `${inr.format(Math.round(point.amount))} (${formatPct(point.pct)})`;
 }
 
 export interface BandProjection {
   id: string;
   label: string;
   /** The grade band's headline total for each projected year — always visible. */
-  totalPoints: number[];
-  /** The rate behind `totalPoints`, shown alongside each year's amount — undefined when there's
-   *  no single flat rate to show (the summed-fallback case). */
-  totalIncrementPct?: number;
+  totalPoints: ProjectionPoint[];
   /** Every other fee head (e.g. Tuition Fee, Beyond Mandate), revealed by the +/− toggle. */
-  subRows: { label: string; points: number[]; incrementPct?: number }[];
+  subRows: { label: string; points: ProjectionPoint[] }[];
 }
 
 /** One table, one row per grade band showing its total across the projected years — click the
@@ -80,15 +85,15 @@ export function ProjectionTable({ years, bands }: { years: string[]; bands: Band
                     </button>
                     <span className="font-medium text-foreground">{band.label}</span>
                   </td>
-                  {band.totalPoints.map((v, i) => (
-                    <td key={i}>{formatCell(v, band.totalIncrementPct)}</td>
+                  {band.totalPoints.map((point, i) => (
+                    <td key={i}>{formatCell(point)}</td>
                   ))}
                 </tr>
                 {isOpen && band.subRows.map((row) => (
                   <tr key={row.label} className="bg-surface-sunken">
                     <td className="pl-9 text-sm text-muted">{row.label}</td>
-                    {row.points.map((v, i) => (
-                      <td key={i} className="text-sm text-muted">{formatCell(v, row.incrementPct)}</td>
+                    {row.points.map((point, i) => (
+                      <td key={i} className="text-sm text-muted">{formatCell(point)}</td>
                     ))}
                   </tr>
                 ))}

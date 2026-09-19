@@ -15,6 +15,7 @@ const REFERENCE_ITEMS: Item[] = [
   { href: '/master', icon: 'master', label: 'Master data', isNew: true },
   { href: '/policies', icon: 'policy', label: 'Fee policies', isNew: true },
   { href: '/settings/rights', icon: 'rights', label: 'Rights', isNew: true },
+  { href: '/reports', icon: 'reports', label: 'Reports', isNew: true },
   { href: '/help', icon: 'help', label: 'Help', isNew: true },
 ];
 
@@ -25,6 +26,7 @@ const ICON: Record<string, ReactNode> = {
   rights: (<><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></>),
   policy: (<><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6" /><path d="M9 13h6" /><path d="M9 17h6" /></>),
   help: (<><circle cx="12" cy="12" r="10" /><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3" /><path d="M12 17h.01" /></>),
+  reports: (<><path d="M3 3v18h18" /><rect x="7" y="12" width="3" height="6" /><rect x="12" y="8" width="3" height="10" /><rect x="17" y="5" width="3" height="13" /></>),
 };
 
 function SideIcon({ name }: { name: string }) {
