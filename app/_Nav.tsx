@@ -13,6 +13,7 @@ interface Item {
 }
 const REFERENCE_ITEMS: Item[] = [
   { href: '/master', icon: 'master', label: 'Master data', isNew: true },
+  { href: '/policies', icon: 'policy', label: 'Fee policies', isNew: true },
   { href: '/settings/rights', icon: 'rights', label: 'Rights', isNew: true },
   { href: '/help', icon: 'help', label: 'Help', isNew: true },
 ];
@@ -22,6 +23,7 @@ const ICON: Record<string, ReactNode> = {
   school: (<><path d="M5 21V7l7-4 7 4v14" /><path d="M3 21h18" /><path d="M9 21v-4a3 3 0 0 1 6 0v4" /></>),
   master: (<><path d="M12 2 2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5" /><path d="M2 12l10 5 10-5" /></>),
   rights: (<><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></>),
+  policy: (<><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6" /><path d="M9 13h6" /><path d="M9 17h6" /></>),
   help: (<><circle cx="12" cy="12" r="10" /><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3" /><path d="M12 17h.01" /></>),
 };
 

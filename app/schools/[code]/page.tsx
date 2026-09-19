@@ -103,6 +103,23 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
         <p className="text-muted">{school.name}</p>
       </div>
 
+      {current && approvedForCurrentYear && !hasOpenDraftOrReview && canDraft && (
+        <section className="fh-card">
+          <form action={createDraftVersion.bind(null, school.code)} className="flex items-end gap-2">
+            <div>
+              <label className="fh-label text-xs">Start next year's proposal</label>
+              <input
+                name="academicYear"
+                defaultValue={nextAcademicYear(current.academicYear)}
+                className="fh-input"
+                required
+              />
+            </div>
+            <button type="submit" className="fh-btn fh-btn--primary">Start draft</button>
+          </form>
+        </section>
+      )}
+
       {/* Grade bands & programme stages — read-only outcome of Master data; edited there only,
           so this page stays focused on the fee proposal itself rather than duplicating a second
           copy of the same edit forms. */}
@@ -354,23 +371,6 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
             approvals={current.approvals}
             canActByRole={roleForRole}
           />
-        </section>
-      )}
-
-      {current && approvedForCurrentYear && !hasOpenDraftOrReview && canDraft && (
-        <section className="fh-card">
-          <form action={createDraftVersion.bind(null, school.code)} className="flex items-end gap-2">
-            <div>
-              <label className="fh-label text-xs">Start next year's proposal</label>
-              <input
-                name="academicYear"
-                defaultValue={nextAcademicYear(current.academicYear)}
-                className="fh-input"
-                required
-              />
-            </div>
-            <button type="submit" className="fh-btn fh-btn--primary">Start draft</button>
-          </form>
         </section>
       )}
     </div>

@@ -35,6 +35,7 @@ model School {
   gradeBands     GradeBand[]
   feeHeads       FeeHead[]
   feeVersions    FeeVersion[]
+  feePolicies    FeePolicy[]
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
 }
@@ -173,6 +174,27 @@ model FeeApproval {
   @@index([feeVersionId])
 }
 
+/// One campus's uploaded fee-policy document for one academic year — a PDF, not structured data;
+/// this table is just versioned storage (confirmed with the user: each campus has its own policy
+/// document, updated independently). Kept as file bytes in Postgres rather than external object
+/// storage since this app has no such storage configured and the files are small (a few MB at
+/// most). A school can have several rows across years/re-uploads; the latest one (by createdAt)
+/// is "current" — older rows stay as history, never overwritten in place.
+model FeePolicy {
+  id           String   @id @default(cuid())
+  school       School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  schoolId     String
+  academicYear String // e.g. "2026-27"
+  fileName     String
+  mimeType     String
+  fileSize     Int // bytes, for display — avoids re-decoding fileData just to show a size
+  fileData     Bytes
+  uploadedBy   String? // email, provenance only
+  createdAt    DateTime @default(now())
+
+  @@index([schoolId])
+}
+
 model AppUser {
   id        String         @id @default(cuid())
   email     String         @unique
@@ -182,13 +204,12 @@ model AppUser {
   rights    AppUserRight[]
 }
 
-/// Who holds which fee-workflow role where. Unlike the event-management app's flat AppUserRight
+/// Who holds which approval-chain role where. Unlike the event-management app's flat AppUserRight
 /// (existence = permission), fee approval genuinely needs distinct capability tiers, so this row
-/// carries a `role` alongside `campus`. `role: SCHOOL_FINANCE` is meaningfully campus-scoped
-/// (drafts/edits/submits one school's proposal); the four approval-chain roles (Fees Group
-/// Coordinator, Head of Operations, Director, Board of Trustees) act on their chain step for
-/// every school, so their rows are always campus: null in practice, though the field stays
-/// nullable-string for symmetry with the event-management app's pattern.
+/// carries a `role` alongside `campus`. Drafting/editing a proposal and Master data needs no grant
+/// at all (open to every signed-in colleague) — a grant here is only for the approval chain (Fees
+/// Group Coordinator, Head of Operations, Head of Finance, Director, Board of Trustees), each of
+/// which can be scoped to one campus or left campus: null for every school.
 /// No DB-level unique constraint on (userId, role, campus), deliberately — same trap as the
 /// event-management app's AppUserRight doc comment: Postgres never treats two NULLs as equal, so
 /// a composite unique can't dedupe campus-wide grants. Dedup is an app-level check on add.
@@ -196,7 +217,7 @@ model AppUserRight {
   id        String   @id @default(cuid())
   user      AppUser  @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
-  role      String // SCHOOL_FINANCE | FEES_GROUP_COORDINATOR | HEAD_OF_OPERATIONS | DIRECTOR | BOARD_TRUSTEE (engine/rights.ts)
+  role      String // FEES_GROUP_COORDINATOR | HEAD_OF_OPERATIONS | HEAD_OF_FINANCE | DIRECTOR | BOARD_TRUSTEE (engine/rights.ts)
   campus    String? // School.code, or null = every school
   grantedBy String? // rights-admin's email — provenance only
   createdAt DateTime @default(now())

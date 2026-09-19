@@ -24,6 +24,10 @@ const WHATS_NEW: { title: string; detail: string }[] = [
     title: 'Master data',
     detail: 'Add, edit, or remove a school’s programme stages and grade bands at /master — each stage carries its own YoY increment %, since every campus’s programme mix and rates differ.',
   },
+  {
+    title: 'Fee policies',
+    detail: 'Each campus keeps its own fee-policy PDF at /policies — upload a new one for the year and older versions stay on file as history, never overwritten.',
+  },
 ];
 
 export default function Help() {
