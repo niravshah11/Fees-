@@ -6,8 +6,9 @@ import { hasRoleForCampus, type FeeRole } from '@/engine/rights';
 import { computeApprovalState, isActionable } from '@/engine/approval';
 import { projectFeeSchedule } from '@/engine/projection';
 import { FEE_APPROVAL_CHAIN, computeGradeBandTotal, computeRemainderHeadAmount } from '@/engine/fee';
-import { nextAcademicYear, previousAcademicYear, academicYearOptions } from '@/lib/academic-year';
+import { nextAcademicYear, academicYearOptions, academicYearWindow } from '@/lib/academic-year';
 import { FeeLineEditCard } from './_FeeLineEditCard';
+import { ProjectionTable, type BandProjection } from './_ProjectionTable';
 import {
   createDraftVersion,
   updateAcademicYear,
@@ -103,12 +104,7 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
 
   // A wide-enough window either side of the draft's own year that changing it never lands outside
   // the list (5 years back covers "picked the wrong year by mistake", 10 forward covers planning ahead).
-  const yearOptions = (() => {
-    if (!current) return [];
-    let y = current.academicYear;
-    for (let i = 0; i < 5; i++) y = previousAcademicYear(y);
-    return academicYearOptions(y, 16);
-  })();
+  const yearOptions = current ? academicYearWindow(current.academicYear, 5, 10) : [];
 
   return (
     <div className="space-y-6">
@@ -354,11 +350,10 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
         )}
       </section>
 
-      {/* Projection preview — one table per fee head (Total, Tuition Fee, Beyond Mandate, …),
-          shaped exactly like the Current proposal table, so the same breakdown that's visible
-          for the current year stays visible across the projected years too, not just the total
-          (confirmed with the user: the current-year table's per-head columns are the right
-          shape — the projection just needed the same breakdown, not a redesign). */}
+      {/* Projection preview — a single table, one row per grade band showing its total across the
+          projected years; a +/− toggle expands that grade band in place to show every other fee
+          head's own row underneath (confirmed with the user: one table that expands per grade
+          band, not several tables side by side). */}
       {current && current.feeLines.length > 0 && (() => {
         const projectionYears: string[] = [current.academicYear];
         for (let i = 0; i < 5; i++) projectionYears.push(nextAcademicYear(projectionYears[projectionYears.length - 1]));
@@ -386,66 +381,37 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
           perBandHeadPoints.set(gradeBand.id, headPoints);
         }
 
-        // "Total" table: the isTotal head's own projected points where one exists, else summed
-        // across every non-remainder head each year — same fallback as computeGradeBandTotal.
-        const totalSeries = currentGroups.map(({ gradeBand, lines }) => {
+        const bands: BandProjection[] = currentGroups.map(({ gradeBand, lines }) => {
           const headPoints = perBandHeadPoints.get(gradeBand.id)!;
-          if (totalHead) return { label: gradeBand.label, points: headPoints.get(totalHead.id) ?? Array(6).fill(0) };
-          const points = Array.from({ length: 6 }, (_, i) =>
-            lines.filter((l) => !l.feeHead.isRemainder).reduce((sum, l) => sum + (headPoints.get(l.feeHeadId)?.[i] ?? 0), 0),
-          );
-          return { label: gradeBand.label, points };
-        });
-
-        const seriesForHead = (headId: string) =>
-          currentGroups.map(({ gradeBand }) => ({
-            label: gradeBand.label,
-            points: perBandHeadPoints.get(gradeBand.id)?.get(headId) ?? Array(6).fill(0),
-          }));
-
-        const tables = [
-          { key: 'total', title: totalHead?.label ?? 'Total', series: totalSeries },
-          ...school.feeHeads
+          // The visible row: the isTotal head's own projected points where one exists, else
+          // summed across every non-remainder head each year — same fallback as computeGradeBandTotal.
+          const totalPoints = totalHead
+            ? headPoints.get(totalHead.id) ?? Array(6).fill(0)
+            : Array.from({ length: 6 }, (_, i) =>
+                lines.filter((l) => !l.feeHead.isRemainder).reduce((sum, l) => sum + (headPoints.get(l.feeHeadId)?.[i] ?? 0), 0),
+              );
+          // The expandable sub-rows: every other head (Tuition Fee, Beyond Mandate, ...) — the
+          // isTotal head is left out since it's already the visible row above.
+          const subRows = school.feeHeads
             .filter((head) => !head.isTotal)
-            .map((head) => ({ key: head.id, title: head.label, series: seriesForHead(head.id) })),
-        ];
+            .map((head) => ({ label: head.label, points: headPoints.get(head.id) ?? Array(6).fill(0) }));
+          return { id: gradeBand.id, label: gradeBand.label, totalPoints, subRows };
+        });
 
         return (
           <section className="fh-card">
             <h2 className="fh-card__title text-foreground">5-year projection preview</h2>
             <p className="mt-1 text-sm text-muted">
-              Every fee head's current amount compounded forward at its own current increment %.
+              Each grade band's current total — its "{totalHead?.label ?? 'Total'}" head where one
+              exists, otherwise summed across every fee head — compounded forward at its own
+              current increment %. Click + to see every other fee head's own row.
               {remainderHead && ` ${remainderHead.label} is recalculated each year as that year's ${totalHead?.label ?? 'Total'} minus every other head.`}{' '}
               Preview only — not persisted; only the current year's proposal becomes real FeeLines.
             </p>
 
-            {tables.map((t) => (
-              <div key={t.key} className="mt-4">
-                <div className="text-sm font-medium text-foreground">{t.title}</div>
-                <div className="mt-2 overflow-x-auto">
-                  <table className="fh-table fh-table--striped">
-                    <thead>
-                      <tr>
-                        <th>Grade band</th>
-                        {projectionYears.map((year) => (
-                          <th key={year}>{year}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {t.series.map((s) => (
-                        <tr key={s.label}>
-                          <td>{s.label}</td>
-                          {s.points.map((v, i) => (
-                            <td key={i} className={i === 0 ? 'font-medium' : undefined}>{inr.format(Math.round(v))}</td>
-                          ))}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            ))}
+            <div className="mt-4">
+              <ProjectionTable years={projectionYears} bands={bands} />
+            </div>
           </section>
         );
       })()}

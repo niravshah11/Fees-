@@ -11,6 +11,8 @@ import { Nav } from './_Nav';
 import { Shell } from './_Shell';
 import { ThemeToggle } from './_ThemeToggle';
 import { prisma } from '@/lib/db';
+import { getCurrentUser } from '@/lib/auth/session';
+import { signOutAction } from './_auth-actions';
 
 const NO_FLASH = `try{var t=localStorage.getItem('fh-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)}catch(e){}`;
 
@@ -35,7 +37,10 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const schools = await prisma.school.findMany({ orderBy: { order: 'asc' }, select: { code: true } });
+  const [schools, user] = await Promise.all([
+    prisma.school.findMany({ orderBy: { order: 'asc' }, select: { code: true } }),
+    getCurrentUser(),
+  ]);
 
   return (
     <html
@@ -62,7 +67,22 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             </div>
           }
           nav={<Nav schools={schools} />}
-          topbarRight={<ThemeToggle />}
+          topbarRight={
+            <>
+              {/* Local dev has no session at all (middleware.ts skips the sign-in wall there),
+                  so this only ever renders in production, where every page requires Google
+                  sign-in — there was previously no way to see who's signed in or sign out. */}
+              {user && (
+                <div className="flex items-center gap-2">
+                  <span className="hidden text-sm text-muted sm:inline">{user.name}</span>
+                  <form action={signOutAction}>
+                    <button type="submit" className="fh-btn fh-btn--outline fh-btn--sm">Sign out</button>
+                  </form>
+                </div>
+              )}
+              <ThemeToggle />
+            </>
+          }
         >
           {children}
         </Shell>

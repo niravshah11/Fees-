@@ -21,9 +21,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-/// One of the six Fountainhead schools this app covers. Seeded once from lib/school-config.ts;
-/// editable only by a rights admin (there's no per-school "edit school" UI in v1 — code/name/board
-/// changes are rare enough to do via the seed/a migration).
+/// A Fountainhead campus. The original six were seeded from lib/school-config.ts; a rights admin
+/// can add, edit, or remove campuses from here on at /master (app/master/actions.ts) — `code` is
+/// immutable once created since it's the URL slug for /schools/[code] and /master/[code].
+/// Deleting one is refused unless it's still empty (no stages/bands/heads/versions/policies),
+/// since every child relation below cascades and a careless delete would silently wipe a real
+/// campus's whole fee history and any uploaded fee-policy PDFs.
 model School {
   id             String           @id @default(cuid())
   code           String           @unique // FSK | FSM | FWGS | FPV | FPA | FALH

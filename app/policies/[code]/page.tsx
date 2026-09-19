@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { uploadFeePolicy, deleteFeePolicy } from './actions';
+import { currentAcademicYear, academicYearWindow } from '@/lib/academic-year';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,6 +29,7 @@ export default async function SchoolPolicies({ params }: { params: Promise<{ cod
   if (!school) notFound();
 
   const [current, ...history] = school.feePolicies;
+  const yearOptions = academicYearWindow(current?.academicYear ?? currentAcademicYear(), 5, 10);
 
   return (
     <div className="space-y-6">
@@ -77,7 +79,11 @@ export default async function SchoolPolicies({ params }: { params: Promise<{ cod
         <form action={uploadFeePolicy.bind(null, school.code)} className="mt-3 flex flex-wrap items-end gap-2">
           <div>
             <label className="fh-label text-xs">Academic year</label>
-            <input name="academicYear" placeholder="2026-27" className="fh-input" required />
+            <select name="academicYear" defaultValue={currentAcademicYear()} className="fh-input" required>
+              {yearOptions.map((year) => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </select>
           </div>
           <div className="flex-1">
             <label className="fh-label text-xs">PDF file</label>

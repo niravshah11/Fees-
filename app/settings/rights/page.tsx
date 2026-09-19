@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/db';
-import { SCHOOL_CONFIG } from '@/lib/school-config';
 import { getCurrentUser } from '@/lib/auth/session';
 import { resolveRightsAdmins, isRightsAdmin } from '@/lib/auth/rights-admins';
 import { addRightsGrant, updateRightsGrant, removeRightsGrant } from './actions';
@@ -29,10 +28,13 @@ export default async function RightsSettings() {
     );
   }
 
-  const grants = await prisma.appUserRight.findMany({
-    include: { user: { select: { name: true, email: true } } },
-    orderBy: [{ role: 'asc' }, { campus: 'asc' }, { user: { name: 'asc' } }],
-  });
+  const [grants, schools] = await Promise.all([
+    prisma.appUserRight.findMany({
+      include: { user: { select: { name: true, email: true } } },
+      orderBy: [{ role: 'asc' }, { campus: 'asc' }, { user: { name: 'asc' } }],
+    }),
+    prisma.school.findMany({ orderBy: { order: 'asc' }, select: { code: true, name: true } }),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -79,7 +81,7 @@ export default async function RightsSettings() {
                     </td>
                     <td>
                       <select name="campus" form={formId} defaultValue={g.campus ?? ''} className="fh-input fh-input--sm">
-                        {SCHOOL_CONFIG.map((s) => (
+                        {schools.map((s) => (
                           <option key={s.code} value={s.code}>{s.code}</option>
                         ))}
                         <option value="">All schools</option>
@@ -118,8 +120,8 @@ export default async function RightsSettings() {
             <option value="DIRECTOR">Director</option>
             <option value="BOARD_TRUSTEE">Board of Trustees</option>
           </select>
-          <select name="campus" className="fh-input" defaultValue={SCHOOL_CONFIG[0].code}>
-            {SCHOOL_CONFIG.map((s) => (
+          <select name="campus" className="fh-input" defaultValue={schools[0]?.code ?? ''}>
+            {schools.map((s) => (
               <option key={s.code} value={s.code}>{s.code} — {s.name}</option>
             ))}
             <option value="">All schools</option>
