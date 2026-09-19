@@ -2,11 +2,10 @@
 
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/db';
-import { assertCanDraftForCampus } from '@/lib/auth/rights';
 
-// Master-data mutations for a school's Programme Stages and Grade Bands. Gated by the same
-// Finance Officer (SCHOOL_FINANCE) campus right as drafting a fee proposal — grade bands and
-// programme stages are that campus's own structural data, not a group-wide concern.
+// Master-data mutations for a school's Programme Stages, Grade Bands, and Fee Heads. Open to
+// every signed-in colleague, same as drafting a fee proposal — there is no dedicated "editor"
+// role (confirmed with the user); only the approval chain itself is role-gated.
 
 async function requireSchool(code: string) {
   const school = await prisma.school.findUnique({ where: { code } });
@@ -16,8 +15,6 @@ async function requireSchool(code: string) {
 
 export async function createProgrammeStage(schoolCode: string, formData: FormData): Promise<void> {
   const school = await requireSchool(schoolCode);
-  await assertCanDraftForCampus(school.code);
-
   const label = String(formData.get('label') ?? '').trim();
   if (!label) return;
 
@@ -30,8 +27,6 @@ export async function createProgrammeStage(schoolCode: string, formData: FormDat
 
 export async function updateProgrammeStage(schoolCode: string, stageId: string, formData: FormData): Promise<void> {
   const school = await requireSchool(schoolCode);
-  await assertCanDraftForCampus(school.code);
-
   const stage = await prisma.programmeStage.findUnique({ where: { id: stageId } });
   if (!stage || stage.schoolId !== school.id) throw new Error('Programme stage not found for this school.');
 
@@ -46,8 +41,6 @@ export async function updateProgrammeStage(schoolCode: string, stageId: string, 
  *  about each band (move it to another stage, or delete it) rather than silently cascading. */
 export async function deleteProgrammeStage(schoolCode: string, stageId: string): Promise<void> {
   const school = await requireSchool(schoolCode);
-  await assertCanDraftForCampus(school.code);
-
   const stage = await prisma.programmeStage.findUnique({ where: { id: stageId }, include: { gradeBands: true } });
   if (!stage || stage.schoolId !== school.id) throw new Error('Programme stage not found for this school.');
   if (stage.gradeBands.length > 0) {
@@ -63,8 +56,6 @@ export async function deleteProgrammeStage(schoolCode: string, stageId: string):
  *  one combined "Grade 7 to 9" band. Skips any grade that's already a band for this school. */
 export async function createGradeBands(schoolCode: string, stageId: string, formData: FormData): Promise<void> {
   const school = await requireSchool(schoolCode);
-  await assertCanDraftForCampus(school.code);
-
   const stage = await prisma.programmeStage.findUnique({ where: { id: stageId } });
   if (!stage || stage.schoolId !== school.id) throw new Error('Programme stage not found for this school.');
 
@@ -84,8 +75,6 @@ export async function createGradeBands(schoolCode: string, stageId: string, form
 
 export async function updateGradeBand(schoolCode: string, bandId: string, formData: FormData): Promise<void> {
   const school = await requireSchool(schoolCode);
-  await assertCanDraftForCampus(school.code);
-
   const band = await prisma.gradeBand.findUnique({ where: { id: bandId } });
   if (!band || band.schoolId !== school.id) throw new Error('Grade band not found for this school.');
 
@@ -102,8 +91,6 @@ export async function updateGradeBand(schoolCode: string, bandId: string, formDa
  *  real fee records. */
 export async function deleteGradeBand(schoolCode: string, bandId: string): Promise<void> {
   const school = await requireSchool(schoolCode);
-  await assertCanDraftForCampus(school.code);
-
   const band = await prisma.gradeBand.findUnique({ where: { id: bandId } });
   if (!band || band.schoolId !== school.id) throw new Error('Grade band not found for this school.');
 
@@ -118,27 +105,32 @@ export async function deleteGradeBand(schoolCode: string, bandId: string): Promi
 
 export async function createFeeHead(schoolCode: string, formData: FormData): Promise<void> {
   const school = await requireSchool(schoolCode);
-  await assertCanDraftForCampus(school.code);
-
   const label = String(formData.get('label') ?? '').trim();
+  const isTotal = formData.get('isTotal') === 'on';
   if (!label) return;
 
   const count = await prisma.feeHead.count({ where: { schoolId: school.id } });
-  await prisma.feeHead.create({ data: { schoolId: school.id, label, order: count } });
+  await prisma.$transaction(async (tx) => {
+    // At most one "is the total" head per school (see schema.prisma's FeeHead.isTotal comment).
+    if (isTotal) await tx.feeHead.updateMany({ where: { schoolId: school.id }, data: { isTotal: false } });
+    await tx.feeHead.create({ data: { schoolId: school.id, label, order: count, isTotal } });
+  });
   revalidatePath(`/master/${schoolCode}`);
 }
 
 export async function updateFeeHead(schoolCode: string, headId: string, formData: FormData): Promise<void> {
   const school = await requireSchool(schoolCode);
-  await assertCanDraftForCampus(school.code);
-
   const head = await prisma.feeHead.findUnique({ where: { id: headId } });
   if (!head || head.schoolId !== school.id) throw new Error('Fee head not found for this school.');
 
   const label = String(formData.get('label') ?? '').trim();
+  const isTotal = formData.get('isTotal') === 'on';
   if (!label) return;
 
-  await prisma.feeHead.update({ where: { id: headId }, data: { label } });
+  await prisma.$transaction(async (tx) => {
+    if (isTotal) await tx.feeHead.updateMany({ where: { schoolId: school.id, id: { not: headId } }, data: { isTotal: false } });
+    await tx.feeHead.update({ where: { id: headId }, data: { label, isTotal } });
+  });
   revalidatePath(`/master/${schoolCode}`);
 }
 
@@ -146,8 +138,6 @@ export async function updateFeeHead(schoolCode: string, headId: string, formData
  *  cascade-delete those FeeLine rows and silently erase real fee records. */
 export async function deleteFeeHead(schoolCode: string, headId: string): Promise<void> {
   const school = await requireSchool(schoolCode);
-  await assertCanDraftForCampus(school.code);
-
   const head = await prisma.feeHead.findUnique({ where: { id: headId } });
   if (!head || head.schoolId !== school.id) throw new Error('Fee head not found for this school.');
 

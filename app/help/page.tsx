@@ -18,7 +18,7 @@ const WHATS_NEW: { title: string; detail: string }[] = [
   },
   {
     title: 'Rights',
-    detail: 'Grant Finance Officer (per school), Fees Group Coordinator, Head of Operations, Director, or Board of Trustees at /settings/rights.',
+    detail: 'Drafting/editing a proposal and Master data is open to every signed-in colleague; grant Fees Group Coordinator, Head of Operations, Head of Finance, Director, or Board of Trustees for the approval chain at /settings/rights.',
   },
   {
     title: 'Master data',
@@ -39,7 +39,7 @@ export default function Help() {
         <h2 className="font-heading text-lg font-bold text-foreground">The workflow, in short</h2>
         <ol className="list-decimal space-y-1 pl-5 text-sm text-foreground">
           <li>A campus's grade bands and programme stages — each with its own YoY increment % — are set up once at /master, then kept up to date there as the school's structure changes.</li>
-          <li>A Finance Officer opens their school and starts a draft for the next academic year.</li>
+          <li>Any signed-in colleague opens their school and starts a draft for the next academic year.</li>
           <li>Each grade band pre-fills from last year's approved fee and its programme stage's default increment — both fully editable.</li>
           <li>The draft is submitted for review, entering the approval chain in order: Fees Group Coordinator, Head of Operations, Director, then Board of Trustees.</li>
           <li>Once the Board approves, that version becomes the school's official fee for the year, and any prior approved version for the same year is superseded.</li>

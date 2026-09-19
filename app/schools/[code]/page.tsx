@@ -2,11 +2,10 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { getCurrentRights } from '@/lib/auth/rights';
-import { canDraftForCampus, hasRoleForCampus, type FeeRole } from '@/engine/rights';
+import { hasRoleForCampus, type FeeRole } from '@/engine/rights';
 import { computeApprovalState, isActionable } from '@/engine/approval';
 import { projectFeeSchedule } from '@/engine/projection';
-import { FEE_APPROVAL_CHAIN } from '@/engine/fee';
-import { ProjectionChart, ProjectionLegend } from './_ProjectionChart';
+import { FEE_APPROVAL_CHAIN, computeGradeBandTotal } from '@/engine/fee';
 import { FeeLineEditCard } from './_FeeLineEditCard';
 import {
   createDraftVersion,
@@ -39,7 +38,7 @@ interface FeeLineRow {
   gradeBandId: string;
   gradeBand: { id: string; label: string; order: number };
   feeHeadId: string;
-  feeHead: { id: string; label: string };
+  feeHead: { id: string; label: string; isTotal: boolean };
   baseFee: number;
   incrementPct: unknown;
   amount: number;
@@ -81,7 +80,9 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
   if (!school) notFound();
 
   const grants = await getCurrentRights();
-  const canDraft = canDraftForCampus(grants, school.code);
+  // Drafting/editing a proposal is open to every signed-in colleague — there is no dedicated
+  // "editor" role (confirmed with the user); only the approval chain itself is role-gated.
+  const canDraft = true;
   const roleForRole = Object.fromEntries(
     FEE_APPROVAL_CHAIN.map((step) => [step.role, hasRoleForCampus(grants, step.role as FeeRole, school.code)]),
   ) as Record<string, boolean>;
@@ -108,7 +109,7 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
       <section className="fh-card">
         <div className="flex items-center justify-between">
           <h2 className="font-heading text-lg font-bold text-foreground">Grade bands &amp; programme stages</h2>
-          <Link href={`/master/${school.code}`} className="fh-btn fh-btn--secondary fh-btn--sm">Edit in Master data</Link>
+          <Link href={`/master/${school.code}`} className="fh-btn fh-btn--outline fh-btn--sm">Edit in Master data</Link>
         </div>
 
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -171,7 +172,7 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
             {current.status === 'DRAFT' && canDraft ? (
               <div className="space-y-3">
                 {currentGroups.map(({ gradeBand, lines }) => {
-                  const total = lines.reduce((sum, l) => sum + l.amount, 0);
+                  const total = computeGradeBandTotal(lines);
                   return (
                     <div key={gradeBand.id} className="rounded-lg border border-border bg-surface-sunken p-3">
                       <div className="flex items-center justify-between">
@@ -209,7 +210,7 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
                   </thead>
                   <tbody>
                     {currentGroups.map(({ gradeBand, lines }) => {
-                      const total = lines.reduce((sum, l) => sum + l.amount, 0);
+                      const total = computeGradeBandTotal(lines);
                       return (
                         <tr key={gradeBand.id}>
                           <td>{gradeBand.label}</td>
@@ -250,7 +251,7 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
                     <label className="fh-label text-xs">Increment %</label>
                     <input name="incrementPct" type="number" step="0.1" placeholder="6" className="fh-input w-24" required />
                   </div>
-                  <button type="submit" className="fh-btn fh-btn--secondary">Apply to stage</button>
+                  <button type="submit" className="fh-btn fh-btn--outline">Apply to stage</button>
                 </form>
 
                 <form action={submitForReview.bind(null, school.code, current.id)}>
@@ -259,28 +260,6 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
               </div>
             )}
 
-            {current.approvals.length > 0 && (
-              <ApprovalPanel
-                schoolCode={school.code}
-                approvals={current.approvals}
-                canActByRole={roleForRole}
-              />
-            )}
-
-            {approvedForCurrentYear && !hasOpenDraftOrReview && canDraft && (
-              <form action={createDraftVersion.bind(null, school.code)} className="flex items-end gap-2 border-t border-border pt-4">
-                <div>
-                  <label className="fh-label text-xs">Start next year's proposal</label>
-                  <input
-                    name="academicYear"
-                    defaultValue={nextAcademicYear(current.academicYear)}
-                    className="fh-input"
-                    required
-                  />
-                </div>
-                <button type="submit" className="fh-btn fh-btn--primary">Start draft</button>
-              </form>
-            )}
           </div>
         )}
       </section>
@@ -291,6 +270,11 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
         for (let i = 0; i < 5; i++) projectionYears.push(nextAcademicYear(projectionYears[projectionYears.length - 1]));
 
         const series = currentGroups.map(({ gradeBand, lines }) => {
+          const totalLine = lines.find((l) => l.feeHead.isTotal);
+          if (totalLine) {
+            const schedule = projectFeeSchedule(totalLine.amount, Number(totalLine.incrementPct), 5);
+            return { label: gradeBand.label, points: [totalLine.amount, ...schedule.map((y) => y.fee)] };
+          }
           const perHeadSchedules = lines.map((line) => {
             const schedule = projectFeeSchedule(line.amount, Number(line.incrementPct), 5);
             return [line.amount, ...schedule.map((y) => y.fee)];
@@ -303,15 +287,10 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
           <section className="fh-card">
             <h2 className="font-heading text-lg font-bold text-foreground">5-year projection preview</h2>
             <p className="mt-1 text-sm text-muted">
-              Each grade band's current total (summed across every fee head) compounded forward at
-              each head's own current increment %. Preview only — not persisted; only the current
-              year's proposal becomes real FeeLines.
+              Each grade band's current total — its "Total Fees" head where one exists, otherwise
+              summed across every fee head — compounded forward at its own current increment %.
+              Preview only — not persisted; only the current year's proposal becomes real FeeLines.
             </p>
-
-            <div className="mt-4 rounded-lg border border-border p-4">
-              <ProjectionChart yearLabels={projectionYears} series={series} />
-              <ProjectionLegend series={series} />
-            </div>
 
             <div className="mt-4 overflow-x-auto">
               <table className="fh-table fh-table--striped">
@@ -363,6 +342,35 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
               </tbody>
             </table>
           </div>
+        </section>
+      )}
+
+      {/* Approval chain — comes last: review the numbers and projection first, then see where
+          the proposal actually stands in sign-off. */}
+      {current && current.approvals.length > 0 && (
+        <section className="fh-card">
+          <ApprovalPanel
+            schoolCode={school.code}
+            approvals={current.approvals}
+            canActByRole={roleForRole}
+          />
+        </section>
+      )}
+
+      {current && approvedForCurrentYear && !hasOpenDraftOrReview && canDraft && (
+        <section className="fh-card">
+          <form action={createDraftVersion.bind(null, school.code)} className="flex items-end gap-2">
+            <div>
+              <label className="fh-label text-xs">Start next year's proposal</label>
+              <input
+                name="academicYear"
+                defaultValue={nextAcademicYear(current.academicYear)}
+                className="fh-input"
+                required
+              />
+            </div>
+            <button type="submit" className="fh-btn fh-btn--primary">Start draft</button>
+          </form>
         </section>
       )}
     </div>

@@ -13,7 +13,7 @@ interface Line {
 }
 
 /** One (grade band x fee head) row. Client component so the computed amount (and the increment
- *  amount it represents) updates live as the Finance Officer types a base fee / increment %,
+ *  amount it represents) updates live as whoever is drafting types a base fee / increment %,
  *  before they commit with Save — reviewing the number is the point, not just entering inputs
  *  blind. `title` is the fee head's label (e.g. "Tuition Fee") — the parent groups these under
  *  a grade-band heading and shows the summed total across every head there. */
@@ -66,7 +66,7 @@ export function FeeLineEditCard({ schoolCode, title, line }: { schoolCode: strin
             <span className="font-heading font-bold text-foreground">{amount === null ? '—' : inr.format(amount)}</span>
           </div>
         </div>
-        <button type="submit" className="fh-btn fh-btn--secondary fh-btn--sm w-full">Save</button>
+        <button type="submit" className="fh-btn fh-btn--outline fh-btn--sm w-full">Save</button>
       </form>
     </div>
   );

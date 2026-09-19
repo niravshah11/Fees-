@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { computeIncrementedFee, computeTotalFee, FEE_APPROVAL_CHAIN } from './fee';
+import { computeIncrementedFee, computeTotalFee, computeGradeBandTotal, FEE_APPROVAL_CHAIN } from './fee';
 
 describe('computeIncrementedFee — worked examples (10 Years Fees Kunkni.xlsx)', () => {
   it('FSK Jr. & Sr. KG, EYP-to-MYP stage: 2026-27 FRC 145100 -> 2027-28 at 6%', () => {
@@ -35,6 +35,25 @@ describe('computeTotalFee', () => {
 
   it('returns 0 for no heads at all', () => {
     expect(computeTotalFee()).toBe(0);
+  });
+});
+
+describe('computeGradeBandTotal', () => {
+  it('sums every line when no head is flagged isTotal', () => {
+    const lines = [
+      { amount: 153806, feeHead: { isTotal: false } },
+      { amount: 20157, feeHead: { isTotal: false } },
+    ];
+    expect(computeGradeBandTotal(lines)).toBe(173963);
+  });
+
+  it('uses the isTotal head\'s own amount instead of summing (FSK/FSM 3-slab structure)', () => {
+    const lines = [
+      { amount: 200000, feeHead: { isTotal: true } }, // Total Fees to be charged from Parents
+      { amount: 153806, feeHead: { isTotal: false } }, // Tuition Fee
+      { amount: 20157, feeHead: { isTotal: false } }, // Beyond Mandate
+    ];
+    expect(computeGradeBandTotal(lines)).toBe(200000);
   });
 });
 

@@ -2,10 +2,12 @@
 // header for why status fields are plain strings validated against the unions defined here.
 //
 // Source: `Provisional fee 2027-28.xlsx` ("10 Years Fees Kunkni"/"10 Years Fees Malgama") and
-// `Tuition Fees Working 2024-25, 2025-26 and 2026-27.xlsx`. A grade band's headline fee is the
-// SUM of its FeeLine.amount across every FeeHead a school has (Tuition Fee, Beyond Mandate,
-// etc.) — each head is its own base/increment/amount, independently editable, per FeeHead's doc
-// comment in schema.prisma.
+// `Tuition Fees Working 2024-25, 2025-26 and 2026-27.xlsx`. A grade band's headline fee is
+// normally the SUM of its FeeLine.amount across every FeeHead a school has (Tuition Fee, Beyond
+// Mandate, etc.) — each head is its own base/increment/amount, independently editable. But if one
+// head is flagged isTotal (e.g. FSK/FSM's "Total Fees to be charged from Parents"), that head's
+// own amount IS the total instead — see computeGradeBandTotal and FeeHead's doc comment in
+// schema.prisma.
 
 export const FEE_VERSION_STATUSES = [
   'DRAFT',
@@ -53,4 +55,13 @@ export function computeIncrementedFee(baseFee: number, incrementPct: number): nu
  *  (Tuition Fee + Beyond Mandate + ...); order doesn't matter. */
 export function computeTotalFee(...amounts: number[]): number {
   return amounts.reduce((sum, a) => sum + a, 0);
+}
+
+/** A grade band's headline total, isTotal-aware: if one of its FeeLines is for a head flagged
+ *  isTotal, that line's own amount is the total (Total Fees, Tuition Fee, and Beyond Mandate are
+ *  each independently entered, not enforced to reconcile via subtraction — confirmed with the
+ *  user). Otherwise falls back to summing every line, same as computeTotalFee. */
+export function computeGradeBandTotal(lines: { amount: number; feeHead: { isTotal: boolean } }[]): number {
+  const totalLine = lines.find((l) => l.feeHead.isTotal);
+  return totalLine ? totalLine.amount : computeTotalFee(...lines.map((l) => l.amount));
 }

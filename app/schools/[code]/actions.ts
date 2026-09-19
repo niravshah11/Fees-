@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth/session';
-import { assertCanDraftForCampus, assertHasRoleForCampus } from '@/lib/auth/rights';
+import { assertHasRoleForCampus } from '@/lib/auth/rights';
 import { computeIncrementedFee } from '@/engine/fee';
 import { buildApprovalChain, computeApprovalState, type ApprovalLike } from '@/engine/approval';
 import type { FeeRole } from '@/engine/rights';
@@ -17,11 +17,11 @@ async function requireSchool(code: string) {
 
 /** Starts a new DRAFT FeeVersion for the given academic year — one FeeLine per (grade band x fee
  *  head) combination, pre-filled from the school's latest APPROVED version (baseFee = that
- *  head's prior amount for that grade band) with a 0% increment — the Finance Officer sets the
- *  real % for this year via per-line edits or "bulk apply" once the draft exists. */
+ *  head's prior amount for that grade band) with a 0% increment — whoever is drafting (open to
+ *  every signed-in colleague, typically the Fees Group Coordinator or Head of Operations) sets
+ *  the real % for this year via per-line edits or "bulk apply" once the draft exists. */
 export async function createDraftVersion(schoolCode: string, formData: FormData): Promise<void> {
   const school = await requireSchool(schoolCode);
-  await assertCanDraftForCampus(school.code);
   const user = await getCurrentUser();
 
   const academicYear = String(formData.get('academicYear') ?? '').trim();
@@ -68,7 +68,6 @@ export async function createDraftVersion(schoolCode: string, formData: FormData)
 
 export async function updateFeeLine(schoolCode: string, feeLineId: string, formData: FormData): Promise<void> {
   const school = await requireSchool(schoolCode);
-  await assertCanDraftForCampus(school.code);
 
   const line = await prisma.feeLine.findUnique({ where: { id: feeLineId }, include: { feeVersion: true } });
   if (!line || line.feeVersion.schoolId !== school.id) throw new Error('Fee line not found for this school.');
@@ -94,7 +93,6 @@ export async function updateFeeLine(schoolCode: string, feeLineId: string, formD
  *  per-head increment requirement. */
 export async function bulkApplyIncrement(schoolCode: string, feeVersionId: string, formData: FormData): Promise<void> {
   const school = await requireSchool(schoolCode);
-  await assertCanDraftForCampus(school.code);
 
   const version = await prisma.feeVersion.findUnique({ where: { id: feeVersionId } });
   if (!version || version.schoolId !== school.id) throw new Error('Fee version not found for this school.');
@@ -118,7 +116,6 @@ export async function bulkApplyIncrement(schoolCode: string, feeVersionId: strin
 
 export async function submitForReview(schoolCode: string, feeVersionId: string): Promise<void> {
   const school = await requireSchool(schoolCode);
-  await assertCanDraftForCampus(school.code);
 
   const version = await prisma.feeVersion.findUnique({ where: { id: feeVersionId } });
   if (!version || version.schoolId !== school.id) throw new Error('Fee version not found for this school.');

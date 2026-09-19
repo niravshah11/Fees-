@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/db';
+import { computeGradeBandTotal } from '@/engine/fee';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,7 +21,7 @@ export default async function Dashboard() {
       feeVersions: {
         where: { status: { not: 'SUPERSEDED' } },
         orderBy: [{ academicYear: 'desc' }, { createdAt: 'desc' }],
-        include: { feeLines: true },
+        include: { feeLines: { include: { feeHead: { select: { isTotal: true } } } } },
       },
     },
   });
@@ -65,9 +66,9 @@ export default async function Dashboard() {
           const latestIsDraftish = latest && latest.status !== 'APPROVED';
           const bandTotals = approved
             ? [...approved.feeLines.reduce((byBand, l) => {
-                byBand.set(l.gradeBandId, (byBand.get(l.gradeBandId) ?? 0) + l.amount);
+                byBand.set(l.gradeBandId, [...(byBand.get(l.gradeBandId) ?? []), l]);
                 return byBand;
-              }, new Map<string, number>()).values()]
+              }, new Map<string, typeof approved.feeLines>()).values()].map(computeGradeBandTotal)
             : [];
           const tuitionRange = bandTotals.length > 0 ? [Math.min(...bandTotals), Math.max(...bandTotals)] : null;
 

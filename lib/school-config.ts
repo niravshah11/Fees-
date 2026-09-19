@@ -1,6 +1,6 @@
 // The six Fountainhead schools this app covers, in display order. Each school's `domain` is the
-// email domain its SCHOOL_FINANCE staff sign in with (lib/auth-domains.ts already allowlists all
-// of these) — used only as a sane default when granting rights, not for auth itself.
+// email domain its own staff sign in with (lib/auth-domains.ts already allowlists all of these)
+// — informational only, not used for auth itself.
 
 export interface SchoolConfigEntry {
   code: string;

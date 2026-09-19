@@ -2,14 +2,14 @@ import 'server-only';
 import { prisma } from '../db';
 import { getCurrentUser } from './session';
 import { resolveRightsAdmins, isRightsAdmin } from './rights-admins';
-import { canDraftForCampus, hasRoleForCampus, type RightsGrant, type FeeRole } from '../../engine/rights';
+import { hasRoleForCampus, type RightsGrant, type FeeRole } from '../../engine/rights';
 
 // The auth()+Prisma wrapper around engine/rights.ts's pure predicates. Local `next dev` has no
 // session (middleware.ts skips the sign-in wall there), so this defaults to holding every role
 // unrestricted locally — same dev/prod split the event-management app uses — rather than
 // requiring seeded AppUserRight rows just to click through the app.
 
-const ALL_ROLES: FeeRole[] = ['SCHOOL_FINANCE', 'FEES_GROUP_COORDINATOR', 'HEAD_OF_OPERATIONS', 'HEAD_OF_FINANCE', 'DIRECTOR', 'BOARD_TRUSTEE'];
+const ALL_ROLES: FeeRole[] = ['FEES_GROUP_COORDINATOR', 'HEAD_OF_OPERATIONS', 'HEAD_OF_FINANCE', 'DIRECTOR', 'BOARD_TRUSTEE'];
 
 export async function getCurrentRights(): Promise<RightsGrant[]> {
   const user = await getCurrentUser();
@@ -24,12 +24,6 @@ export async function getCurrentRights(): Promise<RightsGrant[]> {
     include: { rights: { select: { role: true, campus: true } } },
   });
   return (appUser?.rights ?? []) as RightsGrant[];
-}
-
-export async function assertCanDraftForCampus(campus: string): Promise<void> {
-  if (!canDraftForCampus(await getCurrentRights(), campus)) {
-    throw new Error('Not authorised — you do not hold Finance Officer rights for this campus.');
-  }
 }
 
 export async function assertHasRoleForCampus(role: FeeRole, campus: string): Promise<void> {

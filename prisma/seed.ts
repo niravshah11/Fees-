@@ -13,14 +13,21 @@
 //
 // Every school charges Tuition Fee, seeded with real base figures where the user supplied them.
 // FeeHead is otherwise campus-specific and extensible via Master Data (confirmed with the user)
-// — FSK also charges a "Beyond Mandate" fee, seeded here with a 0 base as a ready-to-fill
-// placeholder (no source figures for it), since a school's actual set of heads varies.
+// — FSK and FSM also charge a "Beyond Mandate" fee (seeded at 0, no source figures for it) and a
+// "Total Fees to be charged from Parents" head (seeded equal to Tuition Fee, since Beyond
+// Mandate starts at 0) — that head is flagged isTotal: true, so display code uses its amount as
+// the grade band's grand total instead of summing every head (Total, Tuition, and Beyond Mandate
+// are each independently entered, not enforced to reconcile via subtraction).
 
 import { PrismaClient } from '@prisma/client';
 import { computeIncrementedFee } from '../engine/fee';
 import { buildApprovalChain } from '../engine/approval';
 
 const prisma = new PrismaClient();
+
+/** The one fee head, when present, whose own amount already IS the grade band's grand total —
+ *  flagged isTotal: true on creation (see engine-level header comment above). */
+const TOTAL_HEAD_LABEL = 'Total Fees to be charged from Parents';
 
 interface GradeBandSeed {
   label: string;
@@ -41,7 +48,7 @@ interface SchoolSeed {
   stages: StageSeed[];
   /** fee heads this school charges, in display order — only the first gets real baseFee data
    *  (from `stages[].gradeBands[].baseFee`); any additional heads seed with a 0 base per grade
-   *  band, ready for the Finance Officer to fill in. */
+   *  band, ready to be filled in via the Fee Builder. */
   feeHeads: string[];
   academicYear: string;
   /** the increment % actually applied to build this seed's FeeVersion's primary-head FeeLines */
@@ -57,7 +64,7 @@ const SCHOOLS: SchoolSeed[] = [
     board: 'IB',
     domain: 'fsksurat.in',
     order: 0,
-    feeHeads: ['Tuition Fee', 'Beyond Mandate'],
+    feeHeads: ['Total Fees to be charged from Parents', 'Tuition Fee', 'Beyond Mandate'],
     academicYear: '2026-27',
     appliedIncrementPct: 0.05, // historical FRC increase actually applied 2025-26 -> 2026-27
     versionStatus: 'APPROVED',
@@ -65,7 +72,9 @@ const SCHOOLS: SchoolSeed[] = [
       'FRC-approved 2026-27 Tuition Fee (Tuition Fees Working 2024-25, 2025-26 and 2026-27.xlsx). ' +
       'Figures are the app-computed 5% increment off the 2025-26 base and may differ by a few ' +
       'rupees from the exact filed amount due to legacy per-row rounding in the original FRC ' +
-      'filing. "Beyond Mandate" is seeded at 0 — no source figures yet; fill it in via the Fee Builder.',
+      'filing. "Beyond Mandate" is seeded at 0 — no source figures yet; fill it in via the Fee ' +
+      'Builder. "Total Fees to be charged from Parents" starts equal to the Tuition Fee (since ' +
+      'Beyond Mandate is 0) — each of the three is independently editable, not enforced to reconcile.',
     stages: [
       // Split one stage per IB programme (confirmed with the user) rather than one "EYP to
       // MYP" stage covering three grade bands — each programme sets its own YoY % independently
@@ -81,7 +90,7 @@ const SCHOOLS: SchoolSeed[] = [
     name: 'Fountainhead School, Malgama',
     board: 'IB',
     domain: 'fsmsurat.in',
-    feeHeads: ['Tuition Fee'],
+    feeHeads: ['Total Fees to be charged from Parents', 'Tuition Fee', 'Beyond Mandate'],
     order: 1,
     academicYear: '2027-28',
     appliedIncrementPct: 0, // this IS the base year (Parent Undertaking anchor) — no prior year
@@ -90,7 +99,8 @@ const SCHOOLS: SchoolSeed[] = [
       'Base fee per the Parent Undertaking for 2027-28 (Provisional fee 2027-28.xlsx, ' +
       '"10 Years Fees Malgama"). Lump-sum tuition figure, no separate term fee. Fees Group ' +
       'Coordinator and Head of Operations have reviewed; awaiting Director and Board of ' +
-      'Trustees sign-off.',
+      'Trustees sign-off. "Beyond Mandate" and "Total Fees to be charged from Parents" added ' +
+      'per the same 3-slab structure as FSK — both seed alongside Tuition Fee, independently editable.',
     stages: [
       {
         label: 'EYP & PYP',
@@ -220,9 +230,14 @@ async function main() {
     });
 
     const feeHeads = await Promise.all(
-      s.feeHeads.map((label, order) => prisma.feeHead.create({ data: { schoolId: school.id, label, order } })),
+      s.feeHeads.map((label, order) =>
+        prisma.feeHead.create({ data: { schoolId: school.id, label, order, isTotal: label === TOTAL_HEAD_LABEL } }),
+      ),
     );
-    const primaryFeeHead = feeHeads[0];
+    // Tuition Fee carries the real source-workbook base figures; a "Total Fees..." head (if
+    // present) starts equal to it (Beyond Mandate seeds at 0, so Total = Tuition + 0 initially) —
+    // every other head seeds at 0, ready to be filled in via the Fee Builder.
+    const realDataHead = feeHeads.find((h) => h.label === 'Tuition Fee') ?? feeHeads[0];
 
     const feeVersion = await prisma.feeVersion.create({
       data: {
@@ -256,12 +271,12 @@ async function main() {
           },
         });
 
-        // One FeeLine per (grade band x fee head). Only the primary head (feeHeads[0]) has real
-        // baseFee data; any additional heads (e.g. FSK's "Beyond Mandate") seed at 0, ready for
-        // the Finance Officer to fill in via the Fee Builder.
+        // One FeeLine per (grade band x fee head). Tuition Fee (and a "Total Fees..." head, if
+        // present) get real baseFee data; any other head (e.g. "Beyond Mandate") seeds at 0.
         for (const head of feeHeads) {
-          const baseFee = head.id === primaryFeeHead.id ? band.baseFee : 0;
-          const incrementPct = head.id === primaryFeeHead.id ? s.appliedIncrementPct : 0;
+          const usesRealData = head.id === realDataHead.id || head.isTotal;
+          const baseFee = usesRealData ? band.baseFee : 0;
+          const incrementPct = usesRealData ? s.appliedIncrementPct : 0;
           const amount = computeIncrementedFee(baseFee, incrementPct);
 
           await prisma.feeLine.create({
@@ -312,12 +327,11 @@ async function main() {
     console.log(`Seeded ${s.code}: ${s.stages.reduce((n, st) => n + st.gradeBands.length, 0)} grade bands, FeeVersion ${s.academicYear} (${s.versionStatus}).`);
   }
 
-  // Demo users for the four group-level workflow roles only — no placeholder Finance Officer
-  // rows. SCHOOL_FINANCE grants are campus-specific to real people, so they're added by hand via
-  // /settings/rights rather than seeded generically. Nirav Shah really is the group's Head of
-  // Operations, so he's seeded with exactly that role — he's also the rights admin by default
+  // Demo users for the four approval-chain roles — drafting/editing itself needs no grant at all
+  // (open to every signed-in colleague). Nirav Shah really is the group's Head of Operations, so
+  // he's seeded with exactly that role — he's also the rights admin by default
   // (lib/auth/rights-admins.ts), which is an independent, separate capability: curating the
-  // rights list doesn't require personally holding every workflow role.
+  // rights list doesn't require personally holding every approval-chain role.
   const roleUsers: Array<{ email: string; name: string; role: string }> = [
     { email: 'coordinator@fountainheadschools.org', name: 'Fees Group Coordinator', role: 'FEES_GROUP_COORDINATOR' },
     { email: 'nirav.shah@fountainheadschools.org', name: 'Nirav Shah', role: 'HEAD_OF_OPERATIONS' },

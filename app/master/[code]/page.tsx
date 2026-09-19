@@ -1,8 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/db';
-import { getCurrentRights } from '@/lib/auth/rights';
-import { canDraftForCampus } from '@/engine/rights';
 import { STANDARD_GRADES } from '@/lib/grades';
 import { Tabs } from './_Tabs';
 import {
@@ -34,8 +32,9 @@ export default async function MasterSchool({ params }: { params: Promise<{ code:
   });
   if (!school) notFound();
 
-  const grants = await getCurrentRights();
-  const canEdit = canDraftForCampus(grants, school.code);
+  // Editing Master data is open to every signed-in colleague — there is no dedicated "editor"
+  // role (confirmed with the user); only the approval chain itself is role-gated.
+  const canEdit = true;
   const usedGrades = new Set(school.programmeStages.flatMap((s) => s.gradeBands.map((b) => b.label)));
   const availableGrades = STANDARD_GRADES.filter((g) => !usedGrades.has(g));
 
@@ -49,16 +48,18 @@ export default async function MasterSchool({ params }: { params: Promise<{ code:
       {school.programmeStages.map((stage) => (
         <section key={stage.id} className="fh-card">
           {canEdit ? (
-            <form action={updateProgrammeStage.bind(null, school.code, stage.id)} className="flex flex-wrap items-end gap-2">
-              <div className="flex-1">
-                <label className="fh-label text-xs">Programme / stage label</label>
-                <input name="label" defaultValue={stage.label} className="fh-input" required />
-              </div>
-              <button type="submit" className="fh-btn fh-btn--secondary">Save</button>
+            <div className="flex flex-wrap items-end gap-2">
+              <form action={updateProgrammeStage.bind(null, school.code, stage.id)} className="flex flex-1 flex-wrap items-end gap-2">
+                <div className="flex-1">
+                  <label className="fh-label text-xs">Programme / stage label</label>
+                  <input name="label" defaultValue={stage.label} className="fh-input" required />
+                </div>
+                <button type="submit" className="fh-btn fh-btn--outline">Save</button>
+              </form>
               <form action={deleteProgrammeStage.bind(null, school.code, stage.id)}>
                 <button type="submit" className="text-xs text-red-600 hover:underline">Remove stage</button>
               </form>
-            </form>
+            </div>
           ) : (
             <div className="font-heading font-bold text-foreground">{stage.label}</div>
           )}
@@ -74,7 +75,7 @@ export default async function MasterSchool({ params }: { params: Promise<{ code:
                         <option key={s.id} value={s.id}>{s.label}</option>
                       ))}
                     </select>
-                    <button type="submit" className="fh-btn fh-btn--secondary fh-btn--sm">Save</button>
+                    <button type="submit" className="fh-btn fh-btn--outline fh-btn--sm">Save</button>
                   </form>
                 ) : (
                   <span className="fh-badge fh-badge--neutral">{band.label}</span>
@@ -105,7 +106,7 @@ export default async function MasterSchool({ params }: { params: Promise<{ code:
                     ))}
                   </select>
                 </div>
-                <button type="submit" className="fh-btn fh-btn--secondary fh-btn--sm">Add selected grades</button>
+                <button type="submit" className="fh-btn fh-btn--outline fh-btn--sm">Add selected grades</button>
               </form>
             )}
           </div>
@@ -136,7 +137,10 @@ export default async function MasterSchool({ params }: { params: Promise<{ code:
       <p className="text-sm text-muted">
         The fee categories this school charges — every school starts with its own set (e.g.
         "Tuition Fee", "Beyond Mandate"), and you can add more here as the need arises. Each head
-        gets its own base fee and YoY increment %, set independently in the Fee Builder.
+        gets its own base fee and YoY increment %, set independently in the Fee Builder. Mark at
+        most one head "Total" if it already represents the grand total a parent pays (e.g. "Total
+        Fees to be charged from Parents") — the app then shows that head's amount as the grade
+        band's total instead of adding every head together.
       </p>
 
       <section className="fh-card">
@@ -146,11 +150,16 @@ export default async function MasterSchool({ params }: { params: Promise<{ code:
               {canEdit ? (
                 <form action={updateFeeHead.bind(null, school.code, head.id)} className="flex flex-1 flex-wrap items-end gap-2">
                   <input name="label" defaultValue={head.label} className="fh-input flex-1" required />
-                  <button type="submit" className="fh-btn fh-btn--secondary fh-btn--sm">Save</button>
+                  <label className="flex items-center gap-1.5 text-sm text-muted">
+                    <input type="checkbox" name="isTotal" defaultChecked={head.isTotal} />
+                    Total
+                  </label>
+                  <button type="submit" className="fh-btn fh-btn--outline fh-btn--sm">Save</button>
                 </form>
               ) : (
                 <span className="fh-badge fh-badge--neutral">{head.label}</span>
               )}
+              {head.isTotal && <span className="fh-badge fh-badge--success">Total</span>}
               {canEdit && (
                 <form action={deleteFeeHead.bind(null, school.code, head.id)} className="ml-auto">
                   <button
@@ -174,6 +183,10 @@ export default async function MasterSchool({ params }: { params: Promise<{ code:
               <label className="fh-label text-xs">New fee head</label>
               <input name="label" placeholder="e.g. Beyond Mandate" className="fh-input" required />
             </div>
+            <label className="flex items-center gap-1.5 text-sm text-muted">
+              <input type="checkbox" name="isTotal" />
+              Total
+            </label>
             <button type="submit" className="fh-btn fh-btn--primary">Add fee head</button>
           </form>
         )}
@@ -190,11 +203,6 @@ export default async function MasterSchool({ params }: { params: Promise<{ code:
           <span className="fh-badge">{school.board}</span>
         </div>
         <p className="text-muted">{school.name}</p>
-        {!canEdit && (
-          <p className="fh-alert fh-alert--warning mt-3 text-sm">
-            You don't hold Finance Officer rights for {school.code} — this page is read-only for you.
-          </p>
-        )}
       </div>
 
       <Tabs

@@ -3,12 +3,11 @@ import { prisma } from '@/lib/db';
 import { SCHOOL_CONFIG } from '@/lib/school-config';
 import { getCurrentUser } from '@/lib/auth/session';
 import { resolveRightsAdmins, isRightsAdmin } from '@/lib/auth/rights-admins';
-import { addRightsGrant, removeRightsGrant } from './actions';
+import { addRightsGrant, updateRightsGrant, removeRightsGrant } from './actions';
 
 export const dynamic = 'force-dynamic';
 
 const ROLE_LABEL: Record<string, string> = {
-  SCHOOL_FINANCE: 'Finance Officer',
   FEES_GROUP_COORDINATOR: 'Fees Group Coordinator',
   HEAD_OF_OPERATIONS: 'Head of Operations',
   HEAD_OF_FINANCE: 'Head of Finance',
@@ -41,11 +40,12 @@ export default async function RightsSettings() {
         <Link href="/" className="text-sm text-primary hover:underline">← Schools</Link>
         <h1 className="mt-1 font-heading text-2xl font-bold text-foreground">Rights</h1>
         <p className="mt-1 text-muted">
-          Every role needs an explicit grant. <strong>Finance Officer</strong> drafts/edits/submits
-          a proposal for its own school. <strong>Fees Group Coordinator</strong>,{' '}
-          <strong>Head of Operations</strong>, <strong>Director</strong>, and{' '}
-          <strong>Board of Trustees</strong> each act on their own step of the group-wide
-          approval chain, for every school.
+          Drafting and editing a school's fee proposal and Master data is open to every signed-in
+          colleague — no grant needed for that. A grant here is only for the approval chain:{' '}
+          <strong>Fees Group Coordinator</strong>, <strong>Head of Operations</strong>,{' '}
+          <strong>Head of Finance</strong>, <strong>Director</strong>, and{' '}
+          <strong>Board of Trustees</strong> each act on their own step, scoped to a school or
+          (leave "School" as "All schools") the whole group.
         </p>
       </div>
 
@@ -62,19 +62,39 @@ export default async function RightsSettings() {
               </tr>
             </thead>
             <tbody>
-              {grants.map((g) => (
-                <tr key={g.id}>
-                  <td>{g.user.name}</td>
-                  <td className="text-muted">{g.user.email}</td>
-                  <td><span className="fh-badge">{ROLE_LABEL[g.role] ?? g.role}</span></td>
-                  <td>{g.campus ?? 'All schools'}</td>
-                  <td>
-                    <form action={removeRightsGrant.bind(null, g.id)}>
-                      <button type="submit" className="text-xs text-red-600 hover:underline">Remove</button>
-                    </form>
-                  </td>
-                </tr>
-              ))}
+              {grants.map((g) => {
+                const formId = `grant-${g.id}`;
+                return (
+                  <tr key={g.id}>
+                    <td>{g.user.name}</td>
+                    <td className="text-muted">{g.user.email}</td>
+                    <td>
+                      <form id={formId} action={updateRightsGrant.bind(null, g.id)} />
+                      <select name="role" form={formId} defaultValue={g.role} className="fh-input fh-input--sm">
+                        {Object.entries(ROLE_LABEL).map(([value, label]) => (
+                          <option key={value} value={value}>{label}</option>
+                        ))}
+                      </select>
+                    </td>
+                    <td>
+                      <select name="campus" form={formId} defaultValue={g.campus ?? ''} className="fh-input fh-input--sm">
+                        {SCHOOL_CONFIG.map((s) => (
+                          <option key={s.code} value={s.code}>{s.code}</option>
+                        ))}
+                        <option value="">All schools</option>
+                      </select>
+                    </td>
+                    <td>
+                      <div className="flex items-center gap-3">
+                        <button type="submit" form={formId} className="fh-btn fh-btn--outline fh-btn--sm">Save</button>
+                        <form action={removeRightsGrant.bind(null, g.id)}>
+                          <button type="submit" className="text-xs text-red-600 hover:underline">Remove</button>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
               {grants.length === 0 && (
                 <tr>
                   <td colSpan={5} className="py-4 text-center text-sm text-muted">Nobody added yet.</td>
@@ -87,8 +107,7 @@ export default async function RightsSettings() {
         <form action={addRightsGrant} className="mt-4 grid gap-3 sm:grid-cols-5">
           <input name="name" placeholder="Full name" className="fh-input" required />
           <input name="email" type="email" placeholder="name@fountainheadschools.org" className="fh-input" required />
-          <select name="role" className="fh-input" defaultValue="SCHOOL_FINANCE">
-            <option value="SCHOOL_FINANCE">Finance Officer</option>
+          <select name="role" className="fh-input" defaultValue="FEES_GROUP_COORDINATOR">
             <option value="FEES_GROUP_COORDINATOR">Fees Group Coordinator</option>
             <option value="HEAD_OF_OPERATIONS">Head of Operations</option>
             <option value="HEAD_OF_FINANCE">Head of Finance</option>
@@ -104,8 +123,8 @@ export default async function RightsSettings() {
           <button type="submit" className="fh-btn fh-btn--primary">Add</button>
         </form>
         <p className="mt-2 text-xs text-muted">
-          The school picker is ignored for Fees Group Coordinator / Head of Operations / Head of
-          Finance / Director / Board of Trustees — those roles always apply to every school.
+          Every role can be scoped to one school or left at "All schools" — a campus-scoped grant
+          only acts on that school's approval step, not the whole group's.
         </p>
       </div>
     </div>
