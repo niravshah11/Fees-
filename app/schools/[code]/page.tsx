@@ -6,12 +6,14 @@ import { hasRoleForCampus, type FeeRole } from '@/engine/rights';
 import { computeApprovalState, isActionable } from '@/engine/approval';
 import { projectFeeSchedule } from '@/engine/projection';
 import { FEE_APPROVAL_CHAIN, computeGradeBandTotal, computeRemainderHeadAmount } from '@/engine/fee';
-import { nextAcademicYear, academicYearOptions } from '@/lib/academic-year';
+import { nextAcademicYear, previousAcademicYear, academicYearOptions } from '@/lib/academic-year';
 import { FeeLineEditCard } from './_FeeLineEditCard';
 import {
   createDraftVersion,
+  updateAcademicYear,
   bulkApplyIncrement,
   submitForReview,
+  resetToDraft,
   decideApproval,
 } from './actions';
 
@@ -88,6 +90,26 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
   const totalHead = school.feeHeads.find((h) => h.isTotal);
   const remainderHead = school.feeHeads.find((h) => h.isRemainder);
 
+  // Whoever holds the role for the CURRENT actionable approval step can revise a number (e.g. the
+  // increment %) before deciding, same as the Fees Group Coordinator could while still drafting —
+  // confirmed with the user: Head of Operations and then Director each get to correct the figures
+  // during their own turn, not just approve/reject the Coordinator's original entry blindly. Once
+  // a step is decided (or hasn't come up yet), editing is off — see actions.ts's assertCanEditVersion.
+  const typedApprovals = (current?.approvals ?? []) as Array<{ order: number; status: 'PENDING' | 'APPROVED' | 'REJECTED'; role: string }>;
+  const approvalState = current ? computeApprovalState(typedApprovals) : null;
+  const activeApproval = typedApprovals.find((a) => a.order === approvalState?.currentOrder);
+  const canEditAtReviewStep = current?.status === 'PENDING_APPROVAL' && !!activeApproval && roleForRole[activeApproval.role];
+  const showEditableEditor = current?.status === 'DRAFT' ? canDraft : canEditAtReviewStep;
+
+  // A wide-enough window either side of the draft's own year that changing it never lands outside
+  // the list (5 years back covers "picked the wrong year by mistake", 10 forward covers planning ahead).
+  const yearOptions = (() => {
+    if (!current) return [];
+    let y = current.academicYear;
+    for (let i = 0; i < 5; i++) y = previousAcademicYear(y);
+    return academicYearOptions(y, 16);
+  })();
+
   return (
     <div className="space-y-6">
       <div>
@@ -151,11 +173,18 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
 
       {/* Current proposal */}
       <section className="fh-card">
-        <div className="flex items-center justify-between">
-          <h2 className="fh-card__title text-foreground">Current proposal</h2>
-          {current && (
-            <span className={`fh-badge ${STATUS_BADGE[current.status] ?? ''}`}>{current.status.replace('_', ' ')}</span>
-          )}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="fh-card__title text-foreground">{current ? `Proposal ${current.academicYear}` : 'Current proposal'}</h2>
+          <div className="flex items-center gap-2">
+            {current?.status === 'PENDING_APPROVAL' && roleForRole['HEAD_OF_OPERATIONS'] && (
+              <form action={resetToDraft.bind(null, school.code, current.id)}>
+                <button type="submit" className="fh-btn fh-btn--outline fh-btn--sm">Reset to Draft</button>
+              </form>
+            )}
+            {current && (
+              <span className={`fh-badge ${STATUS_BADGE[current.status] ?? ''}`}>{current.status.replace('_', ' ')}</span>
+            )}
+          </div>
         </div>
 
         {!current && (
@@ -181,12 +210,32 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
 
         {current && (
           <div className="mt-3 space-y-4">
-            <div className="text-sm text-muted">
-              Academic year <span className="font-medium text-foreground">{current.academicYear}</span>
-              {current.notes && <> — {current.notes}</>}
-            </div>
-
             {current.status === 'DRAFT' && canDraft ? (
+              <form
+                action={updateAcademicYear.bind(null, school.code, current.id)}
+                className="flex flex-wrap items-center gap-2 text-sm text-muted"
+              >
+                <label className="fh-label text-xs" htmlFor="academicYear">Academic year</label>
+                <select id="academicYear" name="academicYear" defaultValue={current.academicYear} className="fh-input fh-input--sm w-auto">
+                  {yearOptions.map((year) => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+                <button type="submit" className="fh-btn fh-btn--outline fh-btn--sm">Save</button>
+                {current.notes && <span>— {current.notes}</span>}
+              </form>
+            ) : (
+              current.notes && <div className="text-sm text-muted">{current.notes}</div>
+            )}
+
+            {canEditAtReviewStep && activeApproval && (
+              <p className="fh-alert fh-alert--warning text-sm">
+                It's your turn to review as <strong>{FEE_APPROVAL_CHAIN[activeApproval.order]?.label ?? 'reviewer'}</strong> —
+                you can revise the figures below before approving or rejecting.
+              </p>
+            )}
+
+            {showEditableEditor ? (
               <div className="space-y-3">
                 {currentGroups.map(({ gradeBand, lines }) => {
                   const total = computeGradeBandTotal(lines);
@@ -266,7 +315,7 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
               </div>
             )}
 
-            {current.status === 'DRAFT' && canDraft && (
+            {showEditableEditor && (
               <div className="space-y-3 rounded-lg border border-border p-3">
                 <div className="text-sm font-medium text-foreground">Bulk apply an increment % to a stage</div>
                 <form action={bulkApplyIncrement.bind(null, school.code, current.id)} className="flex flex-wrap items-end gap-2">
@@ -293,9 +342,11 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
                   <button type="submit" className="fh-btn fh-btn--outline">Apply to stage</button>
                 </form>
 
-                <form action={submitForReview.bind(null, school.code, current.id)}>
-                  <button type="submit" className="fh-btn fh-btn--primary">Submit for Group Review</button>
-                </form>
+                {current.status === 'DRAFT' && canDraft && (
+                  <form action={submitForReview.bind(null, school.code, current.id)}>
+                    <button type="submit" className="fh-btn fh-btn--primary">Submit for Group Review</button>
+                  </form>
+                )}
               </div>
             )}
 
@@ -303,57 +354,98 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
         )}
       </section>
 
-      {/* Projection preview */}
+      {/* Projection preview — one table per fee head (Total, Tuition Fee, Beyond Mandate, …),
+          shaped exactly like the Current proposal table, so the same breakdown that's visible
+          for the current year stays visible across the projected years too, not just the total
+          (confirmed with the user: the current-year table's per-head columns are the right
+          shape — the projection just needed the same breakdown, not a redesign). */}
       {current && current.feeLines.length > 0 && (() => {
         const projectionYears: string[] = [current.academicYear];
         for (let i = 0; i < 5; i++) projectionYears.push(nextAcademicYear(projectionYears[projectionYears.length - 1]));
 
-        const series = currentGroups.map(({ gradeBand, lines }) => {
-          const totalLine = lines.find((l) => l.feeHead.isTotal);
-          if (totalLine) {
-            const schedule = projectFeeSchedule(totalLine.amount, Number(totalLine.incrementPct), 5);
-            return { label: gradeBand.label, points: [totalLine.amount, ...schedule.map((y) => y.fee)] };
-          }
-          const perHeadSchedules = lines.map((line) => {
+        // Every independently-entered head (isTotal or plain) compounds forward at its own
+        // increment %; the isRemainder head never gets its own compounding — at each projected
+        // year it's recomputed as that year's Total minus every other head, same as
+        // computeRemainderHeadAmount does for the current year.
+        const perBandHeadPoints = new Map<string, Map<string, number[]>>();
+        for (const { gradeBand, lines } of currentGroups) {
+          const headPoints = new Map<string, number[]>();
+          for (const line of lines) {
+            if (line.feeHead.isRemainder) continue;
             const schedule = projectFeeSchedule(line.amount, Number(line.incrementPct), 5);
-            return [line.amount, ...schedule.map((y) => y.fee)];
-          });
-          const points = Array.from({ length: 6 }, (_, i) => perHeadSchedules.reduce((sum, sched) => sum + sched[i], 0));
+            headPoints.set(line.feeHeadId, [line.amount, ...schedule.map((y) => y.fee)]);
+          }
+          if (remainderHead && totalHead) {
+            const totalPoints = headPoints.get(totalHead.id) ?? Array(6).fill(0);
+            const otherHeadIds = [...headPoints.keys()].filter((id) => id !== totalHead.id);
+            const remainderPoints = Array.from({ length: 6 }, (_, i) =>
+              totalPoints[i] - otherHeadIds.reduce((sum, id) => sum + (headPoints.get(id)?.[i] ?? 0), 0),
+            );
+            headPoints.set(remainderHead.id, remainderPoints);
+          }
+          perBandHeadPoints.set(gradeBand.id, headPoints);
+        }
+
+        // "Total" table: the isTotal head's own projected points where one exists, else summed
+        // across every non-remainder head each year — same fallback as computeGradeBandTotal.
+        const totalSeries = currentGroups.map(({ gradeBand, lines }) => {
+          const headPoints = perBandHeadPoints.get(gradeBand.id)!;
+          if (totalHead) return { label: gradeBand.label, points: headPoints.get(totalHead.id) ?? Array(6).fill(0) };
+          const points = Array.from({ length: 6 }, (_, i) =>
+            lines.filter((l) => !l.feeHead.isRemainder).reduce((sum, l) => sum + (headPoints.get(l.feeHeadId)?.[i] ?? 0), 0),
+          );
           return { label: gradeBand.label, points };
         });
+
+        const seriesForHead = (headId: string) =>
+          currentGroups.map(({ gradeBand }) => ({
+            label: gradeBand.label,
+            points: perBandHeadPoints.get(gradeBand.id)?.get(headId) ?? Array(6).fill(0),
+          }));
+
+        const tables = [
+          { key: 'total', title: totalHead?.label ?? 'Total', series: totalSeries },
+          ...school.feeHeads
+            .filter((head) => !head.isTotal)
+            .map((head) => ({ key: head.id, title: head.label, series: seriesForHead(head.id) })),
+        ];
 
         return (
           <section className="fh-card">
             <h2 className="fh-card__title text-foreground">5-year projection preview</h2>
             <p className="mt-1 text-sm text-muted">
-              Each grade band's current total — its "{totalHead?.label ?? 'Total'}" head where one
-              exists, otherwise summed across every fee head — compounded forward at its own
-              current increment %. Preview only — not persisted; only the current year's proposal
-              becomes real FeeLines.
+              Every fee head's current amount compounded forward at its own current increment %.
+              {remainderHead && ` ${remainderHead.label} is recalculated each year as that year's ${totalHead?.label ?? 'Total'} minus every other head.`}{' '}
+              Preview only — not persisted; only the current year's proposal becomes real FeeLines.
             </p>
 
-            <div className="mt-4 overflow-x-auto">
-              <table className="fh-table fh-table--striped">
-                <thead>
-                  <tr>
-                    <th>Grade band</th>
-                    {projectionYears.map((year) => (
-                      <th key={year}>{year}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {series.map((s) => (
-                    <tr key={s.label}>
-                      <td>{s.label}</td>
-                      {s.points.map((v, i) => (
-                        <td key={i} className={i === 0 ? 'font-medium' : undefined}>{inr.format(Math.round(v))}</td>
+            {tables.map((t) => (
+              <div key={t.key} className="mt-4">
+                <div className="text-sm font-medium text-foreground">{t.title}</div>
+                <div className="mt-2 overflow-x-auto">
+                  <table className="fh-table fh-table--striped">
+                    <thead>
+                      <tr>
+                        <th>Grade band</th>
+                        {projectionYears.map((year) => (
+                          <th key={year}>{year}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {t.series.map((s) => (
+                        <tr key={s.label}>
+                          <td>{s.label}</td>
+                          {s.points.map((v, i) => (
+                            <td key={i} className={i === 0 ? 'font-medium' : undefined}>{inr.format(Math.round(v))}</td>
+                          ))}
+                        </tr>
                       ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ))}
           </section>
         );
       })()}

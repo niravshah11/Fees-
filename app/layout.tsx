@@ -54,7 +54,11 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
               <Link href="/" className="flex items-center gap-2 font-heading text-base font-bold">
                 Fountainhead Fees
               </Link>
-              <p className="mt-0.5 text-[11px] leading-tight text-muted">Group fee proposal &amp; approval</p>
+              {/* text-muted is tuned for the light card surfaces, not this always-dark navy
+                  sidebar rail — it renders unreadably low-contrast there (confirmed by the
+                  user); the design system's own dark-sidebar text uses translucent white
+                  (components.css's [data-profile="product"] .fh-sidebar__section rule). */}
+              <p className="mt-0.5 text-[11px] leading-tight text-white/60">Group fee proposal &amp; approval</p>
             </div>
           }
           nav={<Nav schools={schools} />}

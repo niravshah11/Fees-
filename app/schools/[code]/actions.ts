@@ -16,6 +16,26 @@ async function requireSchool(code: string) {
   return school;
 }
 
+/** A DRAFT is editable by anyone (drafting has no dedicated role). A PENDING_APPROVAL version is
+ *  editable only by whoever holds the role for its CURRENT actionable step — the reviewer whose
+ *  turn it is can correct a number (e.g. change the increment %) before deciding, same as the
+ *  Fees Group Coordinator could while drafting; a step that's already decided, or hasn't come up
+ *  yet, can't touch the figures (confirmed with the user: Coordinator sets the initial %, then
+ *  Head of Operations and Director may each revise it further during their own turn). Anything
+ *  else (APPROVED/REJECTED/SUPERSEDED) is locked — start a new draft to revise those. */
+async function assertCanEditVersion(schoolCode: string, version: { id: string; status: string }): Promise<void> {
+  if (version.status === 'DRAFT') return;
+  if (version.status === 'PENDING_APPROVAL') {
+    const approvals = await prisma.feeApproval.findMany({ where: { feeVersionId: version.id } });
+    const state = computeApprovalState(approvals as unknown as ApprovalLike[]);
+    const activeApproval = approvals.find((a) => a.order === state.currentOrder);
+    if (!activeApproval) throw new Error('This proposal has no actionable review step right now.');
+    await assertHasRoleForCampus(activeApproval.role as FeeRole, schoolCode);
+    return;
+  }
+  throw new Error('Only a DRAFT version, or a PENDING_APPROVAL version during the current reviewer\'s turn, can be edited.');
+}
+
 /** Starts a new DRAFT FeeVersion for the given academic year — one FeeLine per (grade band x fee
  *  head) combination, pre-filled from the school's latest APPROVED version (baseFee = that
  *  head's prior amount for that grade band) with a 0% increment — whoever is drafting (open to
@@ -32,12 +52,29 @@ export async function createDraftVersion(schoolCode: string, formData: FormData)
   revalidatePath(`/schools/${schoolCode}`);
 }
 
+/** Changes a DRAFT's academic year (e.g. correcting the year picked when the draft was started) —
+ *  restricted to DRAFT only, unlike fee-line edits, since the year is the version's identity, not
+ *  a figure a reviewer would revise mid-approval. */
+export async function updateAcademicYear(schoolCode: string, feeVersionId: string, formData: FormData): Promise<void> {
+  const school = await requireSchool(schoolCode);
+
+  const version = await prisma.feeVersion.findUnique({ where: { id: feeVersionId } });
+  if (!version || version.schoolId !== school.id) throw new Error('Fee version not found for this school.');
+  if (version.status !== 'DRAFT') throw new Error("Only a DRAFT version's academic year can be changed.");
+
+  const academicYear = String(formData.get('academicYear') ?? '').trim();
+  if (!academicYear) return;
+
+  await prisma.feeVersion.update({ where: { id: feeVersionId }, data: { academicYear } });
+  revalidatePath(`/schools/${schoolCode}`);
+}
+
 export async function updateFeeLine(schoolCode: string, feeLineId: string, formData: FormData): Promise<void> {
   const school = await requireSchool(schoolCode);
 
   const line = await prisma.feeLine.findUnique({ where: { id: feeLineId }, include: { feeVersion: true } });
   if (!line || line.feeVersion.schoolId !== school.id) throw new Error('Fee line not found for this school.');
-  if (line.feeVersion.status !== 'DRAFT') throw new Error('Only a DRAFT fee version can be edited.');
+  await assertCanEditVersion(schoolCode, line.feeVersion);
 
   const baseFee = Number(formData.get('baseFee'));
   const incrementPctInput = Number(formData.get('incrementPct'));
@@ -62,7 +99,7 @@ export async function bulkApplyIncrement(schoolCode: string, feeVersionId: strin
 
   const version = await prisma.feeVersion.findUnique({ where: { id: feeVersionId } });
   if (!version || version.schoolId !== school.id) throw new Error('Fee version not found for this school.');
-  if (version.status !== 'DRAFT') throw new Error('Only a DRAFT fee version can be edited.');
+  await assertCanEditVersion(schoolCode, version);
 
   const programmeStageId = String(formData.get('programmeStageId') ?? '');
   const feeHeadId = String(formData.get('feeHeadId') ?? '');
@@ -96,6 +133,28 @@ export async function submitForReview(schoolCode: string, feeVersionId: string):
     prisma.feeApproval.createMany({
       data: chain.map((step) => ({ feeVersionId, role: step.role, label: step.label, order: step.order })),
     }),
+  ]);
+  revalidatePath(`/schools/${schoolCode}`);
+}
+
+/** Head of Operations can pull a PENDING_APPROVAL proposal back to DRAFT at any point in the
+ *  chain — regardless of whose turn it currently is — so it can be freely re-edited instead of
+ *  being stuck with only Approve/Reject on the frozen numbers (confirmed with the user: HOO gets
+ *  this override to redo the structure as needed). Deletes the existing FeeApproval rows (a DRAFT
+ *  has none; submitting again via submitForReview creates a fresh chain from scratch) but leaves
+ *  every FeeLine untouched — this is an un-submit, not a wipe. Doesn't touch APPROVED/REJECTED/
+ *  SUPERSEDED versions — those are final; correcting one of those still goes through a fresh draft. */
+export async function resetToDraft(schoolCode: string, feeVersionId: string): Promise<void> {
+  const school = await requireSchool(schoolCode);
+  await assertHasRoleForCampus('HEAD_OF_OPERATIONS', school.code);
+
+  const version = await prisma.feeVersion.findUnique({ where: { id: feeVersionId } });
+  if (!version || version.schoolId !== school.id) throw new Error('Fee version not found for this school.');
+  if (version.status !== 'PENDING_APPROVAL') throw new Error('Only a version awaiting approval can be reset to draft.');
+
+  await prisma.$transaction([
+    prisma.feeApproval.deleteMany({ where: { feeVersionId } }),
+    prisma.feeVersion.update({ where: { id: feeVersionId }, data: { status: 'DRAFT', submittedAt: null } }),
   ]);
   revalidatePath(`/schools/${schoolCode}`);
 }

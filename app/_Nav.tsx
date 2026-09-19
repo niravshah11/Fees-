@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import { NewDot } from './_NewBadge';
 
@@ -37,24 +37,10 @@ function SideIcon({ name }: { name: string }) {
   );
 }
 
-function Chevron({ open }: { open: boolean }) {
-  return (
-    <svg
-      viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"
-      className="ml-auto h-4 w-4 shrink-0 transition-transform"
-      style={{ transform: open ? 'rotate(180deg)' : undefined }}
-      aria-hidden
-    >
-      <path d="m6 9 6 6 6-6" />
-    </svg>
-  );
-}
-
 export function Nav({ schools }: { schools: { code: string }[] }) {
   const path = usePathname() ?? '/';
   const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
   const onASchoolPage = path.startsWith('/schools');
-  const [schoolsOpen, setSchoolsOpen] = useState(onASchoolPage);
 
   return (
     <nav className="flex flex-col gap-0.5">
@@ -70,29 +56,21 @@ export function Nav({ schools }: { schools: { code: string }[] }) {
 
       <div>
         <div className="fh-sidebar__section">Overview</div>
-        <button
-          type="button"
-          onClick={() => setSchoolsOpen((v) => !v)}
-          aria-expanded={schoolsOpen}
-          className={`fh-sidebar__item w-full${onASchoolPage ? ' is-active' : ''}`}
-        >
+        <div className={`fh-sidebar__item${onASchoolPage ? ' is-active' : ''}`}>
           <SideIcon name="school" />
           <span className="bcn-lbl">Schools</span>
-          <Chevron open={schoolsOpen} />
-        </button>
-        {schoolsOpen && (
-          <div className="ml-8 flex flex-col gap-0.5 border-l border-border pl-2">
-            {schools.map((s) => {
-              const href = `/schools/${s.code}`;
-              const active = path.startsWith(href);
-              return (
-                <Link key={s.code} href={href} aria-current={active ? 'page' : undefined} className={`fh-sidebar__item py-1.5 text-sm${active ? ' is-active' : ''}`}>
-                  <span className="bcn-lbl">{s.code}</span>
-                </Link>
-              );
-            })}
-          </div>
-        )}
+        </div>
+        <div className="ml-8 flex flex-col gap-0.5 border-l border-border pl-2">
+          {schools.map((s) => {
+            const href = `/schools/${s.code}`;
+            const active = path.startsWith(href);
+            return (
+              <Link key={s.code} href={href} aria-current={active ? 'page' : undefined} className={`fh-sidebar__item py-1.5 text-sm${active ? ' is-active' : ''}`}>
+                <span className="bcn-lbl">{s.code}</span>
+              </Link>
+            );
+          })}
+        </div>
       </div>
 
       <div>
