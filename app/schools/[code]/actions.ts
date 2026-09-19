@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth/session';
 import { assertHasRoleForCampus } from '@/lib/auth/rights';
+import { createDraftVersionForSchool } from '@/lib/fee-draft';
 import { computeIncrementedFee } from '@/engine/fee';
 import { buildApprovalChain, computeApprovalState, type ApprovalLike } from '@/engine/approval';
 import type { FeeRole } from '@/engine/rights';
@@ -27,42 +28,7 @@ export async function createDraftVersion(schoolCode: string, formData: FormData)
   const academicYear = String(formData.get('academicYear') ?? '').trim();
   if (!academicYear) return;
 
-  const [gradeBands, feeHeads] = await Promise.all([
-    prisma.gradeBand.findMany({ where: { schoolId: school.id }, orderBy: { order: 'asc' } }),
-    prisma.feeHead.findMany({ where: { schoolId: school.id }, orderBy: { order: 'asc' } }),
-  ]);
-  if (gradeBands.length === 0 || feeHeads.length === 0) return;
-
-  const lastApproved = await prisma.feeVersion.findFirst({
-    where: { schoolId: school.id, status: 'APPROVED' },
-    orderBy: { academicYear: 'desc' },
-    include: { feeLines: true },
-  });
-
-  const draft = await prisma.feeVersion.create({
-    data: {
-      schoolId: school.id,
-      academicYear,
-      status: 'DRAFT',
-      createdBy: user?.email ?? null,
-    },
-  });
-
-  for (const band of gradeBands) {
-    for (const head of feeHeads) {
-      const priorLine = lastApproved?.feeLines.find((l) => l.gradeBandId === band.id && l.feeHeadId === head.id);
-      const baseFee = priorLine?.amount ?? 0;
-      // No stored default to inherit — the increment is a fresh decision every year, set here
-      // via per-line edits or "bulk apply" once the draft exists (see engine/fee.ts's header).
-      const incrementPct = 0;
-      const amount = computeIncrementedFee(baseFee, incrementPct);
-
-      await prisma.feeLine.create({
-        data: { feeVersionId: draft.id, gradeBandId: band.id, feeHeadId: head.id, baseFee, incrementPct, amount },
-      });
-    }
-  }
-
+  await createDraftVersionForSchool(school.id, academicYear, user?.email ?? null);
   revalidatePath(`/schools/${schoolCode}`);
 }
 

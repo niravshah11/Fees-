@@ -2,6 +2,8 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { prisma } from '@/lib/db';
 import { computeGradeBandTotal } from '@/engine/fee';
+import { nextAcademicYear, academicYearOptions } from '@/lib/academic-year';
+import { startNextYearForAllSchools } from './actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,6 +16,19 @@ const STATUS_BADGE: Record<string, string> = {
   REJECTED: 'fh-badge--danger',
   SUPERSEDED: 'fh-badge--neutral',
 };
+
+// A school tile's whole background is tinted by its latest version's status (confirmed with the
+// user): green once approved, yellow while in review, and this third shade — a light brand blue,
+// matching the "Draft / not started" stat card's own tone — for everything else (drafting, no
+// proposal yet, or rejected).
+// `!` forces these to win over .fh-card's own `background` (same specificity, but the vendored
+// design-system CSS loads after Tailwind's utilities in the bundle, so a plain utility class
+// would otherwise lose — verified by inspecting the computed background without `!`).
+const TILE_TONE: Record<string, string> = {
+  APPROVED: '!bg-success-subtle',
+  PENDING_APPROVAL: '!bg-warning-subtle',
+};
+const TILE_TONE_DEFAULT = '!bg-primary-subtle';
 
 function StatCard({
   label,
@@ -63,6 +78,11 @@ export default async function Dashboard() {
   const pendingCount = schools.filter((s) => s.feeVersions[0]?.status === 'PENDING_APPROVAL').length;
   const draftCount = schools.filter((s) => s.feeVersions[0]?.status === 'DRAFT').length;
 
+  const eligibleForNextYear = schools.filter((s) => s.feeVersions[0]?.status === 'APPROVED');
+  const bulkStartYear = eligibleForNextYear.length > 0
+    ? nextAcademicYear([...eligibleForNextYear].map((s) => s.feeVersions[0].academicYear).sort().at(-1)!)
+    : null;
+
   return (
     <div className="space-y-6">
       <div>
@@ -98,6 +118,31 @@ export default async function Dashboard() {
         />
       </div>
 
+      {bulkStartYear && (
+        <section className="fh-card fh-card--accent-top">
+          <form action={startNextYearForAllSchools} className="flex flex-wrap items-end gap-3">
+            <span className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-subtle text-primary sm:flex" aria-hidden>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </span>
+            <div>
+              <label className="fh-label text-xs">Start next year's proposal for all schools</label>
+              <select name="academicYear" className="fh-input" required defaultValue={bulkStartYear}>
+                {academicYearOptions(bulkStartYear, 10).map((year) => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
+              </select>
+            </div>
+            <button type="submit" className="fh-btn fh-btn--primary">Start drafts</button>
+          </form>
+          <p className="mt-2 text-xs text-muted">
+            Creates a draft for every school currently on an approved fee ({eligibleForNextYear.length} of {schools.length}) —
+            schools already mid-draft or in review are left alone.
+          </p>
+        </section>
+      )}
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {schools.map((school) => {
           const approved = school.feeVersions.find((v) => v.status === 'APPROVED');
@@ -110,9 +155,10 @@ export default async function Dashboard() {
               }, new Map<string, typeof approved.feeLines>()).values()].map(computeGradeBandTotal)
             : [];
           const tuitionRange = bandTotals.length > 0 ? [Math.min(...bandTotals), Math.max(...bandTotals)] : null;
+          const tileTone = TILE_TONE[latest?.status ?? ''] ?? TILE_TONE_DEFAULT;
 
           return (
-            <Link key={school.id} href={`/schools/${school.code}`} className="fh-card fh-card--interactive block">
+            <Link key={school.id} href={`/schools/${school.code}`} className={`fh-card fh-card--interactive block ${tileTone}`}>
               <div className="flex items-start justify-between">
                 <div>
                   <div className="fh-card__title text-foreground">{school.code}</div>

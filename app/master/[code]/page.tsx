@@ -119,7 +119,7 @@ export default async function MasterSchool({ params }: { params: Promise<{ code:
 
       {canEdit && (
         <section className="fh-card">
-          <h2 className="font-heading text-lg font-bold text-foreground">Add a new programme stage</h2>
+          <h2 className="fh-card__title text-foreground">Add a new programme stage</h2>
           <form action={createProgrammeStage.bind(null, school.code)} className="mt-3 flex flex-wrap items-end gap-2">
             <div className="flex-1">
               <label className="fh-label text-xs">Programme / stage label</label>

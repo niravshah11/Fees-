@@ -49,8 +49,9 @@ export default async function RightsSettings() {
         </p>
       </div>
 
-      <div className="fh-card">
-        <div className="overflow-x-auto">
+      <section className="fh-card">
+        <h2 className="fh-card__title text-foreground">Current grants</h2>
+        <div className="mt-3 overflow-x-auto">
           <table className="fh-table fh-table--striped">
             <thead>
               <tr>
@@ -103,8 +104,11 @@ export default async function RightsSettings() {
             </tbody>
           </table>
         </div>
+      </section>
 
-        <form action={addRightsGrant} className="mt-4 grid gap-3 sm:grid-cols-5">
+      <section className="fh-card fh-card--accent-top">
+        <h2 className="fh-card__title text-foreground">Add a grant</h2>
+        <form action={addRightsGrant} className="mt-3 grid gap-3 sm:grid-cols-5">
           <input name="name" placeholder="Full name" className="fh-input" required />
           <input name="email" type="email" placeholder="name@fountainheadschools.org" className="fh-input" required />
           <select name="role" className="fh-input" defaultValue="FEES_GROUP_COORDINATOR">
@@ -126,7 +130,7 @@ export default async function RightsSettings() {
           Every role can be scoped to one school or left at "All schools" — a campus-scoped grant
           only acts on that school's approval step, not the whole group's.
         </p>
-      </div>
+      </section>
     </div>
   );
 }

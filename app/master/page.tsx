@@ -23,10 +23,10 @@ export default async function MasterIndex() {
         {schools.map((school) => {
           const bandCount = school.programmeStages.reduce((n, s) => n + s.gradeBands.length, 0);
           return (
-            <Link key={school.id} href={`/master/${school.code}`} className="fh-card block transition-shadow hover:shadow-fh-md">
+            <Link key={school.id} href={`/master/${school.code}`} className="fh-card fh-card--interactive block">
               <div className="flex items-start justify-between">
                 <div>
-                  <div className="font-heading text-lg font-bold text-foreground">{school.code}</div>
+                  <div className="fh-card__title text-foreground">{school.code}</div>
                   <div className="text-sm text-muted">{school.name}</div>
                 </div>
                 <span className="fh-badge">{school.board}</span>
