@@ -113,8 +113,13 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
       </div>
 
       {current && approvedForCurrentYear && !hasOpenDraftOrReview && canDraft && (
-        <section className="fh-card">
-          <form action={createDraftVersion.bind(null, school.code)} className="flex items-end gap-2">
+        <section className="fh-card fh-card--accent-top">
+          <form action={createDraftVersion.bind(null, school.code)} className="flex flex-wrap items-end gap-3">
+            <span className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-subtle text-primary sm:flex" aria-hidden>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </span>
             <div>
               <label className="fh-label text-xs">Start next year's proposal</label>
               <select name="academicYear" className="fh-input" required defaultValue={nextAcademicYear(current.academicYear)}>
@@ -133,7 +138,7 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
           copy of the same edit forms. */}
       <section className="fh-card">
         <div className="flex items-center justify-between">
-          <h2 className="font-heading text-lg font-bold text-foreground">Grade bands &amp; programme stages</h2>
+          <h2 className="fh-card__title text-foreground">Grade bands &amp; programme stages</h2>
           <Link href={`/master/${school.code}`} className="fh-btn fh-btn--outline fh-btn--sm">Edit in Master data</Link>
         </div>
 
@@ -160,7 +165,7 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
       {/* Current proposal */}
       <section className="fh-card">
         <div className="flex items-center justify-between">
-          <h2 className="font-heading text-lg font-bold text-foreground">Current proposal</h2>
+          <h2 className="fh-card__title text-foreground">Current proposal</h2>
           {current && (
             <span className={`fh-badge ${STATUS_BADGE[current.status] ?? ''}`}>{current.status.replace('_', ' ')}</span>
           )}
@@ -205,7 +210,7 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
                         <div className="font-heading font-bold text-foreground">{gradeBand.label}</div>
                         <div className="text-sm">
                           <span className="text-muted">{totalHead ? `${totalHead.label} ` : 'Total '}</span>
-                          <span className="font-heading font-bold text-foreground">{inr.format(total)}</span>
+                          <span className="font-heading text-base font-bold text-[var(--fh-color-primary-text)]">{inr.format(total)}</span>
                         </div>
                       </div>
                       {totalHead && (
@@ -313,7 +318,7 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
 
         return (
           <section className="fh-card">
-            <h2 className="font-heading text-lg font-bold text-foreground">5-year projection preview</h2>
+            <h2 className="fh-card__title text-foreground">5-year projection preview</h2>
             <p className="mt-1 text-sm text-muted">
               Each grade band's current total — the sum of every fee head{totalHead ? ` except ${totalHead.label}, which is calculated from the others` : ''}
               {' '}— compounded forward at each head's own current increment %. Preview only — not
@@ -349,7 +354,7 @@ export default async function SchoolWorkspace({ params }: { params: Promise<{ co
       {/* History */}
       {history.length > 0 && (
         <section className="fh-card">
-          <h2 className="font-heading text-lg font-bold text-foreground">History</h2>
+          <h2 className="fh-card__title text-foreground">History</h2>
           <div className="mt-3 overflow-x-auto">
             <table className="fh-table fh-table--striped">
               <thead>

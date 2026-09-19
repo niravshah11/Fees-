@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 import { prisma } from '@/lib/db';
 import { computeGradeBandTotal } from '@/engine/fee';
 
@@ -13,6 +14,38 @@ const STATUS_BADGE: Record<string, string> = {
   REJECTED: 'fh-badge--danger',
   SUPERSEDED: 'fh-badge--neutral',
 };
+
+function StatCard({
+  label,
+  value,
+  tone,
+  icon,
+}: {
+  label: string;
+  value: number;
+  tone?: 'success' | 'warning';
+  icon: ReactNode;
+}) {
+  const toneClass = tone === 'success' ? 'fh-stat--success' : tone === 'warning' ? 'fh-stat--warning' : '';
+  const iconToneClass =
+    tone === 'success' ? 'bg-success-subtle text-success' : tone === 'warning' ? 'bg-warning-subtle text-warning' : 'bg-primary-subtle text-primary';
+
+  return (
+    <div className={`fh-stat ${toneClass}`}>
+      <div className="flex items-center gap-3">
+        <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${iconToneClass}`} aria-hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+            {icon}
+          </svg>
+        </span>
+        <div>
+          <span className="fh-stat__label block">{label}</span>
+          <span className="fh-stat__value">{value}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default async function Dashboard() {
   const schools = await prisma.school.findMany({
@@ -41,22 +74,28 @@ export default async function Dashboard() {
       </div>
 
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-        <div className="fh-stat items-center text-center">
-          <span className="fh-stat__label">Schools</span>
-          <span className="fh-stat__value">{schools.length}</span>
-        </div>
-        <div className="fh-stat fh-stat--success items-center text-center">
-          <span className="fh-stat__label">Approved fee</span>
-          <span className="fh-stat__value">{approvedCount}</span>
-        </div>
-        <div className="fh-stat fh-stat--warning items-center text-center">
-          <span className="fh-stat__label">In review</span>
-          <span className="fh-stat__value">{pendingCount}</span>
-        </div>
-        <div className="fh-stat items-center text-center">
-          <span className="fh-stat__label">Draft / not started</span>
-          <span className="fh-stat__value">{draftCount}</span>
-        </div>
+        <StatCard
+          label="Schools"
+          value={schools.length}
+          icon={<><path d="M5 21V7l7-4 7 4v14" /><path d="M3 21h18" /><path d="M9 21v-4a3 3 0 0 1 6 0v4" /></>}
+        />
+        <StatCard
+          label="Approved fee"
+          value={approvedCount}
+          tone="success"
+          icon={<><circle cx="12" cy="12" r="10" /><path d="m9 12 2 2 4-4" /></>}
+        />
+        <StatCard
+          label="In review"
+          value={pendingCount}
+          tone="warning"
+          icon={<><circle cx="12" cy="12" r="10" /><path d="M12 7v5l3 3" /></>}
+        />
+        <StatCard
+          label="Draft / not started"
+          value={draftCount}
+          icon={<><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></>}
+        />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -73,10 +112,10 @@ export default async function Dashboard() {
           const tuitionRange = bandTotals.length > 0 ? [Math.min(...bandTotals), Math.max(...bandTotals)] : null;
 
           return (
-            <Link key={school.id} href={`/schools/${school.code}`} className="fh-card block transition-shadow hover:shadow-fh-md">
+            <Link key={school.id} href={`/schools/${school.code}`} className="fh-card fh-card--interactive block">
               <div className="flex items-start justify-between">
                 <div>
-                  <div className="font-heading text-lg font-bold text-foreground">{school.code}</div>
+                  <div className="fh-card__title text-foreground">{school.code}</div>
                   <div className="text-sm text-muted">{school.name}</div>
                 </div>
                 <span className="fh-badge">{school.board}</span>
