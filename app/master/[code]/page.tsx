@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { STANDARD_GRADES } from '@/lib/grades';
-import { Tabs } from './_Tabs';
+import { Tabs } from '@/app/_Tabs';
 import {
   createProgrammeStage,
   updateProgrammeStage,

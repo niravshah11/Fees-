@@ -37,6 +37,40 @@ export default async function MasterIndex() {
         </p>
       </div>
 
+      {isAdmin && (
+        <section className="fh-card fh-card--accent-top">
+          <h2 className="fh-card__title text-foreground">Add a new campus</h2>
+          <form action={createSchool} className="mt-3 grid gap-3 sm:grid-cols-4">
+            <div>
+              <label className="fh-label text-xs">Code</label>
+              <input name="code" placeholder="e.g. FNEW" maxLength={10} className="fh-input" required />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="fh-label text-xs">Name</label>
+              <input name="name" placeholder="Fountainhead ..." className="fh-input" required />
+            </div>
+            <div>
+              <label className="fh-label text-xs">Board</label>
+              <select name="board" className="fh-input" required defaultValue="IB">
+                <option value="IB">IB</option>
+                <option value="CBSE">CBSE</option>
+              </select>
+            </div>
+            <div className="sm:col-span-3">
+              <label className="fh-label text-xs">Staff email domain (optional)</label>
+              <input name="domain" placeholder="e.g. fnew.in" className="fh-input" />
+            </div>
+            <div className="flex items-end">
+              <button type="submit" className="fh-btn fh-btn--primary w-full">Add campus</button>
+            </div>
+          </form>
+          <p className="mt-2 text-xs text-muted">
+            The code becomes this campus's URL and can't be changed later. Set up its programme
+            stages, grade bands, and fee heads on its own Master data page once it's created.
+          </p>
+        </section>
+      )}
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {schools.map((school) => {
           const bandCount = school.programmeStages.reduce((n, s) => n + s.gradeBands.length, 0);
@@ -66,7 +100,10 @@ export default async function MasterIndex() {
                     </div>
                     <div>
                       <label className="fh-label text-xs">Board</label>
-                      <input name="board" defaultValue={school.board} className="fh-input fh-input--sm w-full" required />
+                      <select name="board" defaultValue={school.board} className="fh-input fh-input--sm w-full" required>
+                        <option value="IB">IB</option>
+                        <option value="CBSE">CBSE</option>
+                      </select>
                     </div>
                     <div>
                       <label className="fh-label text-xs">Staff email domain</label>
@@ -89,37 +126,6 @@ export default async function MasterIndex() {
           );
         })}
       </div>
-
-      {isAdmin && (
-        <section className="fh-card fh-card--accent-top">
-          <h2 className="fh-card__title text-foreground">Add a new campus</h2>
-          <form action={createSchool} className="mt-3 grid gap-3 sm:grid-cols-4">
-            <div>
-              <label className="fh-label text-xs">Code</label>
-              <input name="code" placeholder="e.g. FNEW" maxLength={10} className="fh-input" required />
-            </div>
-            <div className="sm:col-span-2">
-              <label className="fh-label text-xs">Name</label>
-              <input name="name" placeholder="Fountainhead ..." className="fh-input" required />
-            </div>
-            <div>
-              <label className="fh-label text-xs">Board</label>
-              <input name="board" placeholder="IB" className="fh-input" required />
-            </div>
-            <div className="sm:col-span-3">
-              <label className="fh-label text-xs">Staff email domain (optional)</label>
-              <input name="domain" placeholder="e.g. fnew.in" className="fh-input" />
-            </div>
-            <div className="flex items-end">
-              <button type="submit" className="fh-btn fh-btn--primary w-full">Add campus</button>
-            </div>
-          </form>
-          <p className="mt-2 text-xs text-muted">
-            The code becomes this campus's URL and can't be changed later. Set up its programme
-            stages, grade bands, and fee heads on its own Master data page once it's created.
-          </p>
-        </section>
-      )}
     </div>
   );
 }
